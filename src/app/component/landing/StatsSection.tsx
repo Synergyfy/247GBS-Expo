@@ -39,7 +39,7 @@ export default function StatsSection() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => (
               <div key={stat.id} className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-[#D41A5C] mb-4">
+                <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 mb-4">
                   <stat.icon className="w-6 h-6" />
                 </div>
                 <div className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-1">

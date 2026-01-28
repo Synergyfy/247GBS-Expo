@@ -41,24 +41,24 @@ const events = [
 
 export default function SeasonalEvents() {
   return (
-    <section id="whats-on" className="py-24 bg-slate-900 text-white relative overflow-hidden">
+    <section id="whats-on" className="py-24 bg-white text-slate-900 relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-50 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div className="max-w-2xl">
-            <h2 className="text-[#D41A5C] font-bold tracking-wide uppercase text-sm mb-3">
+            <h2 className="text-orange-600 font-bold tracking-wide uppercase text-sm mb-3">
               Seasonal Highlights
             </h2>
             <h3 className="text-3xl md:text-5xl font-bold mb-4">
               Mark Your Calendar
             </h3>
-            <p className="text-slate-400 text-lg">
+            <p className="text-slate-600 text-lg">
               While our platform is open 24/7, these special seasonal exhibitions bring focused traffic, live events, and exclusive launches.
             </p>
           </div>
-          <a href="#" className="flex items-center gap-2 text-white font-semibold hover:text-[#D41A5C] transition-colors">
+          <a href="#" className="flex items-center gap-2 text-slate-900 font-semibold hover:text-orange-600 transition-colors">
             View Full Schedule <ArrowRight className="w-4 h-4" />
           </a>
         </div>
@@ -67,24 +67,24 @@ export default function SeasonalEvents() {
           {events.map((event, index) => (
             <div
               key={index}
-              className={`bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-[#D41A5C] transition-all duration-300 group hover:-translate-y-2`}
+              className={`bg-white rounded-2xl p-6 border border-slate-200 hover:border-orange-600 transition-all duration-300 group hover:-translate-y-2 hover:shadow-xl shadow-sm`}
             >
               <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${event.bg} ${event.color}`}>
                 {event.season}
               </div>
-              <h4 className="text-xl font-bold mb-2 group-hover:text-[#D41A5C] transition-colors">
+              <h4 className="text-xl font-bold mb-2 group-hover:text-orange-600 transition-colors">
                 {event.title}
               </h4>
-              <div className="flex items-center gap-2 text-slate-400 mb-4 text-sm">
+              <div className="flex items-center gap-2 text-slate-500 mb-4 text-sm">
                 <CalendarDays className="w-4 h-4" />
                 {event.dates}
               </div>
-              <div className="pt-4 border-t border-slate-700 flex justify-between items-center">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                   {event.status}
                 </span>
-                <button className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center group-hover:bg-[#D41A5C] transition-colors">
-                  <ArrowRight className="w-4 h-4 text-white" />
+                <button className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-orange-600 transition-colors">
+                  <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-white" />
                 </button>
               </div>
             </div>

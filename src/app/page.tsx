@@ -11,7 +11,7 @@ import Footer from "@/app/component/landing/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white font-sans selection:bg-pink-100 selection:text-pink-900">
+    <main className="min-h-screen bg-white font-sans selection:bg-orange-100 selection:text-orange-900">
       <Navbar />
       <Hero />
       <StatsSection />
@@ -21,14 +21,14 @@ export default function Home() {
       <UserJourney />
       
       {/* CTA Section */}
-      <section className="py-24 bg-[#D41A5C] text-white text-center">
+      <section className="py-24 bg-orange-600 text-white text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Join the Revolution?</h2>
-          <p className="text-xl text-pink-100 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-orange-100 mb-10 max-w-2xl mx-auto">
             Whether you are a global brand or a smart shopper, there is a place for you in our digital economy.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-white text-[#D41A5C] px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-100 transition-colors shadow-xl">
+            <button className="bg-white text-orange-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-100 transition-colors shadow-xl">
               Get Started for Free
             </button>
             <button className="bg-slate-900 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl border border-slate-700">

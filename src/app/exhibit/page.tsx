@@ -9,14 +9,14 @@ export default function ExhibitPage() {
       <Navbar />
       
       {/* Header */}
-      <section className="pt-32 pb-20 bg-slate-900 text-white text-center">
+      <section className="pt-32 pb-20 bg-orange-600 text-white text-center">
         <div className="container mx-auto px-4">
-          <span className="text-orange-500 font-bold tracking-wider uppercase text-sm mb-4 block">For Businesses</span>
+          <span className="text-orange-100 font-bold tracking-wider uppercase text-sm mb-4 block">For Businesses</span>
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             Exhibit to the World.<br />
-            <span className="text-orange-500">Never Close Shop.</span>
+            <span className="text-white">Never Close Shop.</span>
           </h1>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10">
+          <p className="text-xl text-orange-50 max-w-2xl mx-auto mb-10">
             Secure your permanent digital booth in the global marketplace. 
             Capture leads, sell products, and build loyalty 24/7/365.
           </p>

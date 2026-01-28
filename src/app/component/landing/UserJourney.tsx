@@ -66,7 +66,7 @@ export default function UserJourney() {
               </ul>
               <Link
                 href="/get-started"
-                className="inline-flex items-center justify-center w-full md:w-auto px-8 py-4 bg-[#D41A5C] text-white rounded-full font-bold hover:bg-[#b0154c] transition-colors shadow-lg shadow-pink-500/20"
+                className="inline-flex items-center justify-center w-full md:w-auto px-8 py-4 bg-orange-600 text-white rounded-full font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20"
               >
                 Join for Free <ArrowRight className="ml-2 w-5 h-5" />
               </Link>

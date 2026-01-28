@@ -31,14 +31,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-[#D41A5C] rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-105 transition-transform shadow-lg shadow-orange-600/20">
               E
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-slate-900 text-lg leading-tight tracking-tight">
                 247GBS
               </span>
-              <span className="text-xs text-slate-500 font-medium tracking-wide">
+              <span className="text-xs text-orange-600 font-bold tracking-wide">
                 DIGITAL EXPO
               </span>
             </div>
@@ -50,7 +50,7 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-sm font-semibold text-slate-700 hover:text-[#D41A5C] transition-colors"
+                className="text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors"
               >
                 {link.name}
               </Link>
@@ -59,12 +59,12 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            <button className="p-2 text-slate-600 hover:text-[#D41A5C] transition-colors">
+            <button className="p-2 text-slate-600 hover:text-orange-600 transition-colors">
               <Search className="w-5 h-5" />
             </button>
             <Link
               href="/tickets"
-              className="bg-[#D41A5C] text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#b0154c] transition-colors shadow-lg shadow-pink-500/30"
+              className="bg-orange-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/30"
             >
               Tickets
             </Link>
@@ -94,7 +94,7 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-base font-semibold text-slate-700 hover:text-[#D41A5C]"
+                  className="text-base font-semibold text-slate-700 hover:text-orange-600"
                 >
                   {link.name}
                 </Link>
@@ -103,7 +103,7 @@ export default function Navbar() {
               <div className="flex flex-col gap-3">
                 <Link
                   href="/tickets"
-                  className="bg-[#D41A5C] text-white px-6 py-3 rounded-full text-center font-bold hover:bg-[#b0154c]"
+                  className="bg-orange-600 text-white px-6 py-3 rounded-full text-center font-bold hover:bg-orange-700"
                 >
                   Get Tickets
                 </Link>

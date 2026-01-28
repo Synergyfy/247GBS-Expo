@@ -49,7 +49,7 @@ export default function CoreSystems() {
           </h2>
           <h3 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
             More Than Just a Website.<br />
-            A Complete <span className="text-[#D41A5C]">Digital Economy</span>.
+            A Complete <span className="text-orange-600">Digital Economy</span>.
           </h3>
           <p className="text-lg text-slate-600 leading-relaxed">
             We provide the tools for businesses to thrive and customers to earn. 
