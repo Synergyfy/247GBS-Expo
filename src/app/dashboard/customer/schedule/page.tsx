@@ -144,7 +144,7 @@ export default function SchedulePage() {
                         <Download className="w-4 h-4" />
                         Download PDF
                     </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-orange-600 transition-all shadow-lg shadow-slate-900/10">
+                    <button className="flex items-center gap-2 px-5 py-2.5 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-600 transition-all shadow-lg shadow-slate-900/10">
                         <Bell className="w-4 h-4" />
                         Set Reminders
                     </button>
@@ -154,9 +154,9 @@ export default function SchedulePage() {
             {/* Quick Actions / Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                    { label: "Current Session", val: "AI in Customer Support", icon: Play, color: "bg-teal-50 text-teal-600" },
+                    { label: "Current Session", val: "AI in Customer Support", icon: Play, color: "bg-orange-50 text-orange-600" },
                     { label: "Up Next", val: "NextGen CRM Demo", icon: Timer, color: "bg-orange-50 text-orange-600" },
-                    { label: "My Sessions", val: "3 Booked", icon: Star, color: "bg-purple-50 text-purple-600" },
+                    { label: "My Sessions", val: "3 Booked", icon: Star, color: "bg-orange-50 text-orange-600" },
                 ].map((stat, i) => (
                     <motion.div
                         key={i}
@@ -248,9 +248,9 @@ export default function SchedulePage() {
                                     {/* Content */}
                                     <div className="flex-1 space-y-3">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${event.type === 'Keynote' ? 'bg-purple-100 text-purple-700' :
-                                                event.type === 'Demo' ? 'bg-blue-100 text-blue-700' :
-                                                    event.type === 'Workshop' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-700'
+                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${event.type === 'Keynote' ? 'bg-orange-100 text-orange-700' :
+                                                event.type === 'Demo' ? 'bg-orange-50 text-orange-600' :
+                                                    event.type === 'Workshop' ? 'bg-orange-50 text-orange-600' : 'bg-slate-100 text-slate-700'
                                                 }`}>
                                                 {event.type}
                                             </span>

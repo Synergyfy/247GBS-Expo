@@ -12,7 +12,7 @@ export default function CustomerDashboard() {
     return (
         <>
             {/* WELCOME BANNER */}
-            <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white p-10 mb-12 shadow-2xl">
+            <div className="relative rounded-3xl overflow-hidden bg-orange-600 text-white p-10 mb-12 shadow-2xl">
                 <div className="absolute inset-0 opacity-40">
                     <Image
                         src="/main_stage_banner.png"
@@ -43,7 +43,7 @@ export default function CustomerDashboard() {
                         <h2 className="text-2xl font-bold text-slate-900">Featured Booths</h2>
                         <p className="text-slate-500">Top exhibitors chosen for you</p>
                     </div>
-                    <a href="/dashboard/customer/booths" className="text-teal-600 font-semibold hover:underline">View All</a>
+                    <a href="/dashboard/customer/booths" className="text-orange-600 font-semibold hover:underline">View All</a>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -67,7 +67,7 @@ export default function CustomerDashboard() {
                                     <span className="bg-slate-100 px-2 py-1 rounded">SaaS</span>
                                     <span className="bg-slate-100 px-2 py-1 rounded">Cloud</span>
                                 </div>
-                                <Link href="/dashboard/customer/booths/101" className="text-teal-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
+                                <Link href="/dashboard/customer/booths/101" className="text-orange-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
                             </div>
                         </div>
                     ))}
@@ -84,7 +84,7 @@ export default function CustomerDashboard() {
                             { time: "02:00 PM", title: "Design Systems Workshop", status: "Registered" },
                         ].map((event, i) => (
                             <div key={i} className="flex items-center gap-4">
-                                <div className="bg-teal-50 text-teal-700 font-bold px-3 py-2 rounded-lg text-sm text-center min-w-[80px]">
+                                <div className="bg-orange-50 text-orange-700 font-bold px-3 py-2 rounded-lg text-sm text-center min-w-[80px]">
                                     {event.time}
                                 </div>
                                 <div>
@@ -96,13 +96,13 @@ export default function CustomerDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl p-6 text-white relative overflow-hidden">
+                <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl p-6 text-white relative overflow-hidden shadow-2xl">
                     <div className="relative z-10">
                         <h3 className="font-bold text-lg text-white/90 mb-1">Expo Wallet</h3>
                         <div className="text-4xl font-bold mb-6">£1,250.00</div>
                         <div className="flex gap-3">
                             <button className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-medium transition-colors">History</button>
-                            <button className="bg-white text-teal-600 px-4 py-2 rounded-lg font-bold shadow-lg">Top Up</button>
+                            <button className="bg-white text-orange-600 px-4 py-2 rounded-lg font-bold shadow-lg active:scale-95 transition-transform">Top Up</button>
                         </div>
                     </div>
                     {/* Decor */}

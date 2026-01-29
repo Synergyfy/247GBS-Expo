@@ -14,14 +14,8 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent" />
       </div>
 
-      <div className="container relative z-10 px-4 md:px-6 py-20">
+      <div className="container relative z-10 px-4 md:px-6 pt-40 pb-20">
         <div className="max-w-4xl">
-          {/* Event Badge */}
-          <div className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-full font-bold text-sm mb-6 animate-in slide-in-from-left-4 duration-700">
-            <Calendar className="w-4 h-4" />
-            <span>NEXT SEASONAL EVENT: APRIL 10-19, 2026</span>
-          </div>
-
           {/* Main Heading */}
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 animate-in slide-in-from-bottom-4 duration-700 delay-100">
             The World's First <br />

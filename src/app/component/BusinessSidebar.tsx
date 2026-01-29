@@ -32,10 +32,10 @@ export default function BusinessSidebar({ isOpen }: SidebarProps) {
     const pathname = usePathname();
 
     return (
-        <aside className={`bg-slate-900 text-white transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'} fixed h-full z-20 flex flex-col`}>
-            <div className="p-6 flex items-center gap-3 border-b border-slate-800">
+        <aside className={`bg-orange-600 text-white transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'} fixed h-full z-20 flex flex-col`}>
+            <div className="p-6 flex items-center gap-3 border-b border-orange-500">
                 <Link href="/dashboard/business" className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">E</div>
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-orange-600 font-bold shrink-0">E</div>
                     {isOpen && <span className="font-bold text-lg tracking-tight">Exhibitor Hub</span>}
                 </Link>
             </div>
@@ -54,7 +54,7 @@ export default function BusinessSidebar({ isOpen }: SidebarProps) {
                         : pathname.startsWith(item.href);
 
                     return (
-                        <Link key={i} href={item.href} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${isActive ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+                        <Link key={i} href={item.href} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${isActive ? 'bg-white text-orange-600 shadow-lg shadow-orange-900/20' : 'text-orange-50 hover:bg-orange-700/40 hover:text-white'}`}>
                             <div className="shrink-0">{item.icon}</div>
                             {isOpen && (
                                 <span className="flex-1 font-medium">{item.label}</span>
@@ -67,15 +67,15 @@ export default function BusinessSidebar({ isOpen }: SidebarProps) {
                 })}
             </nav>
 
-            <div className="p-4 border-t border-slate-800">
-                <button className="flex items-center gap-3 text-slate-400 hover:text-white w-full">
-                    <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden relative">
+            <div className="p-4 border-t border-orange-500">
+                <button className="flex items-center gap-3 text-orange-50 hover:text-white w-full">
+                    <div className="w-8 h-8 rounded-full bg-orange-700 overflow-hidden relative">
                         <Image src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop" alt="User" fill className="object-cover" />
                     </div>
                     {isOpen && (
                         <div className="text-left">
-                            <div className="text-sm font-medium">Acme Corp</div>
-                            <div className="text-xs">Premium Plan</div>
+                            <div className="text-sm font-medium text-white">Acme Corp</div>
+                            <div className="text-xs text-orange-200">Premium Plan</div>
                         </div>
                     )}
                 </button>

@@ -18,7 +18,7 @@ export default function BoothsCatalogPage() {
                 {categories.map((cat, i) => (
                     <button
                         key={i}
-                        className={`px-5 py-2.5 rounded-full font-medium transition-colors ${i === 0 ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/20' : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-500 hover:text-teal-600'}`}
+                        className={`px-5 py-2.5 rounded-full font-medium transition-colors ${i === 0 ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'bg-white text-slate-600 border border-slate-200 hover:border-orange-500 hover:text-orange-600'}`}
                     >
                         {cat}
                     </button>
@@ -39,7 +39,7 @@ export default function BoothsCatalogPage() {
                             <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md text-slate-900">
                                 BOOTH A-{100 + i}
                             </div>
-                            <div className="absolute top-3 left-3 bg-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded">
+                            <div className="absolute top-3 left-3 bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded">
                                 LIVE NOW
                             </div>
                         </div>
@@ -62,7 +62,7 @@ export default function BoothsCatalogPage() {
                                 <span className="bg-slate-100 px-2 py-1 rounded">SaaS</span>
                                 <span className="bg-slate-100 px-2 py-1 rounded">Cloud</span>
                             </div>
-                            <Link href="/dashboard/customer/booths/101" className="text-teal-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
+                            <Link href="/dashboard/customer/booths/101" className="text-orange-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
                         </div>
                     </div>
                 ))}

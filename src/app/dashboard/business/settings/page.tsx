@@ -46,7 +46,7 @@ export default function SettingsPage() {
 
                 <div className="p-8 bg-slate-50 flex justify-end gap-4">
                     <button className="text-slate-500 font-bold px-6 py-3 hover:text-slate-700">Cancel</button>
-                    <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 shadow-lg">Save Changes</button>
+                    <button className="bg-orange-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 shadow-lg">Save Changes</button>
                 </div>
             </div>
         </div>

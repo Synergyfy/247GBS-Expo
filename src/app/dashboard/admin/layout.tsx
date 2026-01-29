@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* MAIN CONTENT WRAPPER */}
             <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} relative`}>
                 {/* Top Header Placeholder / Blur background */}
-                <div className="absolute top-0 w-full h-64 bg-gradient-to-b from-slate-200 to-transparent pointer-events-none -z-0 opacity-50"></div>
+                <div className="absolute top-0 w-full h-64 bg-gradient-to-b from-orange-50 to-transparent pointer-events-none -z-0 opacity-50"></div>
 
                 <div className="relative z-10 p-8">
                     {children}

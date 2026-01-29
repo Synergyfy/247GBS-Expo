@@ -36,7 +36,7 @@ export default function RewardsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* WALLET CARD */}
-                <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl lg:col-span-1 ring-1 ring-white/20">
+                <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl lg:col-span-1 ring-1 ring-white/20">
                     <div className="relative z-10 flex flex-col h-full justify-between">
                         <div>
                             <div className="flex items-center gap-2 mb-4">
@@ -46,7 +46,7 @@ export default function RewardsPage() {
                             <div className="text-5xl font-bold mb-8">£1,250.00</div>
                         </div>
                         <div className="space-y-3 mt-auto">
-                            <button className="w-full bg-white text-teal-700 py-3.5 rounded-xl font-bold shadow-lg hover:bg-slate-100 transition-all active:scale-[0.98]">
+                            <button className="w-full bg-white text-orange-700 py-3.5 rounded-xl font-bold shadow-lg hover:bg-slate-100 transition-all active:scale-[0.98]">
                                 Top Up Wallet
                             </button>
                             <button className="w-full bg-white/20 py-3.5 rounded-xl font-bold hover:bg-white/30 transition-all backdrop-blur-sm active:scale-[0.98]">
@@ -56,14 +56,14 @@ export default function RewardsPage() {
                     </div>
                     {/* Decorative Shapes */}
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-                    <div className="absolute -left-10 -top-10 w-32 h-32 bg-emerald-400/20 rounded-full blur-2xl"></div>
+                    <div className="absolute -left-10 -top-10 w-32 h-32 bg-orange-400/20 rounded-full blur-2xl"></div>
                 </div>
 
                 {/* RECENT ORDERS */}
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 lg:col-span-2">
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="font-bold text-xl text-slate-900">Recent Orders</h3>
-                        <button className="text-sm font-semibold text-teal-600 hover:text-teal-700">View All</button>
+                        <button className="text-sm font-semibold text-orange-600 hover:text-orange-700">View All</button>
                     </div>
                     <div className="space-y-6">
                         {orders.map((order, i) => (
@@ -78,14 +78,14 @@ export default function RewardsPage() {
                                     </div>
                                     <p className="text-sm text-slate-500 mb-2">Order {order.id}</p>
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${order.type === 'DIGITAL ITEM' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${order.type === 'DIGITAL ITEM' ? 'bg-orange-100 text-orange-700' : 'bg-orange-50 text-orange-600'}`}>
                                             {order.type}
                                         </span>
                                         <span className="text-xs text-slate-400">• {order.date}</span>
                                     </div>
                                 </div>
                                 <div className="shrink-0 flex items-center">
-                                    <button className="flex items-center gap-2 text-teal-600 font-bold text-sm bg-teal-50 px-5 py-2.5 rounded-xl hover:bg-teal-100 transition-colors">
+                                    <button className="flex items-center gap-2 text-orange-600 font-bold text-sm bg-orange-50 px-5 py-2.5 rounded-xl hover:bg-orange-100 transition-colors">
                                         {order.type === 'DIGITAL ITEM' ? (
                                             <><DownloadIcon className="w-4 h-4" /> Download</>
                                         ) : 'Manage Session'}
@@ -125,11 +125,11 @@ export default function RewardsPage() {
                                         <div className="text-[10px] text-slate-400 font-medium tracking-tight">REFERENCE: {Math.random().toString(36).substring(7).toUpperCase()}</div>
                                     </td>
                                     <td className="py-5">
-                                        <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold">
+                                        <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold">
                                             {tx.status}
                                         </span>
                                     </td>
-                                    <td className={`py-5 text-sm font-bold text-right ${tx.isCredit ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                    <td className={`py-5 text-sm font-bold text-right ${tx.isCredit ? 'text-orange-600' : 'text-slate-900'}`}>
                                         {tx.amount}
                                     </td>
                                 </tr>
@@ -150,7 +150,7 @@ export default function RewardsPage() {
                 <p className="text-slate-500 max-w-lg mx-auto mb-8">
                     Participate in live sessions, review booths, and earn points that can be redeemed for exclusive exhibition vouchers.
                 </p>
-                <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold opacity-50 cursor-not-allowed">
+                <button className="bg-orange-600 text-white px-8 py-3 rounded-xl font-bold opacity-50 cursor-not-allowed">
                     Join Rewards Program
                 </button>
             </div>

@@ -38,11 +38,11 @@ export default function ModerationSupportPage() {
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab.toLowerCase())}
-                        className={`pb-6 text-sm font-black uppercase tracking-widest transition-all relative ${activeTab === tab.toLowerCase() ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-900'}`}
+                        className={`pb-6 text-sm font-black uppercase tracking-widest transition-all relative ${activeTab === tab.toLowerCase() ? 'text-orange-600' : 'text-slate-400 hover:text-slate-900'}`}
                     >
                         {tab}
                         {activeTab === tab.toLowerCase() && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full shadow-[0_-2px_8px_rgba(79,70,229,0.3)]"></div>
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-600 rounded-t-full shadow-[0_-2px_8px_rgba(79,70,229,0.3)]"></div>
                         )}
                     </button>
                 ))}
@@ -55,13 +55,13 @@ export default function ModerationSupportPage() {
                         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
                             <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                                 <h3 className="font-black text-slate-900 uppercase text-lg">Active Desk</h3>
-                                <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">3 Open Tickets</span>
+                                <span className="text-[10px] font-black uppercase text-orange-400 tracking-widest">3 Open Tickets</span>
                             </div>
                             <div className="divide-y divide-slate-100">
                                 {tickets.map((t) => (
                                     <div key={t.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                                         <div className="flex items-center gap-4">
-                                            <div className={`p-3 rounded-xl ${t.priority === 'High' ? 'bg-red-50 text-red-600' : t.priority === 'Medium' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'}`}>
+                                            <div className={`p-3 rounded-xl ${t.priority === 'High' ? 'bg-red-50 text-red-600' : t.priority === 'Medium' ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400'}`}>
                                                 <ChatIcon className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -70,8 +70,8 @@ export default function ModerationSupportPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-6">
-                                            <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase ${t.status === 'Open' ? 'border-indigo-100 text-indigo-700' : 'border-slate-200 text-slate-400'}`}>{t.status}</span>
-                                            <button className="text-xs font-black text-indigo-600 uppercase hover:underline">View</button>
+                                            <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase ${t.status === 'Open' ? 'border-orange-100 text-orange-700' : 'border-slate-200 text-slate-400'}`}>{t.status}</span>
+                                            <button className="text-xs font-black text-orange-600 uppercase hover:underline">View</button>
                                         </div>
                                     </div>
                                 ))}
@@ -95,7 +95,7 @@ export default function ModerationSupportPage() {
                                                 <span>Seller: {d.seller}</span>
                                             </div>
                                         </div>
-                                        <button className="bg-slate-950 text-white px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-colors">Mediate</button>
+                                        <button className="bg-orange-600 text-white px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-colors">Mediate</button>
                                     </div>
                                 ))}
                             </div>
@@ -105,13 +105,13 @@ export default function ModerationSupportPage() {
 
                 <div className="lg:col-span-1 space-y-8">
                     {/* POLICY SNAPSHOT */}
-                    <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-indigo-900/20 relative overflow-hidden">
+                    <div className="bg-orange-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-orange-900/20 relative overflow-hidden">
                         <div className="relative z-10">
-                            <h4 className="font-black uppercase text-xs text-indigo-200 tracking-widest mb-6">Moderator Quick-Takedown</h4>
+                            <h4 className="font-black uppercase text-xs text-orange-200 tracking-widest mb-6">Moderator Quick-Takedown</h4>
                             <p className="text-sm font-medium text-white/80 leading-relaxed mb-8">
                                 Instantly disable any booth or product that violates platform T&Cs. Merchant will be notified via automated mediation email.
                             </p>
-                            <input type="text" placeholder="Enter Booth ID..." className="w-full bg-indigo-900/20 border border-indigo-400 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-indigo-300 outline-none mb-4" />
+                            <input type="text" placeholder="Enter Booth ID..." className="w-full bg-orange-900/20 border border-orange-400 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-orange-300 outline-none mb-4" />
                             <button className="w-full bg-white text-red-600 py-3 rounded-xl font-black uppercase text-xs shadow-lg hover:bg-slate-50 transition-colors">
                                 Disable Instantly
                             </button>
@@ -135,7 +135,7 @@ export default function ModerationSupportPage() {
                                     <span>98.2%</span>
                                 </div>
                                 <div className="w-full bg-slate-100 rounded-full h-1.5">
-                                    <div className="bg-indigo-600 h-1.5 rounded-full w-[98.2%] shadow-sm shadow-indigo-200"></div>
+                                    <div className="bg-orange-600 h-1.5 rounded-full w-[98.2%] shadow-sm shadow-orange-200"></div>
                                 </div>
                             </div>
                             <div>
@@ -144,7 +144,7 @@ export default function ModerationSupportPage() {
                                     <span>AA+ (Trust)</span>
                                 </div>
                                 <div className="w-full bg-slate-100 rounded-full h-1.5">
-                                    <div className="bg-emerald-500 h-1.5 rounded-full w-[85%]"></div>
+                                    <div className="bg-orange-500 h-1.5 rounded-full w-[85%]"></div>
                                 </div>
                             </div>
                         </div>

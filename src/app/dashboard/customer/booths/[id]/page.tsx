@@ -58,7 +58,7 @@ export default function VirtualBoothPage() {
     return (
         <div className="max-w-7xl mx-auto pb-20">
             {/* Back Button */}
-            <Link href="/dashboard/customer/booths" className="inline-flex items-center gap-2 text-slate-500 hover:text-teal-600 font-medium mb-6 transition-colors">
+            <Link href="/dashboard/customer/booths" className="inline-flex items-center gap-2 text-slate-500 hover:text-orange-600 font-medium mb-6 transition-colors">
                 <ArrowLeftIcon className="w-4 h-4" />
                 Back to Expo Hall
             </Link>
@@ -71,7 +71,7 @@ export default function VirtualBoothPage() {
                 <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 flex flex-col md:flex-row items-end md:items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
                         <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center border-4 border-white overflow-hidden p-2">
-                            <div className="w-full h-full bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl">FT</div>
+                            <div className="w-full h-full bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl">FT</div>
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
@@ -80,15 +80,15 @@ export default function VirtualBoothPage() {
                                     <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse shadow-lg shadow-red-600/40">LIVE</span>
                                 )}
                             </div>
-                            <p className="text-teal-400 font-medium text-lg mt-1">{booth.location} • San Francisco, CA</p>
+                            <p className="text-orange-400 font-medium text-lg mt-1">{booth.location} • San Francisco, CA</p>
                         </div>
                     </div>
 
                     <div className="flex gap-3">
-                        <button className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-teal-50 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98]">
-                            <ChatIcon className="w-5 h-5 text-teal-600" /> Chat with Us
+                        <button className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-orange-50 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98]">
+                            <ChatIcon className="w-5 h-5 text-orange-600" /> Chat with Us
                         </button>
-                        <button className="bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all shadow-lg active:scale-[0.98] shadow-teal-600/40">
+                        <button className="bg-orange-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-700 transition-all shadow-lg active:scale-[0.98] shadow-orange-600/40">
                             Follow Booth
                         </button>
                     </div>
@@ -99,7 +99,7 @@ export default function VirtualBoothPage() {
                 {/* Left Column: Content */}
                 <div className="lg:col-span-2 space-y-12">
                     {/* Main Stage / Video Area */}
-                    <div className="bg-slate-900 rounded-[2rem] aspect-video relative overflow-hidden shadow-2xl group cursor-pointer">
+                    <div className="bg-orange-600 rounded-[2rem] aspect-video relative overflow-hidden shadow-2xl group cursor-pointer">
                         <Image src="/main_stage_banner.png" alt="Live Demo" fill className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-8 text-center bg-black/30 backdrop-blur-[2px]">
                             <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6 ring-4 ring-white/10 group-hover:scale-110 transition-transform">
@@ -116,11 +116,11 @@ export default function VirtualBoothPage() {
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab.toLowerCase())}
-                                className={`pb-6 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === tab.toLowerCase() ? 'text-teal-600' : 'text-slate-400 hover:text-slate-900'}`}
+                                className={`pb-6 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === tab.toLowerCase() ? 'text-orange-600' : 'text-slate-400 hover:text-slate-900'}`}
                             >
                                 {tab}
                                 {activeTab === tab.toLowerCase() && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-teal-600 rounded-t-full shadow-[0_-2px_8px_rgba(13,148,136,0.3)]"></div>
+                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-600 rounded-t-full shadow-[0_-2px_8px_rgba(234,88,12,0.3)]"></div>
                                 )}
                             </button>
                         ))}
@@ -140,9 +140,9 @@ export default function VirtualBoothPage() {
                                                 <h4 className="font-bold text-xl text-slate-900 mb-1">{product.name}</h4>
                                                 <p className="text-slate-500 text-sm">Enterprise Cloud</p>
                                             </div>
-                                            <span className="text-xl font-bold text-teal-600">£{product.price}</span>
+                                            <span className="text-xl font-bold text-orange-600">£{product.price}</span>
                                         </div>
-                                        <button className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-teal-600 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-teal-600/20 active:scale-[0.98]">
+                                        <button className="w-full bg-orange-600 text-white py-4 rounded-xl font-bold hover:bg-orange-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-600/20 active:scale-[0.98]">
                                             <CartIcon className="w-5 h-5" /> Add to Cart
                                         </button>
                                     </div>
@@ -175,15 +175,15 @@ export default function VirtualBoothPage() {
                 <div className="space-y-8">
                     {/* Quick Contact Card */}
                     <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
                         <h4 className="font-bold text-slate-900 mb-6 text-lg relative font-display uppercase">Booth Staff</h4>
                         <div className="flex items-center gap-4 mb-8 relative">
-                            <div className="w-16 h-16 rounded-full bg-teal-100 border-2 border-white shadow-md overflow-hidden relative">
+                            <div className="w-16 h-16 rounded-full bg-orange-100 border-2 border-white shadow-md overflow-hidden relative">
                                 <Image src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop" alt={booth.manager} fill className="object-cover" />
                             </div>
                             <div>
                                 <div className="font-bold text-slate-900">{booth.manager}</div>
-                                <div className="text-xs text-teal-600 font-bold uppercase tracking-tighter">Booth Manager</div>
+                                <div className="text-xs text-orange-600 font-bold uppercase tracking-tighter">Booth Manager</div>
                             </div>
                         </div>
                         <div className="space-y-4 relative">
@@ -199,18 +199,18 @@ export default function VirtualBoothPage() {
                     </div>
 
                     {/* Schedule Mini List */}
-                    <div className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl">
-                        <h4 className="font-bold mb-6 text-lg font-display uppercase tracking-wider text-teal-400">Booth Schedule</h4>
+                    <div className="bg-orange-600 rounded-[2rem] p-8 text-white shadow-2xl shadow-orange-200">
+                        <h4 className="font-bold mb-6 text-lg font-display uppercase tracking-wider text-orange-100">Booth Schedule</h4>
                         <div className="space-y-6">
                             {[
                                 { time: "10:00 AM", event: "Live Q&A" },
                                 { time: "02:00 PM", title: "Product Demo" },
                                 { time: "04:30 PM", title: "Keynote" },
                             ].map((item, i) => (
-                                <div key={i} className="flex gap-4 border-l-2 border-teal-600/30 pl-4 py-1">
+                                <div key={i} className="flex gap-4 border-l-2 border-orange-400/30 pl-4 py-1">
                                     <div>
-                                        <div className="text-xs font-bold text-teal-500 uppercase">{item.time || "TBD"}</div>
-                                        <div className="font-medium text-slate-200">{item.event || item.title}</div>
+                                        <div className="text-xs font-bold text-orange-200 uppercase">{item.time || "TBD"}</div>
+                                        <div className="font-medium text-white">{item.event || item.title}</div>
                                     </div>
                                 </div>
                             ))}

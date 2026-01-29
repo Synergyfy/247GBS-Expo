@@ -36,10 +36,10 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
     ];
 
     return (
-        <aside className={`bg-slate-950 text-slate-100 transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'} fixed h-full z-20 flex flex-col items-center border-r border-slate-800`}>
-            <div className="py-6 w-full px-6 flex items-center justify-center border-b border-slate-900 mb-6 bg-slate-950/50">
+        <aside className={`bg-orange-600 text-white transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'} fixed h-full z-20 flex flex-col items-center border-r border-orange-500`}>
+            <div className="py-6 w-full px-6 flex items-center justify-center border-b border-orange-500 mb-6 bg-orange-700/20">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 shrink-0">A</div>
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-orange-600 font-black shadow-lg shadow-orange-900/20 shrink-0">A</div>
                     {isOpen && <span className="font-bold text-lg tracking-tight uppercase">Platform Admin</span>}
                 </div>
             </div>
@@ -54,29 +54,29 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                         <Link
                             key={i}
                             href={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive ? 'bg-indigo-600/90 text-white shadow-xl shadow-indigo-900/30' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive ? 'bg-white text-orange-600 shadow-xl shadow-orange-900/30' : 'text-orange-50 hover:bg-orange-700/40 hover:text-white'}`}
                         >
-                            <div className={`shrink-0 transition-colors ${isActive ? 'text-white' : 'group-hover:text-indigo-400'}`}>
+                            <div className={`shrink-0 transition-colors ${isActive ? 'text-orange-600' : 'group-hover:text-white'}`}>
                                 {item.icon}
                             </div>
                             {isOpen && (
                                 <span className="flex-1 font-semibold text-sm">{item.label}</span>
                             )}
                             {isOpen && item.badge && (
-                                <span className="bg-indigo-500 text-[10px] font-black px-1.5 py-0.5 rounded-md text-white border border-indigo-400/30">{item.badge}</span>
+                                <span className="bg-orange-500 text-[10px] font-black px-1.5 py-0.5 rounded-md text-white border border-orange-400/30">{item.badge}</span>
                             )}
                         </Link>
                     );
                 })}
             </nav>
 
-            <div className="p-4 w-full border-t border-slate-900">
+            <div className="p-4 w-full border-t border-orange-500">
                 <div className="flex items-center gap-3 px-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-900 font-bold shrink-0">SA</div>
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-900 font-bold shrink-0">SA</div>
                     {isOpen && (
                         <div className="text-left overflow-hidden">
                             <div className="text-xs font-bold truncate">Super Admin</div>
-                            <div className="text-[10px] text-indigo-400 font-medium tracking-wide">Main Platform</div>
+                            <div className="text-[10px] text-orange-200 font-medium tracking-wide">Main Platform</div>
                         </div>
                     )}
                 </div>

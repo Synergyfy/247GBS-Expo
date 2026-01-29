@@ -29,8 +29,8 @@ export default function AdminOverview() {
                     <p className="text-slate-500 font-medium">Platform-wide performance monitoring and system oversight.</p>
                 </div>
                 <div className="flex gap-2">
-                    <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-black">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <div className="flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg text-xs font-black">
+                        <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
                         SYSTEMS LIVE
                     </div>
                     <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50">Global Reports</button>
@@ -40,10 +40,10 @@ export default function AdminOverview() {
             {/* STATS MATRIX */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: "Total Platform Revenue", value: "£1.24M", icon: <ProfitIcon />, color: "indigo", sub: "Overall fee collections" },
-                    { label: "Active Exhibitors", value: "842", icon: <UsersIcon />, color: "blue", sub: "Currently listed booths" },
-                    { label: "Pending Approvals", value: "48", icon: <AlertIcon />, color: "amber", sub: "Requires immediate review" },
-                    { label: "Global Traffic", value: "128K", icon: <ProfitIcon />, color: "purple", sub: "Avg. Daily unique visits" }
+                    { label: "Total Platform Revenue", value: "£1.24M", icon: <ProfitIcon />, color: "orange", sub: "Overall fee collections" },
+                    { label: "Active Exhibitors", value: "842", icon: <UsersIcon />, color: "orange", sub: "Currently listed booths" },
+                    { label: "Pending Approvals", value: "48", icon: <AlertIcon />, color: "orange", sub: "Requires immediate review" },
+                    { label: "Global Traffic", value: "128K", icon: <ProfitIcon />, color: "orange", sub: "Avg. Daily unique visits" }
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group overflow-hidden relative">
                         <div className="relative z-10">
@@ -66,8 +66,8 @@ export default function AdminOverview() {
                 {/* APPROVAL FEED */}
                 <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
                     <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-xl font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 uppercase tracking-tight">Recent Booth Submissions</h3>
-                        <Link href="/dashboard/admin/exhibitors" className="text-indigo-600 text-sm font-black hover:underline uppercase tracking-widest">Go to Queue &rarr;</Link>
+                        <h3 className="text-xl font-bold text-slate-900 border-l-4 border-orange-600 pl-4 uppercase tracking-tight">Recent Booth Submissions</h3>
+                        <Link href="/dashboard/admin/exhibitors" className="text-orange-600 text-sm font-black hover:underline uppercase tracking-widest">Go to Queue &rarr;</Link>
                     </div>
 
                     <div className="space-y-6">
@@ -76,9 +76,9 @@ export default function AdminOverview() {
                             { name: "EcoHome Solutions", owner: "Sarah Lane", time: "1h ago", status: "Reviewing" },
                             { name: "GamerSpace Tech", owner: "Alex Chen", time: "3h ago", status: "New" }
                         ].map((item, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-indigo-200 hover:bg-white transition-all">
+                            <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-orange-200 hover:bg-white transition-all">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-700 font-black">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-700 font-black">
                                         {item.name[0]}
                                     </div>
                                     <div>
@@ -88,7 +88,7 @@ export default function AdminOverview() {
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <span className="text-xs text-slate-400 font-bold uppercase">{item.time}</span>
-                                    <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider ${item.status === 'New' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                    <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider ${item.status === 'New' ? 'bg-orange-100 text-orange-700' : 'bg-orange-100 text-orange-700'}`}>
                                         {item.status}
                                     </span>
                                 </div>
@@ -98,35 +98,35 @@ export default function AdminOverview() {
                 </div>
 
                 {/* SYSTEM LOGS / ANALYTICS WIDGET */}
-                <div className="bg-slate-950 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+                <div className="bg-orange-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-orange-200">
                     <div className="relative z-10 flex flex-col h-full">
-                        <h3 className="text-indigo-400 text-sm font-black uppercase tracking-widest mb-6">Server Health</h3>
+                        <h3 className="text-orange-100 text-sm font-black uppercase tracking-widest mb-6">Server Health</h3>
 
                         <div className="space-y-6 flex-1">
                             {[
-                                { label: "Live Streams", val: "Operational", color: "emerald" },
-                                { label: "Payment Gateway", val: "Operational", color: "emerald" },
-                                { label: "Content CDN", val: "92% Load", color: "amber" },
-                                { label: "API Latency", val: "42ms", color: "emerald" }
+                                { label: "Live Streams", val: "Operational", color: "white" },
+                                { label: "Payment Gateway", val: "Operational", color: "white" },
+                                { label: "Content CDN", val: "92% Load", color: "orange-100" },
+                                { label: "API Latency", val: "42ms", color: "white" }
                             ].map((log, i) => (
-                                <div key={i} className="flex justify-between items-center border-b border-slate-900 pb-3">
-                                    <span className="text-slate-400 text-xs font-bold uppercase">{log.label}</span>
+                                <div key={i} className="flex justify-between items-center border-b border-orange-500 pb-3">
+                                    <span className="text-orange-100 text-xs font-bold uppercase">{log.label}</span>
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-${log.color}-400 text-xs font-bold`}>{log.val}</span>
-                                        <div className={`w-1.5 h-1.5 rounded-full bg-${log.color}-400`}></div>
+                                        <span className={`text-${log.color} text-xs font-bold`}>{log.val}</span>
+                                        <div className={`w-1.5 h-1.5 rounded-full bg-${log.color}`}></div>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="mt-8 pt-8 border-t border-slate-900">
-                            <div className="text-xs text-slate-500 font-medium leading-relaxed">
+                        <div className="mt-8 pt-8 border-t border-orange-500">
+                            <div className="text-xs text-orange-100 font-medium leading-relaxed">
                                 Next platform-wide maintenance scheduled for Jan 30, 02:00 AM UTC. Please ensure all exhibitor exports are completed.
                             </div>
                         </div>
                     </div>
                     {/* Decor */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl translate-x-12 -translate-y-12"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl translate-x-12 -translate-y-12"></div>
                 </div>
 
             </div>

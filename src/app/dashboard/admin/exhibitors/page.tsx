@@ -37,7 +37,7 @@ export default function ExhibitorQueuePage() {
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
                 <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                     <div className="flex gap-4">
-                        <button className="px-4 py-2 bg-white rounded-xl text-xs font-black uppercase text-indigo-600 border border-indigo-100 shadow-sm">All Pending (5)</button>
+                        <button className="px-4 py-2 bg-white rounded-xl text-xs font-black uppercase text-orange-600 border border-orange-100 shadow-sm">All Pending (5)</button>
                         <button className="px-4 py-2 text-xs font-black uppercase text-slate-400 hover:text-slate-600 transition-colors">Requires Follow-up</button>
                     </div>
                     <div className="text-xs font-bold text-slate-400 tracking-widest uppercase">Verified System Active</div>
@@ -47,7 +47,7 @@ export default function ExhibitorQueuePage() {
                     {exhibitors.map((item) => (
                         <div key={item.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors group">
                             <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 rounded-[1.25rem] bg-indigo-50 flex items-center justify-center text-indigo-700 font-black text-xl border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                <div className="w-14 h-14 rounded-[1.25rem] bg-orange-50 flex items-center justify-center text-orange-700 font-black text-xl border border-orange-100 group-hover:bg-orange-600 group-hover:text-white transition-all">
                                     {item.name[0]}
                                 </div>
                                 <div>
@@ -62,7 +62,7 @@ export default function ExhibitorQueuePage() {
 
                             <div className="flex items-center gap-12">
                                 <div className="text-center">
-                                    <div className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border mb-1 ${item.tier === 'Yearly Pro' ? 'bg-indigo-50 border-indigo-100 text-indigo-700' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+                                    <div className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border mb-1 ${item.tier === 'Yearly Pro' ? 'bg-orange-50 border-orange-100 text-orange-700' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
                                         {item.tier}
                                     </div>
                                     <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Pricing Plan</div>
@@ -70,7 +70,7 @@ export default function ExhibitorQueuePage() {
 
                                 <button
                                     onClick={() => handleReview(item)}
-                                    className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-indigo-600 transition-all shadow-lg shadow-slate-900/10"
+                                    className="bg-orange-600 text-white px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-slate-900/10"
                                 >
                                     Review Booth
                                 </button>
@@ -96,7 +96,7 @@ export default function ExhibitorQueuePage() {
                                 "Return policy clearly stated"
                             ].map((check, i) => (
                                 <div key={i} className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                                    <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" defaultChecked={i < 2} />
+                                    <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500" defaultChecked={i < 2} />
                                     {check}
                                 </div>
                             ))}
@@ -112,7 +112,7 @@ export default function ExhibitorQueuePage() {
                         </button>
                         <button
                             onClick={() => setIsReviewOpen(false)}
-                            className="flex-1 bg-indigo-600 text-white py-4 rounded-xl font-black uppercase text-xs shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all"
+                            className="flex-1 bg-orange-600 text-white py-4 rounded-xl font-black uppercase text-xs shadow-xl shadow-orange-200 hover:bg-orange-700 transition-all"
                         >
                             Verify & Approve
                         </button>

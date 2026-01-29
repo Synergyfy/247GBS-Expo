@@ -32,17 +32,17 @@ export default function BusinessDashboardPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: "Total Views", val: "12.5K", icon: <EyeIcon />, trend: "+12%", color: "blue" },
+                    { label: "Total Views", val: "12.5K", icon: <EyeIcon />, trend: "+12%", color: "orange" },
                     { label: "Active Leads", val: "342", icon: <UserGroupIcon />, trend: "+5%", color: "orange" },
-                    { label: "Product Sales", val: "£4,200", icon: <StoreIcon />, trend: "+8.2%", color: "emerald" },
-                    { label: "Avg. Duration", val: "4m 12s", icon: <TrendUpIcon />, trend: "+2%", color: "purple" }
+                    { label: "Product Sales", val: "£4,200", icon: <StoreIcon />, trend: "+8.2%", color: "orange" },
+                    { label: "Avg. Duration", val: "4m 12s", icon: <TrendUpIcon />, trend: "+2%", color: "orange" }
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-4">
-                            <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600`}>
+                            <div className={`p-3 rounded-xl bg-orange-50 text-orange-600`}>
                                 {stat.icon}
                             </div>
-                            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">{stat.trend}</span>
+                            <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-full">{stat.trend}</span>
                         </div>
                         <h3 className="text-3xl font-bold text-slate-900 mb-1">{stat.val}</h3>
                         <p className="text-slate-500 text-sm">{stat.label}</p>

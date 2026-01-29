@@ -56,7 +56,7 @@ export default function MessagesPage() {
                 <div className="p-4 bg-white border-t border-slate-200">
                     <div className="flex gap-2">
                         <input type="text" placeholder="Type a message..." className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-orange-500" />
-                        <button className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800">
+                        <button className="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800">
                             Send
                         </button>
                     </div>

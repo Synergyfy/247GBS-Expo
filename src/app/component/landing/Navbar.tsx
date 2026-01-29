@@ -2,15 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, Calendar } from "lucide-react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [nextEvent, setNextEvent] = useState({ season: "SPRING 2026", dates: "April 10-19, 2026" });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
+    
+    // Dynamic Season Logic
+    const events = [
+      { season: "SPRING 2026", start: new Date("2026-04-10"), dates: "April 10-19, 2026" },
+      { season: "SUMMER 2026", start: new Date("2026-07-15"), dates: "July 15-24, 2026" },
+      { season: "AUTUMN 2026", start: new Date("2026-10-10"), dates: "October 10-19, 2026" },
+      { season: "WINTER 2026", start: new Date("2026-12-05"), dates: "December 5-14, 2026" },
+    ];
+
+    const now = new Date();
+    const upcoming = events.find(event => event.start > now) || events[0];
+    setNextEvent(upcoming);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -24,10 +38,10 @@ export default function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-md py-2" : "bg-white/95 backdrop-blur-sm py-4"
+        scrolled ? "bg-white shadow-md pt-2" : "bg-white/95 backdrop-blur-sm pt-4"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pb-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
@@ -117,6 +131,18 @@ export default function Navbar() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Sticky Event Banner - Gummed to Header */}
+      <div className="bg-orange-600 text-white py-2 px-4 shadow-inner">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 text-xs md:text-sm font-bold tracking-wider">
+          <Calendar className="w-4 h-4 shrink-0" />
+          <span className="uppercase">Upcoming {nextEvent.season}: {nextEvent.dates}</span>
+          <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
+          <Link href="/tickets" className="underline decoration-2 underline-offset-4 hover:text-orange-100 transition-colors">
+            Get Your Tickets Now
+          </Link>
+        </div>
       </div>
     </nav>
   );

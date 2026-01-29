@@ -96,7 +96,7 @@ export default function LiveDemosPage() {
                             </button>
                             <button
                                 onClick={handleStartEarly}
-                                className="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20"
+                                className="flex-1 bg-orange-600 text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20"
                             >
                                 Start Early
                             </button>
@@ -295,7 +295,7 @@ export default function LiveDemosPage() {
                         </div>
                     </div>
 
-                    <button onClick={() => setIsAnalyticsOpen(false)} className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800">
+                    <button onClick={() => setIsAnalyticsOpen(false)} className="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-slate-800">
                         Close Report
                     </button>
                 </div>
