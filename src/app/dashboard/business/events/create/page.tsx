@@ -14,6 +14,7 @@ import {
     Layout, 
     Globe,
     Monitor,
+    MapPin,
     Users
 } from "lucide-react";
 import Link from "next/link";
