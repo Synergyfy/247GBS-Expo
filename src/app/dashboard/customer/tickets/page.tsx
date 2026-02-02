@@ -5,8 +5,20 @@ import Link from "next/link";
 import { Ticket, Calendar, Clock, MapPin, QrCode, Plus, History, Gift, Download } from "lucide-react";
 import Modal from "@/app/component/Modal";
 
+interface TicketData {
+    id: string;
+    event: string;
+    type: string;
+    date: string;
+    time?: string;
+    location: string;
+    status: string;
+    bundle: string[];
+    qrCode: string;
+}
+
 // Mock Data
-const activeTickets = [
+const activeTickets: TicketData[] = [
     {
         id: "T-88219",
         event: "Global Innovation Fair (Spring 2026)",
@@ -30,7 +42,7 @@ const activeTickets = [
     }
 ];
 
-const pastTickets = [
+const pastTickets: TicketData[] = [
     {
         id: "T-10023",
         event: "Winter Tech Expo 2025",
@@ -45,7 +57,7 @@ const pastTickets = [
 
 export default function MyTicketsPage() {
     const [activeTab, setActiveTab] = useState("active");
-    const [selectedTicket, setSelectedTicket] = useState<typeof activeTickets[0] | null>(null);
+    const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null);
 
     const tickets = activeTab === "active" ? activeTickets : pastTickets;
 
