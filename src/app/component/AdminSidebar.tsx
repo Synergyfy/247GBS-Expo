@@ -2,23 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-// --- ICONS ---
-const DashboardIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
-);
-const CalendarIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-);
-const QueueIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-);
-const MoneyIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-);
-const SupportIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-);
+import { 
+    LayoutDashboard, 
+    ClipboardList, 
+    Gavel, 
+    Banknote, 
+    ShieldCheck, 
+    AlertTriangle, 
+    Activity, 
+    MessageSquare,
+    Settings
+} from "lucide-react";
 
 interface AdminSidebarProps {
     isOpen: boolean;
@@ -28,11 +22,14 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
     const pathname = usePathname();
 
     const menuItems = [
-        { label: "Command Center", icon: <DashboardIcon />, href: "/dashboard/admin", exact: true },
-        { label: "Event Planner", icon: <CalendarIcon />, href: "/dashboard/admin/events" },
-        { label: "Exhibitor Queue", icon: <QueueIcon />, href: "/dashboard/admin/exhibitors", badge: 5 },
-        { label: "Financial Hub", icon: <MoneyIcon />, href: "/dashboard/admin/payments" },
-        { label: "Moderation", icon: <SupportIcon />, href: "/dashboard/admin/support" },
+        { label: "Command Center", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dashboard/admin", exact: true },
+        { label: "Approval Queue", icon: <ClipboardList className="w-5 h-5" />, href: "/dashboard/admin/approvals", badge: 12 },
+        { label: "Governance", icon: <Gavel className="w-5 h-5" />, href: "/dashboard/admin/governance" },
+        { label: "Financial Hub", icon: <Banknote className="w-5 h-5" />, href: "/dashboard/admin/payments" },
+        { label: "Compliance", icon: <ShieldCheck className="w-5 h-5" />, href: "/dashboard/admin/compliance" },
+        { label: "Risk & Fraud", icon: <AlertTriangle className="w-5 h-5" />, href: "/dashboard/admin/risk" },
+        { label: "System Health", icon: <Activity className="w-5 h-5" />, href: "/dashboard/admin/health" },
+        { label: "Dispute Center", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/support", badge: 3 },
     ];
 
     return (

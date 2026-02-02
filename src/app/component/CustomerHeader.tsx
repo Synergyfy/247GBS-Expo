@@ -16,6 +16,7 @@ export default function CustomerHeader() {
 
     const navItems = [
         { label: "Lobby", href: "/dashboard/customer" },
+        { label: "My Tickets", href: "/dashboard/customer/tickets" },
         { label: "Booths", href: "/dashboard/customer/booths" },
         { label: "Live Schedule", href: "/dashboard/customer/schedule" },
         { label: "My Rewards", href: "/dashboard/customer/rewards" },
@@ -26,7 +27,7 @@ export default function CustomerHeader() {
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                 <div className="flex items-center gap-12">
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold">E</div>
+                        <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold">E</div>
                         <span className="font-bold text-slate-900 text-lg">Expo Visitor</span>
                     </Link>
 
@@ -37,7 +38,7 @@ export default function CustomerHeader() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className={`font-medium transition-colors ${isActive ? 'text-teal-600' : 'text-slate-500 hover:text-teal-600'}`}
+                                    className={`font-medium transition-colors ${isActive ? 'text-orange-600' : 'text-slate-500 hover:text-orange-600'}`}
                                 >
                                     {item.label}
                                 </Link>
@@ -51,7 +52,7 @@ export default function CustomerHeader() {
                         <input
                             type="text"
                             placeholder="Search booths..."
-                            className="pl-10 pr-4 py-2 rounded-full border border-slate-200 bg-slate-50 focus:bg-white focus:border-teal-500 outline-none w-64 transition-all"
+                            className="pl-10 pr-4 py-2 rounded-full border border-slate-200 bg-slate-50 focus:bg-white focus:border-orange-500 outline-none w-64 transition-all"
                         />
                         <div className="absolute left-3 top-2.5 text-slate-400">
                             <SearchIcon className="w-5 h-5" />
@@ -63,7 +64,7 @@ export default function CustomerHeader() {
                         <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
                     </button>
 
-                    <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold border-2 border-white shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold border-2 border-white shadow-sm">
                         JD
                     </div>
                 </div>

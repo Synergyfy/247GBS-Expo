@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { Gift } from "lucide-react";
 
 // --- ICONS ---
 const HomeIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -45,8 +46,12 @@ export default function BusinessSidebar({ isOpen }: SidebarProps) {
                     { icon: <HomeIcon />, label: "Dashboard", href: "/dashboard/business", exact: true },
                     { icon: <StoreIcon />, label: "My Booth", href: "/dashboard/business/booth" },
                     { icon: <PackageIcon />, label: "Products", href: "/dashboard/business/products" },
+                    { icon: <CalendarIcon />, label: "Events & Tickets", href: "/dashboard/business/events" },
+                    { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, label: "Verification", href: "/dashboard/business/verification" },
+                    { icon: <Gift className="w-5 h-5" />, label: "Rewards", href: "/dashboard/business/rewards" },
                     { icon: <CalendarIcon />, label: "Live Demos", href: "/dashboard/business/demos" },
                     { icon: <ChatIcon />, label: "Messages", href: "/dashboard/business/messages", badge: 3 },
+                    { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, label: "Revenue", href: "/dashboard/business/revenue" },
                     { icon: <SettingsIcon />, label: "Settings", href: "/dashboard/business/settings" },
                 ].map((item, i) => {
                     const isActive = item.exact
