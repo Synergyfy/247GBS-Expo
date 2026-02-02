@@ -1,21 +1,49 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, MapPin, Clock, ArrowRight, Play } from "lucide-react";
+import { MapPin, Clock, ArrowRight, Play } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const BACKGROUND_IMAGES = [
+  "https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=2000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=2000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=2000&auto=format&fit=crop"
+];
 
 export default function Hero() {
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % BACKGROUND_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-white text-slate-900">
-      {/* Background Image with Balanced Overlay */}
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-slate-900 text-slate-900">
+      {/* Background Image Slideshow */}
       <div className="absolute inset-0 z-0">
-        <img
-          src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop"
-          alt="Digital Exhibition Hall"
-          className="w-full h-full object-cover opacity-40"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent" />
+        <AnimatePresence initial={false}>
+          <motion.img
+            key={currentImage}
+            src={BACKGROUND_IMAGES[currentImage]}
+            alt="Digital Exhibition Backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.7 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2, ease: "linear" }}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </AnimatePresence>
+        {/* Subtle Dark Overlay to ensure text readability across all images */}
+        <div className="absolute inset-0 bg-slate-900/40" />
       </div>
 
       <div className="container relative z-10 px-4 md:px-6 pt-40 pb-20">
-        <div className="max-w-4xl">
+        <div className="max-w-4xl bg-white/40 backdrop-blur-md p-8 md:p-12 rounded-[40px] border border-white/20 shadow-2xl">
           {/* Main Heading */}
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 animate-in slide-in-from-bottom-4 duration-700 delay-100">
             The World's First <br />
@@ -25,7 +53,7 @@ export default function Hero() {
           </h1>
 
           {/* Subheading */}
-          <p className="text-xl md:text-2xl text-slate-600 mb-8 max-w-2xl leading-relaxed animate-in slide-in-from-bottom-4 duration-700 delay-200">
+          <p className="text-xl md:text-2xl text-slate-800 mb-8 max-w-2xl leading-relaxed animate-in slide-in-from-bottom-4 duration-700 delay-200">
             A living business ecosystem that never closes. Exhibit your brand, earn rewards, and connect with thousands of global businesses and customers 24/7.
           </p>
 
@@ -37,7 +65,7 @@ export default function Hero() {
               </div>
               <div>
                 <p className="font-bold text-slate-900">Open 24/7/365</p>
-                <p className="text-sm text-slate-500">Always Live</p>
+                <p className="text-sm text-slate-600">Always Live</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -46,7 +74,7 @@ export default function Hero() {
               </div>
               <div>
                 <p className="font-bold text-slate-900">Global Access</p>
-                <p className="text-sm text-slate-500">Online Worldwide</p>
+                <p className="text-sm text-slate-600">Online Worldwide</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -55,7 +83,7 @@ export default function Hero() {
               </div>
               <div>
                 <p className="font-bold text-slate-900">Live Demos</p>
-                <p className="text-sm text-slate-500">Interactive Booths</p>
+                <p className="text-sm text-slate-600">Interactive Booths</p>
               </div>
             </div>
           </div>
