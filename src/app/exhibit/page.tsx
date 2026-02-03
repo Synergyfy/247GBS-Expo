@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Check, Store, Building2, FileText, Landmark, ShieldCheck, 
   ArrowRight, ArrowLeft, Upload, Loader2, CreditCard, 
-  Briefcase, Mail, Phone, MapPin, User, Plus, Zap
+  Briefcase, Mail, Phone, MapPin, User, Plus, Zap, Info
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
+import Tooltip from "@/app/component/Tooltip";
 
 const STEPS = ["Registration", "KYC & Documents", "Module Activation"];
 
@@ -22,15 +23,30 @@ export default function ExhibitPage() {
   const [formData, setFormData] = useState({
     businessName: "",
     cacNumber: "",
+    postalCode: "",
     address: "",
     contactPerson: "",
     email: "",
     phone: "",
-    bankAccount: "",
-    bankName: "",
     idType: "International Passport",
     selectedPackage: "Professional"
   });
+
+  const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const code = e.target.value;
+    setFormData(prev => ({ ...prev, postalCode: code }));
+    
+    // Mock Auto-fill for UK Postcodes
+    if (code.length >= 5) {
+        // Simulating an API lookup delay
+        setTimeout(() => {
+            setFormData(prev => ({
+                ...prev, 
+                address: "123 High Street, London, United Kingdom" // Mock Address
+            }));
+        }, 500);
+    }
+  };
 
   const packages = [
     { name: "Starter", price: "99", features: ["Standard Template", "20 Products"] },
@@ -106,7 +122,12 @@ export default function ExhibitPage() {
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Name</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Name</label>
+                        <Tooltip content="The legal name of your company as registered.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <input 
                         type="text" 
                         placeholder="Enter full legal name"
@@ -116,17 +137,42 @@ export default function ExhibitPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">CAC / Registration Number</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Company Registration Number</label>
+                        <Tooltip content="Your official company registration number.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <input 
                         type="text" 
-                        placeholder="RC-XXXXXX"
+                        placeholder="e.g. 12345678"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.cacNumber}
                         onChange={(e) => setFormData({...formData, cacNumber: e.target.value})}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Postal Code</label>
+                        <Tooltip content="Enter postal code to auto-fill address.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. SW1A 1AA"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.postalCode}
+                        onChange={handlePostalCodeChange}
+                      />
+                    </div>
                     <div className="md:col-span-2 space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Address</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Address</label>
+                        <Tooltip content="The primary physical location of your business.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <textarea 
                         placeholder="Street, City, State, Country"
                         rows={2}
@@ -136,7 +182,12 @@ export default function ExhibitPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Contact Person</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Contact Person</label>
+                        <Tooltip content="The designated point of contact for this account.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <input 
                         type="text" 
                         placeholder="Full Name"
@@ -146,7 +197,12 @@ export default function ExhibitPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</label>
+                        <Tooltip content="Official business email for notifications and login.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <input 
                         type="email" 
                         placeholder="biz@company.com"
@@ -156,33 +212,18 @@ export default function ExhibitPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Phone Number</label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Phone Number</label>
+                        <Tooltip content="Active business phone number for verification.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <input 
                         type="tel" 
-                        placeholder="+234..."
+                        placeholder="+44..."
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.phone}
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Bank Name</label>
-                      <input 
-                        type="text" 
-                        placeholder="Select Bank"
-                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
-                        value={formData.bankName}
-                        onChange={(e) => setFormData({...formData, bankName: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Bank Account Number</label>
-                      <input 
-                        type="text" 
-                        placeholder="0000000000"
-                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
-                        value={formData.bankAccount}
-                        onChange={(e) => setFormData({...formData, bankAccount: e.target.value})}
                       />
                     </div>
                   </div>
@@ -218,7 +259,12 @@ export default function ExhibitPage() {
                         <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600 group-hover:scale-110 transition-transform">
                           <User />
                         </div>
-                        <h3 className="font-bold text-slate-900">Identity Record</h3>
+                        <h3 className="font-bold text-slate-900 flex items-center justify-center gap-2">
+                          Identity Record
+                          <Tooltip content="Government-issued identification document.">
+                            <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                          </Tooltip>
+                        </h3>
                         <p className="text-xs text-slate-500 mb-4 uppercase font-bold tracking-widest mt-1">Select ID Type</p>
                         <select 
                           className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm mb-4"
@@ -241,8 +287,13 @@ export default function ExhibitPage() {
                         <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600 group-hover:scale-110 transition-transform">
                           <FileText />
                         </div>
-                        <h3 className="font-bold text-slate-900">CAC Certificate</h3>
-                        <p className="text-sm text-slate-500 mb-6">Upload a clear copy of your business registration document.</p>
+                        <h3 className="font-bold text-slate-900 flex items-center justify-center gap-2">
+                          Certificate of Incorporation
+                          <Tooltip content="Upload your official certificate of incorporation.">
+                            <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                          </Tooltip>
+                        </h3>
+                        <p className="text-sm text-slate-500 mb-6">Upload a clear copy of your official business registration document.</p>
                         <button className="flex items-center gap-2 mx-auto text-orange-600 font-bold text-sm">
                           <Upload className="w-4 h-4" /> Upload PDF/JPG
                         </button>
@@ -252,28 +303,17 @@ export default function ExhibitPage() {
                     {/* Tax Status (Optional) */}
                     <div className="md:col-span-2">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Tax Identification Number (Optional)</label>
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Tax Identification Number (Optional)</label>
+                          <Tooltip content="Your Tax Identification Number for tax compliance.">
+                            <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                          </Tooltip>
+                        </div>
                         <input 
                           type="text" 
                           placeholder="Enter TIN if applicable"
                           className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
                         />
-                      </div>
-                    </div>
-
-                    {/* Bank Ownership */}
-                    <div className="md:col-span-2">
-                      <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 flex items-center gap-6">
-                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-sm border border-slate-100">
-                          <Landmark className="w-8 h-8" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-slate-900">Bank Ownership Validation</h3>
-                          <p className="text-sm text-slate-500">We will verify the account details provided match the business name.</p>
-                        </div>
-                        <div className="text-orange-600 font-bold text-sm flex items-center gap-1">
-                          <Loader2 className="w-4 h-4 animate-spin" /> Pending Sync
-                        </div>
                       </div>
                     </div>
                   </div>
