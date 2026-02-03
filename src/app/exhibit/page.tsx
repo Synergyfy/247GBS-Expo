@@ -1,125 +1,426 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Check, Store, Building2, FileText, Landmark, ShieldCheck, 
+  ArrowRight, ArrowLeft, Upload, Loader2, CreditCard, 
+  Briefcase, Mail, Phone, MapPin, User, Plus, Zap
+} from "lucide-react";
 import Link from "next/link";
-import { Check, Store, BarChart3, Globe2, ArrowRight } from "lucide-react";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 
+const STEPS = ["Registration", "KYC & Documents", "Module Activation"];
+
 export default function ExhibitPage() {
+  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    businessName: "",
+    cacNumber: "",
+    address: "",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    bankAccount: "",
+    bankName: "",
+    idType: "International Passport",
+    selectedPackage: "Professional"
+  });
+
+  const packages = [
+    { name: "Starter", price: "99", features: ["Standard Template", "20 Products"] },
+    { name: "Professional", price: "249", features: ["Premium Design", "Unlimited Products", "Live Chat"] },
+    { name: "Enterprise", price: "999", features: ["Custom 3D Hall", "API Access", "Account Manager"] }
+  ];
+
+  const handleNext = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+    }, 800);
+  };
+
+  const handleBack = () => setStep((prev) => Math.max(prev - 1, 0));
+
+  const handleSubmit = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setIsSubmitted(true);
+    }, 1500);
+  };
+
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
-      
-      {/* Header */}
-      <section className="pt-32 pb-20 bg-orange-600 text-white text-center">
-        <div className="container mx-auto px-4">
-          <span className="text-orange-100 font-bold tracking-wider uppercase text-sm mb-4 block">For Businesses</span>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            Exhibit to the World.<br />
-            <span className="text-white">Never Close Shop.</span>
-          </h1>
-          <p className="text-xl text-orange-50 max-w-2xl mx-auto mb-10">
-            Secure your permanent digital booth in the global marketplace. 
-            Capture leads, sell products, and build loyalty 24/7/365.
-          </p>
-        </div>
-      </section>
 
-      {/* Benefits Grid */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Store className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Premium Digital Booth</h3>
-              <p className="text-slate-600">
-                Fully customizable brand space with video, images, live chat, and product listings.
-              </p>
+      <div className="container mx-auto px-4 pt-40 pb-20 relative z-10">
+        {!isSubmitted ? (
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-12">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Exhibitor Onboarding</h1>
+              <p className="text-lg text-slate-600">Register your business and activate your digital expo module.</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Globe2 className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Global Reach</h3>
-              <p className="text-slate-600">
-                Access customers from 120+ countries without leaving your office.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <BarChart3 className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Real-Time Analytics</h3>
-              <p className="text-slate-600">
-                Track visitors, clicks, and sales in real-time with our advanced dashboard.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Pricing Tables */}
-      <section className="py-24 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">Choose Your Booth Package</h2>
-            <p className="text-slate-500">Simple, transparent pricing. No hidden fees.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter */}
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Starter Booth</h3>
-              <div className="text-4xl font-bold text-slate-900 mb-6">£99<span className="text-base font-normal text-slate-500">/mo</span></div>
-              <ul className="space-y-4 mb-8">
-                {['Standard Booth Template', 'Up to 20 Products', 'Basic Analytics', 'Email Support'].map(item => (
-                  <li key={item} className="flex items-center gap-3 text-slate-600">
-                    <Check className="w-5 h-5 text-green-500" /> {item}
-                  </li>
+            {/* Step Indicator */}
+            <div className="flex justify-center mb-12">
+              <div className="flex items-center gap-4 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
+                {STEPS.map((s, i) => (
+                  <div key={s} className="flex items-center shrink-0">
+                    <div 
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                        i <= step ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" : "bg-white text-slate-300 border border-slate-200"
+                      }`}
+                    >
+                      {i < step ? <Check className="w-6 h-6" /> : i + 1}
+                    </div>
+                    <span className={`ml-2 text-sm font-bold ${i <= step ? "text-slate-900" : "text-slate-300"}`}>{s}</span>
+                    {i < STEPS.length - 1 && (
+                      <div className={`w-12 h-1 mx-4 rounded-full ${i < step ? "bg-orange-600" : "bg-slate-200"}`} />
+                    )}
+                  </div>
                 ))}
-              </ul>
-              <Link href="/get-started?plan=starter" className="block w-full py-3 text-center border-2 border-slate-900 rounded-full font-bold hover:bg-slate-50 transition-colors">
-                Select Starter
-              </Link>
-            </div>
-
-            {/* Professional */}
-            <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-orange-500 relative transform md:-translate-y-4">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold">
-                MOST POPULAR
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Professional Booth</h3>
-              <div className="text-4xl font-bold text-slate-900 mb-6">£249<span className="text-base font-normal text-slate-500">/mo</span></div>
-              <ul className="space-y-4 mb-8">
-                {['Premium Custom Designs', 'Unlimited Products', 'Live Chat System', 'Advanced Analytics', 'Priority Support'].map(item => (
-                  <li key={item} className="flex items-center gap-3 text-slate-600">
-                    <Check className="w-5 h-5 text-orange-500" /> {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/get-started?plan=pro" className="block w-full py-3 text-center bg-orange-600 text-white rounded-full font-bold hover:bg-orange-700 transition-colors">
-                Select Professional
-              </Link>
             </div>
 
-            {/* Enterprise */}
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Enterprise Hall</h3>
-              <div className="text-4xl font-bold text-slate-900 mb-6">£999<span className="text-base font-normal text-slate-500">/mo</span></div>
-              <ul className="space-y-4 mb-8">
-                {['Dedicated Virtual Hall', 'Custom 3D Environment', 'API Access', 'White-label Options', 'Dedicated Account Manager'].map(item => (
-                  <li key={item} className="flex items-center gap-3 text-slate-600">
-                    <Check className="w-5 h-5 text-green-500" /> {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/get-started?plan=enterprise" className="block w-full py-3 text-center border-2 border-slate-900 rounded-full font-bold hover:bg-slate-50 transition-colors">
-                Contact Sales
-              </Link>
-            </div>
+            <AnimatePresence mode="wait">
+              {/* STEP 0: REGISTRATION (Section 3.1) */}
+              {step === 0 && (
+                <motion.div 
+                  key="step0"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100"
+                >
+                  <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-2">
+                    <Building2 className="text-orange-600" /> Business Information
+                  </h2>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="Enter full legal name"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.businessName}
+                        onChange={(e) => setFormData({...formData, businessName: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">CAC / Registration Number</label>
+                      <input 
+                        type="text" 
+                        placeholder="RC-XXXXXX"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.cacNumber}
+                        onChange={(e) => setFormData({...formData, cacNumber: e.target.value})}
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Address</label>
+                      <textarea 
+                        placeholder="Street, City, State, Country"
+                        rows={2}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all resize-none"
+                        value={formData.address}
+                        onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Contact Person</label>
+                      <input 
+                        type="text" 
+                        placeholder="Full Name"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.contactPerson}
+                        onChange={(e) => setFormData({...formData, contactPerson: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</label>
+                      <input 
+                        type="email" 
+                        placeholder="biz@company.com"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Phone Number</label>
+                      <input 
+                        type="tel" 
+                        placeholder="+234..."
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Bank Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="Select Bank"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.bankName}
+                        onChange={(e) => setFormData({...formData, bankName: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400">Bank Account Number</label>
+                      <input 
+                        type="text" 
+                        placeholder="0000000000"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.bankAccount}
+                        onChange={(e) => setFormData({...formData, bankAccount: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-12 flex justify-end">
+                    <button 
+                      onClick={handleNext}
+                      className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
+                    >
+                      {loading ? <Loader2 className="animate-spin" /> : "Next: KYC Verification"}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 1: KYC & DOCUMENTS (Section 3.2) */}
+              {step === 1 && (
+                <motion.div 
+                  key="step1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100"
+                >
+                  <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-2">
+                    <ShieldCheck className="text-orange-600" /> KYC & Verification
+                  </h2>
+
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {/* Identity Record */}
+                    <div className="space-y-4">
+                      <div className="p-6 border-2 border-dashed border-slate-200 rounded-3xl hover:border-orange-500 transition-all group text-center">
+                        <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600 group-hover:scale-110 transition-transform">
+                          <User />
+                        </div>
+                        <h3 className="font-bold text-slate-900">Identity Record</h3>
+                        <p className="text-xs text-slate-500 mb-4 uppercase font-bold tracking-widest mt-1">Select ID Type</p>
+                        <select 
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm mb-4"
+                          value={formData.idType}
+                          onChange={(e) => setFormData({...formData, idType: e.target.value})}
+                        >
+                          <option>International Passport</option>
+                          <option>Driver's License</option>
+                          <option>National ID</option>
+                        </select>
+                        <button className="flex items-center gap-2 mx-auto text-orange-600 font-bold text-sm">
+                          <Upload className="w-4 h-4" /> Upload Document
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Business Document */}
+                    <div className="space-y-4">
+                      <div className="p-6 border-2 border-dashed border-slate-200 rounded-3xl hover:border-orange-500 transition-all group text-center">
+                        <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600 group-hover:scale-110 transition-transform">
+                          <FileText />
+                        </div>
+                        <h3 className="font-bold text-slate-900">CAC Certificate</h3>
+                        <p className="text-sm text-slate-500 mb-6">Upload a clear copy of your business registration document.</p>
+                        <button className="flex items-center gap-2 mx-auto text-orange-600 font-bold text-sm">
+                          <Upload className="w-4 h-4" /> Upload PDF/JPG
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Tax Status (Optional) */}
+                    <div className="md:col-span-2">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Tax Identification Number (Optional)</label>
+                        <input 
+                          type="text" 
+                          placeholder="Enter TIN if applicable"
+                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bank Ownership */}
+                    <div className="md:col-span-2">
+                      <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 flex items-center gap-6">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-sm border border-slate-100">
+                          <Landmark className="w-8 h-8" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-slate-900">Bank Ownership Validation</h3>
+                          <p className="text-sm text-slate-500">We will verify the account details provided match the business name.</p>
+                        </div>
+                        <div className="text-orange-600 font-bold text-sm flex items-center gap-1">
+                          <Loader2 className="w-4 h-4 animate-spin" /> Pending Sync
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-12 flex justify-between gap-4">
+                    <button 
+                      onClick={handleBack}
+                      className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all"
+                    >
+                      Back
+                    </button>
+                    <button 
+                      onClick={handleNext}
+                      className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
+                    >
+                      {loading ? <Loader2 className="animate-spin" /> : "Next: Module Activation"}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 2: MODULE ACTIVATION (Section 3.3) */}
+              {step === 2 && (
+                <motion.div 
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100"
+                >
+                  <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Zap className="text-orange-600" /> Module Activation
+                  </h2>
+                  <p className="text-slate-500 mb-8">Choose your expo package to activate Ticket Manager, Reward Engine, and Analytics.</p>
+
+                  <div className="grid md:grid-cols-3 gap-6 mb-12">
+                    {packages.map((pkg) => (
+                      <div 
+                        key={pkg.name}
+                        onClick={() => setFormData({...formData, selectedPackage: pkg.name})}
+                        className={`p-6 rounded-3xl border-2 transition-all cursor-pointer relative ${
+                          formData.selectedPackage === pkg.name 
+                            ? "border-orange-600 bg-orange-50 shadow-lg" 
+                            : "border-slate-100 hover:border-orange-200 bg-slate-50"
+                        }`}
+                      >
+                        {formData.selectedPackage === pkg.name && (
+                          <div className="absolute top-4 right-4 text-orange-600">
+                            <Check className="w-5 h-5 font-black" />
+                          </div>
+                        )}
+                        <h3 className="font-bold text-slate-900 text-lg mb-1">{pkg.name}</h3>
+                        <div className="text-3xl font-black text-slate-900 mb-4">£{pkg.price}<span className="text-sm font-normal text-slate-500">/mo</span></div>
+                        <ul className="space-y-3 mb-6">
+                          {pkg.features.map(f => (
+                            <li key={f} className="text-xs font-medium text-slate-600 flex items-center gap-2">
+                              <div className="w-1 h-1 bg-orange-600 rounded-full" /> {f}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden mb-12">
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                      <Store className="w-32 h-32" />
+                    </div>
+                    <div className="relative z-10">
+                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <Store className="text-orange-500" /> Expo Suite Access
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {[
+                          "Ticket Manager (Active)",
+                          "Reward Engine (Active)",
+                          "Settlement Dashboard (Active)",
+                          "Analytics Panel (Active)"
+                        ].map(m => (
+                          <div key={m} className="flex items-center gap-2 text-sm text-slate-300 font-medium">
+                            <Check className="w-4 h-4 text-orange-500" /> {m}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-12 flex justify-between gap-4">
+                    <button 
+                      onClick={handleBack}
+                      className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all"
+                    >
+                      Back
+                    </button>
+                    <button 
+                      onClick={handleSubmit}
+                      className="px-12 py-4 bg-slate-900 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-600 transition-all shadow-xl shadow-slate-900/30"
+                    >
+                      {loading ? <Loader2 className="animate-spin" /> : "Complete Onboarding"}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </div>
-      </section>
+        ) : (
+          /* SUCCESS SCREEN (Section 3.2 Statuses) */
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-2xl mx-auto text-center bg-white p-12 md:p-20 rounded-[40px] shadow-2xl border border-slate-100"
+          >
+            <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-8 text-orange-600">
+              <Loader2 className="w-12 h-12 animate-spin" />
+            </div>
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Verification Pending</h2>
+            <p className="text-xl text-slate-600 mb-12">
+              Your business onboarding is complete! Our admin team is currently validating your KYC documents. 
+              You will be notified via <strong>{formData.email}</strong> once your account is verified.
+            </p>
+            
+            <div className="space-y-4 mb-12 text-left bg-slate-50 p-8 rounded-3xl border border-slate-100">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-widest text-xs">Registration</span>
+                <span className="text-green-600 font-black text-sm uppercase">Completed</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-widest text-xs">KYC Validation</span>
+                <span className="text-orange-600 font-black text-sm uppercase flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" /> In Progress
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-widest text-xs">Module Activation</span>
+                <span className="text-slate-400 font-black text-sm uppercase">Waiting</span>
+              </div>
+            </div>
+
+            <Link 
+              href="/dashboard/business"
+              className="inline-block px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
+            >
+              Go to Business Dashboard
+            </Link>
+          </motion.div>
+        )}
+      </div>
 
       <Footer />
     </main>

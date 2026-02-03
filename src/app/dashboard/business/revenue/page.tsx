@@ -60,7 +60,7 @@ export default function BusinessRevenuePage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 pt-10 border-t border-white/10">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-10 border-t border-white/10">
                             <div>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Available for Payout</p>
                                 <p className="text-xl font-bold text-white">£31,200.00</p>
@@ -69,9 +69,13 @@ export default function BusinessRevenuePage() {
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Pending Settlement</p>
                                 <p className="text-xl font-bold text-white">£11,650.00</p>
                             </div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Reward Credits</p>
+                                <p className="text-xl font-bold text-orange-500">2,400 PTS</p>
+                            </div>
                             <div className="hidden md:block">
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Lifetime Earnings</p>
-                                <p className="text-xl font-bold text-white">£184,200.00</p>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Refund Reserve</p>
+                                <p className="text-xl font-bold text-white">£2,000.00</p>
                             </div>
                         </div>
                     </div>

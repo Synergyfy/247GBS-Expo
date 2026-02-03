@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Ticket, Calendar, Clock, MapPin, QrCode, Plus, History, Gift, Download } from "lucide-react";
+import { Ticket, Calendar, Clock, MapPin, QrCode, Plus, History, Gift, Download, ShieldCheck } from "lucide-react";
 import Modal from "@/app/component/Modal";
 
 interface TicketData {
@@ -126,6 +126,10 @@ export default function MyTicketsPage() {
                                     <MapPin className="w-4 h-4 text-slate-400" />
                                     <span>{ticket.location}</span>
                                 </div>
+                                <div className="flex items-center gap-3 text-xs font-bold text-orange-600 uppercase tracking-tighter">
+                                    <ShieldCheck className="w-4 h-4" />
+                                    <span>Verified Entry • Encrypted QR</span>
+                                </div>
                             </div>
 
                             {ticket.bundle.length > 0 && (
@@ -170,7 +174,6 @@ export default function MyTicketsPage() {
                 </div>
             )}
 
-            {/* QR Modal */}
             <Modal
                 isOpen={!!selectedTicket}
                 onClose={() => setSelectedTicket(null)}
@@ -181,6 +184,9 @@ export default function MyTicketsPage() {
                         <div className="bg-slate-900 text-white p-8 rounded-3xl relative overflow-hidden mb-6">
                             <div className="absolute inset-0 bg-gradient-to-br from-orange-600/20 to-transparent" />
                             <div className="relative z-10">
+                                <div className="flex justify-center mb-4">
+                                    <span className="bg-green-500 text-[10px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-widest animate-pulse">Authenticated</span>
+                                </div>
                                 <h3 className="text-xl font-bold mb-1">{selectedTicket.event}</h3>
                                 <p className="text-orange-400 font-bold tracking-widest text-xs uppercase mb-8">{selectedTicket.type}</p>
                                 
@@ -195,8 +201,18 @@ export default function MyTicketsPage() {
                                 <p className="font-mono text-sm tracking-widest">{selectedTicket.qrCode}</p>
                             </div>
                         </div>
+                        <div className="grid grid-cols-2 gap-4 text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Access Level</p>
+                                <p className="text-sm font-bold text-slate-900">{selectedTicket.type}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Verification</p>
+                                <p className="text-sm font-bold text-green-600 flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Encrypted</p>
+                            </div>
+                        </div>
                         <p className="text-sm text-slate-500">
-                            Present this QR code at the virtual or physical entry point.
+                            Present this QR code at the virtual or physical entry point. System validates ticket authenticity and session timing.
                         </p>
                     </div>
                 )}
