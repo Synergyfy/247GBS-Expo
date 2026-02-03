@@ -15,7 +15,11 @@ import {
     X,
     Loader2,
     Info,
-    ChevronDown
+    ChevronDown,
+    Share2,
+    Gift,
+    Layers,
+    Globe
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
@@ -91,7 +95,7 @@ export default function GovernancePage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Governance Console</h1>
-                    <p className="text-slate-500">Configure global platform rules, commission structures, and ticket templates.</p>
+                    <p className="text-slate-500">Configure global platform rules, commission structures, and ecosystem partners.</p>
                 </div>
                 <button className="flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all">
                     <Save className="w-5 h-5" /> Save Global Changes
@@ -99,17 +103,18 @@ export default function GovernancePage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-8 border-b border-slate-200">
+            <div className="flex gap-8 border-b border-slate-200 overflow-x-auto">
                 {[
                     { id: "parameters", label: "System Parameters", icon: <Settings className="w-4 h-4" /> },
                     { id: "templates", label: "Ticket Templates", icon: <Ticket className="w-4 h-4" /> },
                     { id: "financial", label: "Commission & Tax", icon: <Percent className="w-4 h-4" /> },
+                    { id: "ecosystem", label: "Ecosystem & API", icon: <Share2 className="w-4 h-4" /> },
                     { id: "policies", label: "SLA & Policies", icon: <ShieldAlert className="w-4 h-4" /> },
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 ${
+                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 whitespace-nowrap ${
                             activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
                         }`}
                     >
@@ -126,44 +131,62 @@ export default function GovernancePage() {
                 
                 {/* SYSTEM PARAMETERS */}
                 {activeTab === "parameters" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                                <Clock className="w-5 h-5 text-orange-600" /> Redemption & Expiry
-                            </h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-black uppercase text-slate-400 mb-2">Default Refund Window (Hours)</label>
-                                    <input type="number" defaultValue={48} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-black uppercase text-slate-400 mb-2">Ticket Validity Post-Event (Days)</label>
-                                    <input type="number" defaultValue={30} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
+                    <div className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
+                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-orange-600" /> Redemption & Expiry
+                                </h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Default Refund Window (Hours)</label>
+                                        <input type="number" defaultValue={48} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Ticket Validity Post-Event (Days)</label>
+                                        <input type="number" defaultValue={30} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                                <ShieldAlert className="w-5 h-5 text-orange-600" /> Access & Security
-                            </h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
+                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                                    <Gift className="w-5 h-5 text-orange-600" /> Reward & Loyalty Ratios
+                                </h3>
+                                <div className="space-y-4">
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900">Enforce MFA for Admins</p>
-                                        <p className="text-xs text-slate-500">Require multi-factor for all roles</p>
+                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Points per £1 Spent</label>
+                                        <input type="number" defaultValue={10} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
                                     </div>
-                                    <div className="w-12 h-6 bg-orange-600 rounded-full relative cursor-pointer">
-                                        <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Redemption Value (Points per £1)</label>
+                                        <input type="number" defaultValue={100} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <div>
-                                        <p className="text-sm font-bold text-slate-900">Geo-Fencing Validation</p>
-                                        <p className="text-xs text-slate-500">Restrict verification by IP location</p>
+                            </div>
+
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6 md:col-span-2">
+                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                                    <ShieldAlert className="w-5 h-5 text-orange-600" /> Access & Security
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">Enforce MFA for Admins</p>
+                                            <p className="text-xs text-slate-500">Require multi-factor for all roles</p>
+                                        </div>
+                                        <div className="w-12 h-6 bg-orange-600 rounded-full relative cursor-pointer">
+                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                                        </div>
                                     </div>
-                                    <div className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
-                                        <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">Geo-Fencing Validation</p>
+                                            <p className="text-xs text-slate-500">Restrict verification by IP location</p>
+                                        </div>
+                                        <div className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
+                                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -171,42 +194,66 @@ export default function GovernancePage() {
                     </div>
                 )}
 
-                {/* TICKET TEMPLATES */}
+                {/* TICKET TEMPLATES & CATEGORIES */}
                 {activeTab === "templates" && (
-                    <div className="space-y-6">
-                        <div className="flex justify-end">
-                            <button 
-                                onClick={() => setIsModalOpen(true)}
-                                className="flex items-center gap-2 bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/20"
-                            >
-                                <Plus className="w-5 h-5" /> Create New Template
-                            </button>
+                    <div className="space-y-8">
+                        {/* Event Categories Section */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2 mb-6">
+                                <Layers className="w-5 h-5 text-orange-600" /> Event & Product Categories
+                            </h3>
+                            <div className="flex flex-wrap gap-3">
+                                {["Tech & Innovation", "Fashion & Apparel", "Home & Living", "Gaming & Esports", "Food & Beverage"].map((cat, i) => (
+                                    <div key={i} className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <span className="text-sm font-bold text-slate-700">{cat}</span>
+                                        <button className="text-slate-400 hover:text-red-500"><X className="w-3 h-3" /></button>
+                                    </div>
+                                ))}
+                                <button className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-300 transition-all text-sm font-bold">
+                                    <Plus className="w-3 h-3" /> Add Category
+                                </button>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {templates.map((temp, i) => (
-                                <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:border-orange-200 transition-all group relative">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                                            <Ticket className="w-5 h-5" />
+
+                        {/* Templates Grid */}
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                                    <Ticket className="w-5 h-5 text-orange-600" /> Global Ticket Templates
+                                </h3>
+                                <button 
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all text-sm"
+                                >
+                                    <Plus className="w-4 h-4" /> Create Template
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {templates.map((temp, i) => (
+                                    <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:border-orange-200 transition-all group relative">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                                                <Ticket className="w-5 h-5" />
+                                            </div>
+                                            <span className="text-[10px] font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded-md uppercase tracking-widest">{temp.status}</span>
                                         </div>
-                                        <span className="text-[10px] font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded-md uppercase tracking-widest">{temp.status}</span>
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 mb-1">{temp.name}</h4>
-                                    <p className="text-xs text-slate-500 font-medium mb-4">Access: {temp.access}</p>
-                                    <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{temp.priceRange}</span>
-                                        <div className="flex gap-2">
-                                            <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><Settings className="w-4 h-4" /></button>
-                                            <button 
-                                                onClick={() => handleDeleteTemplate(i)}
-                                                className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                        <h4 className="font-bold text-slate-900 mb-1">{temp.name}</h4>
+                                        <p className="text-xs text-slate-500 font-medium mb-4">Access: {temp.access}</p>
+                                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{temp.priceRange}</span>
+                                            <div className="flex gap-2">
+                                                <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><Settings className="w-4 h-4" /></button>
+                                                <button 
+                                                    onClick={() => handleDeleteTemplate(i)}
+                                                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -249,6 +296,79 @@ export default function GovernancePage() {
                                     <p className="text-xs text-orange-700 leading-relaxed font-medium">
                                         Changing commission rates will apply to all **new transactions** immediately. Payouts for existing held funds will be calculated based on the rate active at the time of sale.
                                     </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ECOSYSTEM & API */}
+                {activeTab === "ecosystem" && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Partner Integrations */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2 mb-6">
+                                <Globe className="w-5 h-5 text-orange-600" /> Partner Integrations
+                            </h3>
+                            <div className="space-y-4">
+                                {[
+                                    { name: "Stripe Connect", type: "Payment", status: "Active" },
+                                    { name: "Salesforce CRM", type: "Data Sync", status: "Active" },
+                                    { name: "HubSpot", type: "Marketing", status: "Paused" },
+                                    { name: "Slack Alerts", type: "Notification", status: "Active" }
+                                ].map((partner, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700">
+                                                {partner.name[0]}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 text-sm">{partner.name}</h4>
+                                                <p className="text-xs text-slate-500">{partner.type}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md ${partner.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                                                {partner.status}
+                                            </span>
+                                            <button className="text-slate-400 hover:text-orange-600"><Settings className="w-4 h-4" /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button className="w-full py-3 mt-2 border border-dashed border-slate-300 rounded-xl text-slate-500 font-bold text-sm hover:border-orange-400 hover:text-orange-600 transition-all">
+                                    + Connect New Partner
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* API Access */}
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-xl text-white">
+                            <h3 className="font-bold text-lg flex items-center gap-2 mb-6">
+                                <Share2 className="w-5 h-5 text-orange-400" /> API Access Control
+                            </h3>
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-xs font-black uppercase text-slate-400 mb-2">Global Rate Limit (Req/Min)</label>
+                                    <input type="number" defaultValue={5000} className="w-full px-4 py-3 bg-white/10 border border-white/10 rounded-xl text-white font-mono focus:border-orange-500 outline-none" />
+                                </div>
+                                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="text-sm font-bold">Public API Key</span>
+                                        <span className="text-xs text-orange-400 cursor-pointer hover:underline">Regenerate</span>
+                                    </div>
+                                    <div className="font-mono text-xs text-slate-400 break-all">
+                                        pk_live_51Msz...234xS
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-slate-300">Allow External Webhooks</span>
+                                        <div className="w-10 h-5 bg-emerald-500 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-slate-300">Sandbox Mode</span>
+                                        <div className="w-10 h-5 bg-slate-600 rounded-full relative"><div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
