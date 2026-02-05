@@ -18,10 +18,12 @@ import {
     Users,
     Briefcase,
     ShieldCheck,
-    Loader2
+    Loader2,
+    Info
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import Tooltip from "@/app/component/Tooltip";
 
 const WIZARD_STEPS = [
     "Event Type",
@@ -169,16 +171,31 @@ export default function CreateEventWizard() {
                                 <div className="grid md:grid-cols-2 gap-12">
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Title</label>
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Title</label>
+                                                <Tooltip content="The public name of your event">
+                                                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                                                </Tooltip>
+                                            </div>
                                             <input type="text" placeholder="Symposium 2026" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold" />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Description</label>
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Description</label>
+                                                <Tooltip content="A short summary of what attendees can expect">
+                                                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                                                </Tooltip>
+                                            </div>
                                             <textarea rows={5} placeholder="What is the main value of this event?" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none" />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Banner (Media)</label>
+                                        <div className="flex items-center gap-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Banner (Media)</label>
+                                            <Tooltip content="High-quality image for event promotion">
+                                                <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                                            </Tooltip>
+                                        </div>
                                         <div className="border-4 border-dashed border-slate-100 rounded-[3rem] h-64 flex flex-col items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer group">
                                             <Upload className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
                                             <p className="font-black text-sm uppercase">Upload Visuals</p>
@@ -193,14 +210,24 @@ export default function CreateEventWizard() {
                             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                                 <div className="grid md:grid-cols-2 gap-8">
                                     <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                                        <h3 className="font-black text-slate-900 mb-6 flex items-center gap-2 uppercase tracking-tight"><Calendar className="text-orange-600" /> Key Dates</h3>
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Calendar className="text-orange-600" /> Key Dates</h3>
+                                            <Tooltip content="Start and end dates for your event">
+                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                                            </Tooltip>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
                                             <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
                                         </div>
                                     </div>
                                     <div className="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-                                        <h3 className="font-black text-slate-900 mb-6 flex items-center gap-2 uppercase tracking-tight"><Clock className="text-orange-600" /> Sessions</h3>
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Clock className="text-orange-600" /> Sessions</h3>
+                                            <Tooltip content="Manage individual sessions or workshops">
+                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                                            </Tooltip>
+                                        </div>
                                         <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold hover:border-orange-500 hover:text-orange-600 transition-all flex items-center justify-center gap-2">
                                             <Plus className="w-5 h-5" /> Add New Session
                                         </button>
@@ -221,9 +248,33 @@ export default function CreateEventWizard() {
                                 <div className="space-y-4">
                                     {tickets.map(t => (
                                         <div key={t.id} className="p-8 rounded-[2.5rem] bg-slate-50 border border-slate-200 grid md:grid-cols-4 gap-6 relative group">
-                                            <div className="md:col-span-2"><input type="text" value={t.name} onChange={(e) => updateTicket(t.id, 'name', e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 font-bold" /></div>
-                                            <div><input type="number" placeholder="Price £" className="w-full p-3 rounded-xl border border-slate-200 font-bold" /></div>
-                                            <div><input type="number" placeholder="Stock" className="w-full p-3 rounded-xl border border-slate-200 font-bold" /></div>
+                                            <div className="md:col-span-2">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</span>
+                                                    <Tooltip content="Name of the ticket tier (e.g., VIP, General)">
+                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                                                    </Tooltip>
+                                                </div>
+                                                <input type="text" value={t.name} onChange={(e) => updateTicket(t.id, 'name', e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Price</span>
+                                                    <Tooltip content="Cost per ticket">
+                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                                                    </Tooltip>
+                                                </div>
+                                                <input type="number" placeholder="Price £" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stock</span>
+                                                    <Tooltip content="Number of tickets available">
+                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                                                    </Tooltip>
+                                                </div>
+                                                <input type="number" placeholder="Stock" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
+                                            </div>
                                             <div className="md:col-span-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Advanced: Sale window & Access Rules</div>
                                         </div>
                                     ))}

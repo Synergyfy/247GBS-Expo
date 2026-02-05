@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Ticket, Calendar, Clock, MapPin, QrCode, Plus, History, Gift, Download, ShieldCheck } from "lucide-react";
+import { Ticket, Calendar, Clock, MapPin, QrCode, Plus, History, Gift, Download, ShieldCheck, Check } from "lucide-react";
 import Modal from "@/app/component/Modal";
 
 interface TicketData {
@@ -58,6 +58,10 @@ const pastTickets: TicketData[] = [
 export default function MyTicketsPage() {
     const [activeTab, setActiveTab] = useState("active");
     const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null);
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [reviewText, setReviewText] = useState("");
 
     const tickets = activeTab === "active" ? activeTickets : pastTickets;
 
@@ -126,10 +130,12 @@ export default function MyTicketsPage() {
                                     <MapPin className="w-4 h-4 text-slate-400" />
                                     <span>{ticket.location}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-xs font-bold text-orange-600 uppercase tracking-tighter">
-                                    <ShieldCheck className="w-4 h-4" />
-                                    <span>Verified Entry • Encrypted QR</span>
-                                </div>
+                                {ticket.status === 'Active' && (
+                                    <div className="flex items-center gap-3 text-xs font-bold text-orange-600 uppercase tracking-tighter">
+                                        <ShieldCheck className="w-4 h-4" />
+                                        <span>Verified Entry • Encrypted QR</span>
+                                    </div>
+                                )}
                             </div>
 
                             {ticket.bundle.length > 0 && (
@@ -148,15 +154,29 @@ export default function MyTicketsPage() {
                             )}
 
                             <div className="flex gap-3 pt-6 border-t border-slate-100">
-                                <button 
-                                    onClick={() => setSelectedTicket(ticket)}
-                                    className="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg"
-                                >
-                                    <QrCode className="w-4 h-4" /> View QR
-                                </button>
-                                <button className="px-4 py-3 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                                    <Download className="w-5 h-5" />
-                                </button>
+                                {ticket.status === 'Active' || ticket.status === 'Confirmed' ? (
+                                    <>
+                                        <button 
+                                            onClick={() => setSelectedTicket(ticket)}
+                                            className="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg"
+                                        >
+                                            <QrCode className="w-4 h-4" /> View QR
+                                        </button>
+                                        <button className="px-4 py-3 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                                            <Download className="w-5 h-5" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button 
+                                        onClick={() => {
+                                            setSelectedTicket(ticket);
+                                            setShowFeedbackModal(true);
+                                        }}
+                                        className="flex-1 bg-white border-2 border-slate-200 text-slate-600 py-3 rounded-xl font-bold hover:border-orange-600 hover:text-orange-600 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        Rate Event
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -174,8 +194,9 @@ export default function MyTicketsPage() {
                 </div>
             )}
 
+            {/* QR Modal */}
             <Modal
-                isOpen={!!selectedTicket}
+                isOpen={!!selectedTicket && !showFeedbackModal}
                 onClose={() => setSelectedTicket(null)}
                 title="Digital Access Pass"
             >
@@ -214,6 +235,86 @@ export default function MyTicketsPage() {
                         <p className="text-sm text-slate-500">
                             Present this QR code at the virtual or physical entry point. System validates ticket authenticity and session timing.
                         </p>
+                    </div>
+                )}
+            </Modal>
+
+            {/* Feedback Modal */}
+            <Modal
+                isOpen={showFeedbackModal}
+                onClose={() => {
+                    setShowFeedbackModal(false);
+                    setSelectedTicket(null);
+                    setRating(0);
+                    setReviewText("");
+                    setIsSubmitted(false);
+                }}
+                title={isSubmitted ? "Success" : "Rate Your Experience"}
+            >
+                {selectedTicket && (
+                    <div className="space-y-6">
+                        {!isSubmitted ? (
+                            <>
+                                <div className="text-center">
+                                    <h3 className="font-bold text-slate-900 text-lg mb-1">{selectedTicket.event}</h3>
+                                    <p className="text-sm text-slate-500">How was your experience at this event?</p>
+                                </div>
+
+                                <div className="flex justify-center gap-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button 
+                                            key={star}
+                                            onClick={() => setRating(star)}
+                                            className={`text-4xl transition-transform hover:scale-110 ${rating >= star ? 'text-yellow-400' : 'text-slate-200'}`}
+                                        >
+                                            ★
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <textarea 
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-sm resize-none"
+                                    rows={4}
+                                    placeholder="Share your thoughts (optional)..."
+                                    value={reviewText}
+                                    onChange={(e) => setReviewText(e.target.value)}
+                                />
+
+                                <button 
+                                    onClick={() => {
+                                        setIsSubmitted(true);
+                                        // Here we would normally call an API
+                                    }}
+                                    disabled={rating === 0}
+                                    className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Submit Review
+                                </button>
+                            </>
+                        ) : (
+                            <div className="text-center py-8 animate-in zoom-in-95 duration-300">
+                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <Check className="w-10 h-10 text-green-600" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-slate-900 mb-2">Thank You!</h3>
+                                <p className="text-slate-500 mb-8">
+                                    Your feedback helps us improve the expo experience for everyone. 
+                                    Points have been added to your reward balance.
+                                </p>
+                                <button 
+                                    onClick={() => {
+                                        setShowFeedbackModal(false);
+                                        setSelectedTicket(null);
+                                        setIsSubmitted(false);
+                                        setRating(0);
+                                        setReviewText("");
+                                    }}
+                                    className="w-full py-4 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
+                                >
+                                    Back to Wallet
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </Modal>

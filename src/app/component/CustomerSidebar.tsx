@@ -14,7 +14,8 @@ import {
     LogOut,
     User,
     Search,
-    Bell
+    Bell,
+    Globe
 } from "lucide-react";
 
 interface SidebarItemProps {
@@ -57,6 +58,7 @@ export default function CustomerSidebar({ isOpen, setIsOpen }: SidebarProps) {
 
     const menuItems = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard/customer" },
+        { icon: Globe, label: "Discover Events", href: "/dashboard/customer/events" },
         { icon: Store, label: "Expo Hall", href: "/dashboard/customer/booths" },
         { icon: Calendar, label: "Live Schedule", href: "/dashboard/customer/schedule" },
         { icon: Ticket, label: "My Tickets", href: "/dashboard/customer/tickets" },

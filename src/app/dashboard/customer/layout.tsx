@@ -2,13 +2,14 @@
 
 import React, { useState } from "react";
 import CustomerSidebar from "../../component/CustomerSidebar";
+import FloatingChat from "../../component/FloatingChat";
 import { Search, Bell, SearchIcon } from "lucide-react";
 
 export default function CustomerLayout({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans flex text-slate-900">
+        <div className="min-h-screen bg-slate-50 font-sans flex text-slate-900 relative overflow-x-hidden">
             <CustomerSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
             
             {/* Main Content Wrapper */}
@@ -49,6 +50,8 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
                     {children}
                 </div>
             </main>
+
+            <FloatingChat />
         </div>
     );
 }

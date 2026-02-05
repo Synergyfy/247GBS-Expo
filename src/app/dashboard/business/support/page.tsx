@@ -33,16 +33,16 @@ export default function BusinessSupportPage() {
                     </button>
                 </div>
 
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
-                        <FileText className="w-8 h-8" />
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
+                            <FileText className="w-8 h-8" />
+                        </div>
+                        <h3 className="font-bold text-slate-900 mb-2">Resolution Center</h3>
+                        <p className="text-sm text-slate-500 mb-6">Open and track tickets for refund requests or transaction disputes.</p>
+                        <Link href="/dashboard/business/support/tickets" className="mt-auto border border-slate-200 text-slate-600 px-6 py-2 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center">
+                            Manage Tickets
+                        </Link>
                     </div>
-                    <h3 className="font-bold text-slate-900 mb-2">Resolution Center</h3>
-                    <p className="text-sm text-slate-500 mb-6">Open and track tickets for refund requests or transaction disputes.</p>
-                    <button className="mt-auto border border-slate-200 text-slate-600 px-6 py-2 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all">
-                        View My Tickets
-                    </button>
-                </div>
             </div>
         </div>
     );

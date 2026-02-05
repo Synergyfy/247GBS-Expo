@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { User, Store, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
     return (
@@ -59,6 +60,43 @@ function LoginForm() {
 
             <div className="mt-8 text-center text-sm text-slate-500">
                 Don&apos;t have an account? <Link href={`/signup?role=${role || ''}`} className="text-orange-600 font-semibold hover:underline">Create one</Link>
+            </div>
+
+            {/* Quick Access Demo Section */}
+            <div className="mt-10 pt-8 border-t border-slate-100">
+                <div className="text-center mb-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Demo Case</p>
+                    <h2 className="text-sm font-bold text-slate-900 uppercase">Instant Quick Access</h2>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                    <Link 
+                        href="/dashboard/customer" 
+                        className="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl hover:bg-orange-50 hover:text-orange-600 transition-all group border border-slate-100"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
+                            <User className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Customer</span>
+                    </Link>
+                    <Link 
+                        href="/dashboard/business" 
+                        className="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl hover:bg-orange-50 hover:text-orange-600 transition-all group border border-slate-100"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
+                            <Store className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Business</span>
+                    </Link>
+                    <Link 
+                        href="/dashboard/admin" 
+                        className="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl hover:bg-orange-50 hover:text-orange-600 transition-all group border border-slate-100"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
+                            <ShieldCheck className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Admin</span>
+                    </Link>
+                </div>
             </div>
         </div>
     );

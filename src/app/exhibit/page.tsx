@@ -25,7 +25,10 @@ export default function ExhibitPage() {
     cacNumber: "",
     postalCode: "",
     address: "",
-    contactPerson: "",
+    city: "",
+    town: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     idType: "International Passport",
@@ -42,7 +45,9 @@ export default function ExhibitPage() {
         setTimeout(() => {
             setFormData(prev => ({
                 ...prev, 
-                address: "123 High Street, London, United Kingdom" // Mock Address
+                address: "123 High Street", // Mock Address
+                city: "London",
+                town: "Westminster"
             }));
         }, 500);
     }
@@ -123,7 +128,7 @@ export default function ExhibitPage() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Name</label>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Name <span className="text-red-500">*</span></label>
                         <Tooltip content="The legal name of your company as registered.">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
@@ -138,7 +143,7 @@ export default function ExhibitPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Company Registration Number</label>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Company Registration Number <span className="text-slate-400 normal-case font-medium">(optional)</span></label>
                         <Tooltip content="Your official company registration number.">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
@@ -153,7 +158,7 @@ export default function ExhibitPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Postal Code</label>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Postal Code <span className="text-red-500">*</span></label>
                         <Tooltip content="Enter postal code to auto-fill address.">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
@@ -168,7 +173,7 @@ export default function ExhibitPage() {
                     </div>
                     <div className="md:col-span-2 space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Address</label>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Business Address <span className="text-red-500">*</span></label>
                         <Tooltip content="The primary physical location of your business.">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
@@ -183,22 +188,67 @@ export default function ExhibitPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Contact Person</label>
-                        <Tooltip content="The designated point of contact for this account.">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">City <span className="text-red-500">*</span></label>
+                        <Tooltip content="City of operation.">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
                       <input 
                         type="text" 
-                        placeholder="Full Name"
+                        placeholder="City"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
-                        value={formData.contactPerson}
-                        onChange={(e) => setFormData({...formData, contactPerson: e.target.value})}
+                        value={formData.city}
+                        onChange={(e) => setFormData({...formData, city: e.target.value})}
                       />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</label>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Town <span className="text-red-500">*</span></label>
+                        <Tooltip content="Town or Locality.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Town"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.town}
+                        onChange={(e) => setFormData({...formData, town: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">First Name <span className="text-red-500">*</span></label>
+                        <Tooltip content="First name of the designated point of contact.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="First Name"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Last Name <span className="text-red-500">*</span></label>
+                        <Tooltip content="Last name of the designated point of contact.">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        </Tooltip>
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Last Name"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address <span className="text-red-500">*</span></label>
                         <Tooltip content="Official business email for notifications and login.">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
@@ -213,7 +263,7 @@ export default function ExhibitPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Phone Number</label>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Phone Number <span className="text-red-500">*</span></label>
                         <Tooltip content="Active business phone number for verification.">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
@@ -260,7 +310,7 @@ export default function ExhibitPage() {
                           <User />
                         </div>
                         <h3 className="font-bold text-slate-900 flex items-center justify-center gap-2">
-                          Identity Record
+                          Identity Record <span className="text-slate-400 normal-case font-medium ml-1">(optional)</span>
                           <Tooltip content="Government-issued identification document.">
                             <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                           </Tooltip>
@@ -288,7 +338,7 @@ export default function ExhibitPage() {
                           <FileText />
                         </div>
                         <h3 className="font-bold text-slate-900 flex items-center justify-center gap-2">
-                          Certificate of Incorporation
+                          Certificate of Incorporation <span className="text-slate-400 normal-case font-medium ml-1">(optional)</span>
                           <Tooltip content="Upload your official certificate of incorporation.">
                             <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                           </Tooltip>
@@ -304,7 +354,7 @@ export default function ExhibitPage() {
                     <div className="md:col-span-2">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Tax Identification Number (Optional)</label>
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-400">Tax Identification Number <span className="text-slate-400 normal-case font-medium">(optional)</span></label>
                           <Tooltip content="Your Tax Identification Number for tax compliance.">
                             <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                           </Tooltip>

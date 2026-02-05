@@ -11,25 +11,33 @@ import {
     AlertTriangle, 
     Activity, 
     MessageSquare,
-    Settings
+    Settings,
+    ChevronLeft,
+    ChevronRight,
+    BarChart3,
+    History
 } from "lucide-react";
 
 interface AdminSidebarProps {
     isOpen: boolean;
+    setIsOpen: (isOpen: boolean) => void;
 }
 
-export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
+export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
     const pathname = usePathname();
 
     const menuItems = [
-        { label: "Command Center", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dashboard/admin", exact: true },
-        { label: "Approval Queue", icon: <ClipboardList className="w-5 h-5" />, href: "/dashboard/admin/approvals", badge: 12 },
         { label: "Governance", icon: <Gavel className="w-5 h-5" />, href: "/dashboard/admin/governance" },
-        { label: "Financial Hub", icon: <Banknote className="w-5 h-5" />, href: "/dashboard/admin/payments" },
+        { label: "Approvals", icon: <ClipboardList className="w-5 h-5" />, href: "/dashboard/admin/approvals", badge: 12 },
+        { label: "Revenue", icon: <Banknote className="w-5 h-5" />, href: "/dashboard/admin/revenue" },
+        { label: "Risk", icon: <AlertTriangle className="w-5 h-5" />, href: "/dashboard/admin/risk" },
         { label: "Compliance", icon: <ShieldCheck className="w-5 h-5" />, href: "/dashboard/admin/compliance" },
-        { label: "Risk & Fraud", icon: <AlertTriangle className="w-5 h-5" />, href: "/dashboard/admin/risk" },
-        { label: "System Health", icon: <Activity className="w-5 h-5" />, href: "/dashboard/admin/health" },
-        { label: "Dispute Center", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/support", badge: 3 },
+        { label: "Audit", icon: <History className="w-5 h-5" />, href: "/dashboard/admin/audit" },
+        { label: "Reporting", icon: <BarChart3 className="w-5 h-5" />, href: "/dashboard/admin/reporting" },
+        { label: "Health", icon: <Activity className="w-5 h-5" />, href: "/dashboard/admin/health" },
+        { label: "Disputes", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/disputes", badge: 3 },
+        { label: "Configuration", icon: <Settings className="w-5 h-5" />, href: "/dashboard/admin/configuration" },
+        { label: "Support", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/support" },
     ];
 
     return (
@@ -66,6 +74,15 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                     );
                 })}
             </nav>
+
+            <div className="w-full px-3 mb-2">
+                <button 
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="w-full flex items-center justify-center py-2 rounded-xl bg-orange-700/20 text-orange-100 hover:bg-orange-700/40 transition-all"
+                >
+                    {isOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                </button>
+            </div>
 
             <div className="p-4 w-full border-t border-orange-500">
                 <div className="flex items-center gap-3 px-3">

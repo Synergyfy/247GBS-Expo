@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import AdminSidebar from "../../component/AdminSidebar";
+import FloatingChat from "../../component/FloatingChat";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     return (
-        <div className="min-h-screen bg-slate-100 flex font-sans">
-            <AdminSidebar isOpen={isSidebarOpen} />
+        <div className="min-h-screen bg-slate-100 flex font-sans relative overflow-x-hidden">
+            <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
             {/* MAIN CONTENT WRAPPER */}
             <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} relative`}>
@@ -19,6 +20,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     {children}
                 </div>
             </main>
+
+            <FloatingChat />
         </div>
     );
 }

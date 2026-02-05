@@ -73,9 +73,15 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            <button className="p-2 text-slate-600 hover:text-orange-600 transition-colors">
+            <button className="p-2 text-slate-600 hover:text-orange-600 transition-colors mr-2">
               <Search className="w-5 h-5" />
             </button>
+            <Link
+              href="/login"
+              className="text-sm font-bold text-slate-700 hover:text-orange-600 transition-colors"
+            >
+              Login
+            </Link>
             <Link
               href="/tickets"
               className="bg-orange-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/30"
@@ -115,6 +121,13 @@ export default function Navbar() {
               ))}
               <hr className="border-slate-100" />
               <div className="flex flex-col gap-3">
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="bg-white border border-slate-200 text-slate-900 px-6 py-3 rounded-full text-center font-bold hover:bg-slate-50"
+                >
+                  Login
+                </Link>
                 <Link
                   href="/tickets"
                   className="bg-orange-600 text-white px-6 py-3 rounded-full text-center font-bold hover:bg-orange-700"

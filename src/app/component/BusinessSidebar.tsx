@@ -16,7 +16,8 @@ import {
     Settings,
     TrendingUp,
     ScanLine,
-    LifeBuoy
+    LifeBuoy,
+    BarChart3
 } from "lucide-react";
 
 interface SidebarProps {
@@ -29,16 +30,73 @@ export default function BusinessSidebar({ isOpen }: SidebarProps) {
     const menuItems = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard/business", exact: true },
         { icon: Store, label: "My Booth", href: "/dashboard/business/booth" },
-        { icon: Package, label: "Products", href: "/dashboard/business/products" },
-        { icon: Calendar, label: "Events & Tickets", href: "/dashboard/business/events" },
-        { icon: TrendingUp, label: "Sales Center", href: "/dashboard/business/sales" },
-        { icon: Gift, label: "Rewards", href: "/dashboard/business/rewards" },
+        { 
+            icon: Package, 
+            label: "Products", 
+            href: "/dashboard/business/products",
+            subItems: [
+                { label: "Catalog", href: "/dashboard/business/products", exact: true },
+                { label: "Fulfilment", href: "/dashboard/business/products/fulfilment" },
+                { label: "Redemption", href: "/dashboard/business/products/redemption" },
+            ]
+        },
+        { 
+            icon: Calendar, 
+            label: "Events & Tickets", 
+            href: "/dashboard/business/events",
+            subItems: [
+                { label: "All Events", href: "/dashboard/business/events", exact: true },
+                { label: "Create New", href: "/dashboard/business/events/create" },
+                { label: "Configuration", href: "/dashboard/business/events/configuration" },
+                { label: "Ticket Manager", href: "/dashboard/business/events/tickets" },
+            ]
+        },
+        { 
+            icon: TrendingUp, 
+            label: "Sales and Distribution", 
+            href: "/dashboard/business/sales",
+            subItems: [
+                { label: "Sales Channels", href: "/dashboard/business/sales", exact: true },
+                { label: "Links & Codes", href: "/dashboard/business/sales/links" },
+                { label: "Campaigns", href: "/dashboard/business/sales/campaigns" },
+            ]
+        },
+        { 
+            icon: Gift, 
+            label: "Rewards", 
+            href: "/dashboard/business/rewards",
+            subItems: [
+                { label: "Overview", href: "/dashboard/business/rewards", exact: true },
+                { label: "Loyalty Integration", href: "/dashboard/business/rewards/integration" },
+                { label: "Reward Monitoring", href: "/dashboard/business/rewards/monitoring" },
+            ]
+        },
+        { icon: BarChart3, label: "Analytics", href: "/dashboard/business/analytics" },
         { icon: ScanLine, label: "POS Console", href: "/dashboard/business/pos" },
+        { 
+            icon: ShieldCheck, 
+            label: "Event Operations", 
+            href: "/dashboard/business/operations",
+            subItems: [
+                { label: "Check-in Setup", href: "/dashboard/business/operations", exact: true },
+                { label: "Live Verification", href: "/dashboard/business/operations/verification" },
+                { label: "Crowd Control", href: "/dashboard/business/operations/crowd" },
+            ]
+        },
         { icon: Wallet, label: "Revenue", href: "/dashboard/business/revenue" },
         { icon: MessageSquare, label: "Messages", href: "/dashboard/business/messages", badge: 3 },
-        { icon: ShieldCheck, label: "Verification", href: "/dashboard/business/verification" },
         { icon: LifeBuoy, label: "Support Center", href: "/dashboard/business/support" },
-        { icon: Settings, label: "Settings", href: "/dashboard/business/settings" },
+        { 
+            icon: Settings, 
+            label: "Settings", 
+            href: "/dashboard/business/settings",
+            subItems: [
+                { label: "Profile", href: "/dashboard/business/settings", exact: true },
+                { label: "Team", href: "/dashboard/business/settings/team" },
+                { label: "Integrations", href: "/dashboard/business/settings/integrations" },
+                { label: "Audit Logs", href: "/dashboard/business/settings/audits" },
+            ]
+        },
     ];
 
     return (
@@ -57,17 +115,33 @@ export default function BusinessSidebar({ isOpen }: SidebarProps) {
                         : pathname.startsWith(item.href);
 
                     return (
-                        <Link key={i} href={item.href} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all group ${isActive ? 'bg-white text-orange-600 shadow-xl' : 'text-orange-50 hover:bg-white/10'}`}>
-                            <div className="shrink-0">
-                                <item.icon className={`w-5 h-5 ${isActive ? 'text-orange-600' : 'group-hover:scale-110 transition-transform'}`} />
-                            </div>
-                            {isOpen && (
-                                <span className={`flex-1 text-sm font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-90'}`}>{item.label}</span>
+                        <div key={i}>
+                            <Link href={item.href} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all group ${isActive ? 'bg-white text-orange-600 shadow-xl' : 'text-orange-50 hover:bg-white/10'}`}>
+                                <div className="shrink-0">
+                                    <item.icon className={`w-5 h-5 ${isActive ? 'text-orange-600' : 'group-hover:scale-110 transition-transform'}`} />
+                                </div>
+                                {isOpen && (
+                                    <span className={`flex-1 text-sm font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-90'}`}>{item.label}</span>
+                                )}
+                                {isOpen && item.badge && (
+                                    <span className="bg-white text-orange-600 text-[10px] font-black px-2 py-0.5 rounded-full">{item.badge}</span>
+                                )}
+                            </Link>
+                            
+                            {/* Sub-menu */}
+                            {isOpen && isActive && item.subItems && (
+                                <div className="ml-4 mt-1 space-y-1 pl-4 border-l border-orange-400/30">
+                                    {item.subItems.map((sub, j) => {
+                                        const isSubActive = sub.exact ? pathname === sub.href : pathname === sub.href; // Simplified for now
+                                        return (
+                                            <Link key={j} href={sub.href} className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all ${isSubActive ? 'text-white bg-orange-500/50' : 'text-orange-200 hover:text-white'}`}>
+                                                {sub.label}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
                             )}
-                            {isOpen && item.badge && (
-                                <span className="bg-white text-orange-600 text-[10px] font-black px-2 py-0.5 rounded-full">{item.badge}</span>
-                            )}
-                        </Link>
+                        </div>
                     );
                 })}
             </nav>
