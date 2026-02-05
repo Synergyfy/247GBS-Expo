@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -26,7 +27,15 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
     const pathname = usePathname();
 
-    const menuItems = [
+    interface MenuItem {
+        label: string;
+        icon: JSX.Element;
+        href: string;
+        badge?: number;
+        exact?: boolean;
+    }
+
+    const menuItems: MenuItem[] = [
         { label: "Governance", icon: <Gavel className="w-5 h-5" />, href: "/dashboard/admin/governance" },
         { label: "Approvals", icon: <ClipboardList className="w-5 h-5" />, href: "/dashboard/admin/approvals", badge: 12 },
         { label: "Revenue", icon: <Banknote className="w-5 h-5" />, href: "/dashboard/admin/revenue" },
