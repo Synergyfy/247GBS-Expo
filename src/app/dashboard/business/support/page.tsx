@@ -1,6 +1,7 @@
 "use client";
 
 import { LifeBuoy, MessageSquare, FileText, Search, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 export default function BusinessSupportPage() {
     return (

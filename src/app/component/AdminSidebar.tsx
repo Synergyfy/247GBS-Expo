@@ -29,7 +29,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
 
     interface MenuItem {
         label: string;
-        icon: JSX.Element;
+        icon: any;
         href: string;
         badge?: number;
         exact?: boolean;

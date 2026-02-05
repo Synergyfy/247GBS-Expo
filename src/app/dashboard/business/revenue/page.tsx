@@ -8,6 +8,8 @@ import {
     ArrowDownRight, 
     Clock, 
     CheckCircle2, 
+    Loader2,
+    ShieldCheck,
     ChevronRight, 
     CreditCard, 
     Landmark,
@@ -15,6 +17,8 @@ import {
     BarChart3,
     AlertCircle
 } from "lucide-react";
+
+import Modal from "@/app/component/Modal";
 
 export default function BusinessRevenuePage() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
