@@ -146,15 +146,46 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Sticky Event Banner - Gummed to Header */}
+      {/* Sticky Event Banner - Ticker Tape */}
       <div className="bg-orange-600 text-white py-2 px-4 shadow-inner">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 text-xs md:text-sm font-bold tracking-wider">
-          <Calendar className="w-4 h-4 shrink-0" />
-          <span className="uppercase">Upcoming {nextEvent.season}: {nextEvent.dates}</span>
-          <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
-          <Link href="/tickets" className="underline decoration-2 underline-offset-4 hover:text-orange-100 transition-colors">
-            Get Your Tickets Now
-          </Link>
+        <style>{`
+          .ticker-wrapper { overflow: hidden; }
+          .ticker-track { display:flex; gap:3rem; min-width:200%; align-items:center; animation: ticker 18s linear infinite; }
+          .ticker-item { display:flex; align-items:center; gap:0.75rem; white-space:nowrap; }
+          .ticker-track:hover { animation-play-state: paused; }
+          @keyframes ticker { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
+        `}</style>
+
+        <div className="max-w-7xl mx-auto ticker-wrapper">
+          <div className="flex items-center text-xs md:text-sm font-bold tracking-wider">
+            <Calendar className="w-4 h-4 shrink-0 mr-3" />
+
+            <div className="flex-1 overflow-hidden">
+              <div className="ticker-track">
+                {/* first pass of items */}
+                <div className="ticker-item">
+                  <span className="uppercase">SPRING 2026: April 10-19, 2026 — Tickets on sale</span>
+                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
+                  <span className="uppercase">SUMMER 2026: July 15-24, 2026 — Early bird ends May</span>
+                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
+                  <Link href="/tickets" className="underline decoration-2 underline-offset-4 hover:text-orange-100 transition-colors">
+                    Get Your Tickets Now
+                  </Link>
+                </div>
+
+                {/* duplicate for seamless loop */}
+                <div className="ticker-item" aria-hidden="true">
+                  <span className="uppercase">SPRING 2026: April 10-19, 2026 — Tickets on sale</span>
+                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
+                  <span className="uppercase">SUMMER 2026: July 15-24, 2026 — Early bird ends May</span>
+                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
+                  <Link href="/tickets" className="underline decoration-2 underline-offset-4 hover:text-orange-100 transition-colors">
+                    Get Your Tickets Now
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
