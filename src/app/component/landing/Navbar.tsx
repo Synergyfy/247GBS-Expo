@@ -9,6 +9,32 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [nextEvent, setNextEvent] = useState({ season: "SPRING 2026", dates: "April 10-19, 2026" });
 
+  // Season detection for banner colors
+  const getSeasonColor = () => {
+    const now = new Date();
+    const month = now.getMonth();
+    const day = now.getDate();
+    
+    // SPRING: April 10 - July 14 (Emerald)
+    if ((month === 3 && day >= 10) || (month > 3 && month < 6) || (month === 6 && day <= 14)) {
+      return "bg-emerald-600";
+    }
+    // SUMMER: July 15 - October 9 (Amber)
+    else if ((month === 6 && day >= 15) || (month > 6 && month < 9) || (month === 9 && day <= 9)) {
+      return "bg-amber-600";
+    }
+    // AUTUMN: October 10 - December 4 (Orange)
+    else if ((month === 9 && day >= 10) || (month > 9 && month < 11) || (month === 11 && day <= 4)) {
+      return "bg-orange-600";
+    }
+    // WINTER: December 5 - April 9 (Cyan)
+    else {
+      return "bg-cyan-600";
+    }
+  };
+
+  const [bannerColor, setBannerColor] = useState(getSeasonColor());
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
@@ -147,7 +173,7 @@ export default function Navbar() {
       </div>
 
       {/* Sticky Event Banner - Ticker Tape */}
-      <div className="bg-orange-600 text-white py-2 px-4 shadow-inner">
+      <div className={`${bannerColor} text-white py-2 px-4 shadow-inner transition-colors duration-500`}>
         <style>{`
           .ticker-wrapper { overflow: hidden; }
           .ticker-track { display:flex; gap:3rem; min-width:200%; align-items:center; animation: ticker 18s linear infinite; }
