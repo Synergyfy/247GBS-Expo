@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, Store, Building2, FileText, Landmark, ShieldCheck,
   ArrowRight, ArrowLeft, Upload, Loader2, CreditCard,
-  Briefcase, Mail, Phone, MapPin, User, Plus, Zap, Info
+  Briefcase, Mail, Phone, MapPin, User, Plus, Zap, Info, Globe
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
