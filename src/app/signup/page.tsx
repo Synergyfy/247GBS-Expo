@@ -18,6 +18,10 @@ function SignupForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get("role");
+    const preEmail = searchParams.get("email") || "";
+    const preFirstName = searchParams.get("firstName") || "";
+    const preLastName = searchParams.get("lastName") || "";
+    
     const [roleText, setRoleText] = useState("Exhibitor");
 
     useEffect(() => {
@@ -51,17 +55,17 @@ function SignupForm() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">First Name</label>
-                        <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="Frank" />
+                        <input type="text" defaultValue={preFirstName} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="Frank" />
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Last Name</label>
-                        <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="Doe" />
+                        <input type="text" defaultValue={preLastName} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="Doe" />
                     </div>
                 </div>
 
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Email Address</label>
-                    <input type="email" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="name@company.com" />
+                    <input type="email" defaultValue={preEmail} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="name@company.com" />
                 </div>
 
                 <div className="space-y-2">

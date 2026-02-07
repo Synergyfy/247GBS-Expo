@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Check, Store, Building2, FileText, Landmark, ShieldCheck, 
-  ArrowRight, ArrowLeft, Upload, Loader2, CreditCard, 
+import {
+  Check, Store, Building2, FileText, Landmark, ShieldCheck,
+  ArrowRight, ArrowLeft, Upload, Loader2, CreditCard,
   Briefcase, Mail, Phone, MapPin, User, Plus, Zap, Info
 } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +12,7 @@ import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import Tooltip from "@/app/component/Tooltip";
 
-const STEPS = ["Registration", "KYC & Documents", "Module Activation"];
+const STEPS = ["Registration", "KYC & Documents", "General Pass", "Module Activation"];
 
 export default function ExhibitPage() {
   const [step, setStep] = useState(0);
@@ -32,26 +32,45 @@ export default function ExhibitPage() {
     email: "",
     phone: "",
     idType: "International Passport",
+    selectedPass: "spring_pass",
     selectedPackage: "Professional"
   });
 
   const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const code = e.target.value;
     setFormData(prev => ({ ...prev, postalCode: code }));
-    
+
     // Mock Auto-fill for UK Postcodes
     if (code.length >= 5) {
-        // Simulating an API lookup delay
-        setTimeout(() => {
-            setFormData(prev => ({
-                ...prev, 
-                address: "123 High Street", // Mock Address
-                city: "London",
-                town: "Westminster"
-            }));
-        }, 500);
+      // Simulating an API lookup delay
+      setTimeout(() => {
+        setFormData(prev => ({
+          ...prev,
+          address: "123 High Street", // Mock Address
+          city: "London",
+          town: "Westminster"
+        }));
+      }, 500);
     }
   };
+
+  const passes = [
+    {
+      id: "spring_pass",
+      name: "Spring 2026 Season Pass",
+      price: "25",
+      description: "Mandatory platform entry pass. Valid for the entire Spring season duration.",
+      features: ["Marketplace Access", "General Networking", "Standard Rewards"]
+    },
+    {
+      id: "annual_pass",
+      name: "Annual All-Access Pass",
+      price: "75",
+      description: "Best value. Entry to all 4 seasons in 2026. Includes 24/7 lobby access.",
+      features: ["4 Seasons Entry", "VIP Lounge Access", "Priority Queue", "Premium Rewards"],
+      popular: true
+    }
+  ];
 
   const packages = [
     { name: "Starter", price: "99", features: ["Standard Template", "20 Products"] },
@@ -95,10 +114,9 @@ export default function ExhibitPage() {
               <div className="flex items-center gap-4 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
                 {STEPS.map((s, i) => (
                   <div key={s} className="flex items-center shrink-0">
-                    <div 
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                        i <= step ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" : "bg-white text-slate-300 border border-slate-200"
-                      }`}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${i <= step ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" : "bg-white text-slate-300 border border-slate-200"
+                        }`}
                     >
                       {i < step ? <Check className="w-6 h-6" /> : i + 1}
                     </div>
@@ -114,7 +132,7 @@ export default function ExhibitPage() {
             <AnimatePresence mode="wait">
               {/* STEP 0: REGISTRATION (Section 3.1) */}
               {step === 0 && (
-                <motion.div 
+                <motion.div
                   key="step0"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -124,7 +142,7 @@ export default function ExhibitPage() {
                   <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-2">
                     <Building2 className="text-orange-600" /> Business Information
                   </h2>
-                  
+
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
@@ -133,27 +151,27 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="Enter full legal name"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.businessName}
-                        onChange={(e) => setFormData({...formData, businessName: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Company Registration Number <span className="text-slate-400 normal-case font-medium">(optional)</span></label>
-                        <Tooltip content="Your official company registration number.">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">Companies House + UTR <span className="text-slate-400 normal-case font-medium">(optional)</span></label>
+                        <Tooltip content="Your official companies house and UTR (Unique Taxpayer Reference).">
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="e.g. 12345678"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.cacNumber}
-                        onChange={(e) => setFormData({...formData, cacNumber: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, cacNumber: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -163,8 +181,8 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="e.g. SW1A 1AA"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.postalCode}
@@ -178,12 +196,12 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <textarea 
+                      <textarea
                         placeholder="Street, City, State, Country"
                         rows={2}
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all resize-none"
                         value={formData.address}
-                        onChange={(e) => setFormData({...formData, address: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -193,12 +211,12 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="City"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.city}
-                        onChange={(e) => setFormData({...formData, city: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -208,12 +226,12 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="Town"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.town}
-                        onChange={(e) => setFormData({...formData, town: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, town: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -223,12 +241,12 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="First Name"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.firstName}
-                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -238,12 +256,12 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="Last Name"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.lastName}
-                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -253,12 +271,12 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         placeholder="biz@company.com"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -268,18 +286,18 @@ export default function ExhibitPage() {
                           <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                         </Tooltip>
                       </div>
-                      <input 
-                        type="tel" 
+                      <input
+                        type="tel"
                         placeholder="+44..."
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       />
                     </div>
                   </div>
 
                   <div className="mt-12 flex justify-end">
-                    <button 
+                    <button
                       onClick={handleNext}
                       className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
                     >
@@ -291,7 +309,7 @@ export default function ExhibitPage() {
 
               {/* STEP 1: KYC & DOCUMENTS (Section 3.2) */}
               {step === 1 && (
-                <motion.div 
+                <motion.div
                   key="step1"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -316,14 +334,14 @@ export default function ExhibitPage() {
                           </Tooltip>
                         </h3>
                         <p className="text-xs text-slate-500 mb-4 uppercase font-bold tracking-widest mt-1">Select ID Type</p>
-                        <select 
+                        <select
                           className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm mb-4"
                           value={formData.idType}
-                          onChange={(e) => setFormData({...formData, idType: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, idType: e.target.value })}
                         >
                           <option>International Passport</option>
                           <option>Driver's License</option>
-                          <option>National ID</option>
+                          <option>Others</option>
                         </select>
                         <button className="flex items-center gap-2 mx-auto text-orange-600 font-bold text-sm">
                           <Upload className="w-4 h-4" /> Upload Document
@@ -350,32 +368,17 @@ export default function ExhibitPage() {
                       </div>
                     </div>
 
-                    {/* Tax Status (Optional) */}
-                    <div className="md:col-span-2">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-400">Tax Identification Number <span className="text-slate-400 normal-case font-medium">(optional)</span></label>
-                          <Tooltip content="Your Tax Identification Number for tax compliance.">
-                            <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                          </Tooltip>
-                        </div>
-                        <input 
-                          type="text" 
-                          placeholder="Enter TIN if applicable"
-                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
-                        />
-                      </div>
-                    </div>
+
                   </div>
 
                   <div className="mt-12 flex justify-between gap-4">
-                    <button 
+                    <button
                       onClick={handleBack}
                       className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all"
                     >
                       Back
                     </button>
-                    <button 
+                    <button
                       onClick={handleNext}
                       className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
                     >
@@ -385,10 +388,69 @@ export default function ExhibitPage() {
                 </motion.div>
               )}
 
-              {/* STEP 2: MODULE ACTIVATION (Section 3.3) */}
+              {/* STEP 2: GENERAL PASS (Mandatory for all users) */}
               {step === 2 && (
-                <motion.div 
+                <motion.div
                   key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100"
+                >
+                  <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Globe className="text-orange-600" /> Platform Entry Pass
+                  </h2>
+                  <p className="text-slate-500 mb-8">Before activating your booth, you must secure your mandatory platform entry pass. This provides your business with permanent 24/7 lobby access.</p>
+
+                  <div className="grid md:grid-cols-2 gap-8 mb-12">
+                    {passes.map((pass) => (
+                      <div
+                        key={pass.id}
+                        onClick={() => setFormData({ ...formData, selectedPass: pass.id })}
+                        className={`relative p-8 rounded-3xl border-2 transition-all cursor-pointer ${formData.selectedPass === pass.id
+                          ? "border-orange-600 bg-orange-50 shadow-lg"
+                          : "border-slate-100 hover:border-orange-200 bg-slate-50"
+                          }`}
+                      >
+                        {pass.popular && (
+                          <div className="absolute -top-3 right-6 bg-slate-900 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest shadow-lg">
+                            RECOMMENDED
+                          </div>
+                        )}
+                        <h3 className="font-bold text-slate-900 text-xl mb-1">{pass.name}</h3>
+                        <div className="text-3xl font-black text-slate-900 mb-4">£{pass.price}<span className="text-sm font-normal text-slate-500"> (Inc. VAT)</span></div>
+                        <ul className="space-y-3 mb-6">
+                          {pass.features.map(f => (
+                            <li key={f} className="text-xs font-medium text-slate-600 flex items-center gap-2">
+                              <Check className="w-4 h-4 text-green-500" /> {f}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-12 flex justify-between gap-4">
+                    <button
+                      onClick={handleBack}
+                      className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
+                    >
+                      {loading ? <Loader2 className="animate-spin" /> : "Next: Module Activation"}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 3: MODULE ACTIVATION (Section 3.3) */}
+              {step === 3 && (
+                <motion.div
+                  key="step3"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -401,14 +463,13 @@ export default function ExhibitPage() {
 
                   <div className="grid md:grid-cols-3 gap-6 mb-12">
                     {packages.map((pkg) => (
-                      <div 
+                      <div
                         key={pkg.name}
-                        onClick={() => setFormData({...formData, selectedPackage: pkg.name})}
-                        className={`p-6 rounded-3xl border-2 transition-all cursor-pointer relative ${
-                          formData.selectedPackage === pkg.name 
-                            ? "border-orange-600 bg-orange-50 shadow-lg" 
-                            : "border-slate-100 hover:border-orange-200 bg-slate-50"
-                        }`}
+                        onClick={() => setFormData({ ...formData, selectedPackage: pkg.name })}
+                        className={`p-6 rounded-3xl border-2 transition-all cursor-pointer relative ${formData.selectedPackage === pkg.name
+                          ? "border-orange-600 bg-orange-50 shadow-lg"
+                          : "border-slate-100 hover:border-orange-200 bg-slate-50"
+                          }`}
                       >
                         {formData.selectedPackage === pkg.name && (
                           <div className="absolute top-4 right-4 text-orange-600">
@@ -452,13 +513,13 @@ export default function ExhibitPage() {
                   </div>
 
                   <div className="mt-12 flex justify-between gap-4">
-                    <button 
+                    <button
                       onClick={handleBack}
                       className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all"
                     >
                       Back
                     </button>
-                    <button 
+                    <button
                       onClick={handleSubmit}
                       className="px-12 py-4 bg-slate-900 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-600 transition-all shadow-xl shadow-slate-900/30"
                     >
@@ -471,20 +532,24 @@ export default function ExhibitPage() {
           </div>
         ) : (
           /* SUCCESS SCREEN (Section 3.2 Statuses) */
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="max-w-2xl mx-auto text-center bg-white p-12 md:p-20 rounded-[40px] shadow-2xl border border-slate-100"
           >
-            <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-8 text-orange-600">
-              <Loader2 className="w-12 h-12 animate-spin" />
+            <div className="relative w-32 h-32 mx-auto mb-8">
+              <div className="absolute inset-0 bg-orange-100 rounded-full animate-pulse opacity-50" />
+              <div className="absolute inset-4 bg-orange-200 rounded-full" />
+              <div className="relative z-10 w-full h-full flex items-center justify-center text-orange-600">
+                <Clock className="w-12 h-12" />
+              </div>
             </div>
             <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Verification Pending</h2>
             <p className="text-xl text-slate-600 mb-12">
-              Your business onboarding is complete! Our admin team is currently validating your KYC documents. 
+              Your business onboarding is complete! Our admin team is currently validating your KYC documents.
               You will be notified via <strong>{formData.email}</strong> once your account is verified.
             </p>
-            
+
             <div className="space-y-4 mb-12 text-left bg-slate-50 p-8 rounded-3xl border border-slate-100">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-500 uppercase tracking-widest text-xs">Registration</span>
@@ -502,7 +567,7 @@ export default function ExhibitPage() {
               </div>
             </div>
 
-            <Link 
+            <Link
               href="/dashboard/business"
               className="inline-block px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
             >

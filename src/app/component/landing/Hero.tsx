@@ -2,8 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MapPin, Clock, ArrowRight, Play } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { MapPin, Clock, ArrowRight, Play, Users, Briefcase, Activity } from "lucide-react";
+import { motion, AnimatePresence, animate } from "framer-motion";
+
+function Counter({ value }: { value: number }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const controls = animate(count, value, {
+      duration: 2,
+      onUpdate: (latest) => setCount(Math.round(latest)),
+    });
+    return () => controls.stop();
+  }, [value]);
+
+  return <span>{count.toLocaleString()}</span>;
+}
 
 const SEASONAL_DATA = [
   {
@@ -11,6 +25,7 @@ const SEASONAL_DATA = [
     image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2000&auto=format&fit=crop",
     headline: "Spring Renewal",
     storyline: "Fresh ideas bloom. New brands launch their vision.",
+    dates: "April 10-19, 2026",
     activityStat: "500+ New Exhibitors",
     activityDesc: "Spring into action this April",
     colors: {
@@ -27,6 +42,7 @@ const SEASONAL_DATA = [
     image: "https://images.unsplash.com/photo-1519671482677-504be0270b7b?q=80&w=2000&auto=format&fit=crop",
     headline: "Summer Energy",
     storyline: "Peak season. Peak connections. The world is here.",
+    dates: "July 15-24, 2026",
     activityStat: "10K+ Daily Visitors",
     activityDesc: "Record engagement in July",
     colors: {
@@ -43,6 +59,7 @@ const SEASONAL_DATA = [
     image: "https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=2000&auto=format&fit=crop",
     headline: "Autumn Growth",
     storyline: "Innovation seasons. New products unveiled.",
+    dates: "October 10-19, 2026",
     activityStat: "1,200+ Product Launches",
     activityDesc: "Harvest season for creators",
     colors: {
@@ -59,6 +76,7 @@ const SEASONAL_DATA = [
     image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop",
     headline: "Winter Festivities",
     storyline: "Year-end celebrations. Brands shine bright.",
+    dates: "December 5-14, 2026",
     activityStat: "20K+ Deals & Rewards",
     activityDesc: "Holiday shopping peak",
     colors: {
@@ -74,13 +92,29 @@ const SEASONAL_DATA = [
 
 export default function Hero() {
   const [currentSeason, setCurrentSeason] = useState(0);
+  const [stats, setStats] = useState({
+    users: 15420,
+    businesses: 850,
+    attendees: 42300
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats(prev => ({
+        users: prev.users + Math.floor(Math.random() * 3),
+        businesses: prev.businesses + (Math.random() > 0.9 ? 1 : 0),
+        attendees: prev.attendees + Math.floor(Math.random() * 5)
+      }));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Determine current season based on user's date
   const getCurrentSeasonIndex = () => {
     const now = new Date();
     const month = now.getMonth();
     const day = now.getDate();
-    
+
     // SPRING: April 10 - July 14
     if ((month === 3 && day >= 10) || (month > 3 && month < 6) || (month === 6 && day <= 14)) {
       return 0;
@@ -140,7 +174,7 @@ export default function Hero() {
       </div>
 
       <div className="container relative z-10 px-4 md:px-6 pt-32 pb-20 flex justify-center">
-        <div className="max-w-4xl w-full bg-slate-900/60 p-10 md:p-16 rounded-[48px] shadow-2xl text-center">
+        <div className="max-w-4xl w-full bg-slate-900/60 p-6 md:p-10 rounded-[48px] shadow-2xl text-center">
           {/* Season Badge */}
           <motion.div
             key={`badge-${currentSeason}`}
@@ -150,7 +184,7 @@ export default function Hero() {
             transition={{ duration: 0.6 }}
             className={`inline-block px-4 py-2 border rounded-full text-sm font-bold tracking-wider mb-4 ${currentData.colors.badge}`}
           >
-            {currentData.season} 2026
+            {currentData.season} 2026 — {currentData.dates.replace(", 2026", "")}
           </motion.div>
 
           {/* Main Heading - Seasonal */}
@@ -191,38 +225,42 @@ export default function Hero() {
 
           {/* Activity Stat - Shows platform vibrancy per season */}
           <motion.div
-            key={`activity-${currentSeason}`}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
           >
             <div className="flex items-center justify-center gap-3">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentData.colors.accentIcon}`}>
-                <Clock className="w-5 h-5" />
+                <Users className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <p className="font-bold text-white">{currentData.activityStat}</p>
-                <p className="text-xs text-slate-400 tracking-wider">{currentData.activityDesc}</p>
+                <p className="font-bold text-white">
+                  <Counter value={stats.users} />+
+                </p>
+                <p className="text-xs text-slate-400 tracking-wider">REGISTERED USERS</p>
               </div>
             </div>
             <div className="flex items-center justify-center gap-3">
               <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500">
-                <MapPin className="w-5 h-5" />
+                <Briefcase className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <p className="font-bold text-white">Global Access</p>
-                <p className="text-xs text-slate-400 tracking-wider">WORLDWIDE</p>
+                <p className="font-bold text-white">
+                  <Counter value={stats.businesses} />+
+                </p>
+                <p className="text-xs text-slate-400 tracking-wider">REGISTERED BUSINESSES</p>
               </div>
             </div>
             <div className="flex items-center justify-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center text-green-500">
-                <Play className="w-5 h-5" />
+              <div className={`w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center text-green-500`}>
+                <Activity className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <p className="font-bold text-white">Live Demos</p>
-                <p className="text-xs text-slate-400 tracking-wider">INTERACTIVE</p>
+                <p className="font-bold text-white">
+                  <Counter value={stats.attendees} />+
+                </p>
+                <p className="text-xs text-slate-400 tracking-wider">TOTAL ATTENDEES</p>
               </div>
             </div>
           </motion.div>

@@ -1,6 +1,6 @@
-"use client";
+  "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageSquare, X, Send, User, Minus, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -13,6 +13,7 @@ export default function FloatingChat() {
         { role: "user", text: "I have a question about my latest payout.", time: "10:05 AM" },
         { role: "other", text: "Sure, let me check that for you. One moment please...", time: "10:06 AM" },
     ]);
+    const [showHint, setShowHint] = useState(true);
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,6 +32,13 @@ export default function FloatingChat() {
             }]);
         }, 1000);
     };
+
+    useEffect(() => {
+        // show hint bubble briefly on load
+        setShowHint(true);
+        const t = setTimeout(() => setShowHint(false), 6000);
+        return () => clearTimeout(t);
+    }, []);
 
     return (
         <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end">
@@ -102,9 +110,20 @@ export default function FloatingChat() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
             {/* Floating Button / Minimized Bar */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 relative">
+                {/* hint bubble (white rounded message) shown briefly when closed */}
+                {!isOpen && showHint && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="mr-3 mb-1 bg-white text-slate-900 rounded-lg shadow-lg p-3 max-w-xs"
+                    >
+                        <p className="text-sm">Questions about 247 Expo? I'm here to help!</p>
+                    </motion.div>
+                )}
+
                 {isMinimized && isOpen && (
                     <motion.button
                         initial={{ opacity: 0, x: 20 }}
@@ -117,22 +136,23 @@ export default function FloatingChat() {
                         <Maximize2 className="w-4 h-4" />
                     </motion.button>
                 )}
-                
+
                 <button 
                     onClick={() => {
                         if (isOpen && isMinimized) setIsMinimized(false);
                         else setIsOpen(!isOpen);
                     }}
-                    className={`w-16 h-16 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all duration-500 active:scale-90 ${
-                        isOpen && !isMinimized ? 'bg-orange-600 text-white rotate-90' : 'bg-slate-900 text-white hover:bg-orange-600'
+                    className={`h-12 px-4 rounded-full flex items-center gap-2 shadow-2xl transition-all duration-500 active:scale-90 ${
+                        isOpen && !isMinimized ? 'bg-red-600 text-white rotate-90' : 'bg-red-600 text-white hover:bg-red-700'
                     }`}
                 >
-                    {isOpen && !isMinimized ? <X className="w-8 h-8" /> : (
-                        <div className="relative">
-                            <MessageSquare className="w-8 h-8" />
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 border-2 border-slate-900 rounded-full flex items-center justify-center text-[8px] font-black">
-                                3
-                            </div>
+                    {isOpen && !isMinimized ? (
+                        <X className="w-5 h-5" />
+                    ) : (
+                        <div className="relative flex items-center gap-2">
+                            <MessageSquare className="w-5 h-5" />
+                            <span className="text-sm font-bold">Chat</span>
+                            <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 border-2 border-white rounded-full" aria-hidden="true" />
                         </div>
                     )}
                 </button>

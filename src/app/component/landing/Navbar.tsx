@@ -8,37 +8,20 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [nextEvent, setNextEvent] = useState({ season: "SPRING 2026", dates: "April 10-19, 2026" });
+  const [displayEvents, setDisplayEvents] = useState([0, 1]); // Which 2 seasons to show as static
 
-  // Season detection for banner colors
-  const getSeasonColor = () => {
-    const now = new Date();
-    const month = now.getMonth();
-    const day = now.getDate();
-    
-    // SPRING: April 10 - July 14 (Emerald)
-    if ((month === 3 && day >= 10) || (month > 3 && month < 6) || (month === 6 && day <= 14)) {
-      return "bg-emerald-600";
-    }
-    // SUMMER: July 15 - October 9 (Amber)
-    else if ((month === 6 && day >= 15) || (month > 6 && month < 9) || (month === 9 && day <= 9)) {
-      return "bg-amber-600";
-    }
-    // AUTUMN: October 10 - December 4 (Orange)
-    else if ((month === 9 && day >= 10) || (month > 9 && month < 11) || (month === 11 && day <= 4)) {
-      return "bg-orange-600";
-    }
-    // WINTER: December 5 - April 9 (Cyan)
-    else {
-      return "bg-cyan-600";
-    }
-  };
-
-  const [bannerColor, setBannerColor] = useState(getSeasonColor());
+  // All 4 seasonal events
+  const seasonalEvents = [
+    { season: "SPRING 2026", dates: "April 10-19", event: "Brand Launches", color: "emerald" },
+    { season: "SUMMER 2026", dates: "July 15-24", event: "Peak Season", color: "amber" },
+    { season: "AUTUMN 2026", dates: "Oct 10-19", event: "Product Expo", color: "orange" },
+    { season: "WINTER 2026", dates: "Dec 5-14", event: "Holiday Fest", color: "cyan" },
+  ];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
-    
+
     // Dynamic Season Logic
     const events = [
       { season: "SPRING 2026", start: new Date("2026-04-10"), dates: "April 10-19, 2026" },
@@ -51,7 +34,18 @@ export default function Navbar() {
     const upcoming = events.find(event => event.start > now) || events[0];
     setNextEvent(upcoming);
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    // Rotate display events every 8 seconds
+    const timer = setInterval(() => {
+      setDisplayEvents((prev) => [
+        (prev[0] + 2) % 4,
+        (prev[1] + 2) % 4,
+      ]);
+    }, 8000);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearInterval(timer);
+    };
   }, []);
 
   const navLinks = [
@@ -63,9 +57,8 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-md pt-2" : "bg-white/95 backdrop-blur-sm pt-4"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white shadow-md pt-2" : "bg-white/95 backdrop-blur-sm pt-4"
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-6 pb-3">
         <div className="flex items-center justify-between">
@@ -172,45 +165,70 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Sticky Event Banner - Ticker Tape */}
-      <div className={`${bannerColor} text-white py-2 px-4 shadow-inner transition-colors duration-500`}>
+      {/* Sticky Event Banner - Dual Event Ticker */}
+      <div className="relative py-2 px-4 transition-colors duration-500">
         <style>{`
-          .ticker-wrapper { overflow: hidden; }
-          .ticker-track { display:flex; gap:3rem; min-width:200%; align-items:center; animation: ticker 18s linear infinite; }
-          .ticker-item { display:flex; align-items:center; gap:0.75rem; white-space:nowrap; }
-          .ticker-track:hover { animation-play-state: paused; }
-          @keyframes ticker { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
+          .event-banner { display: flex; align-items: center; gap: 1.5rem; overflow: hidden; }
+          .static-events { display: flex; gap: 2rem; flex-shrink: 0; align-items: center; }
+          .static-event { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; min-width: fit-content; }
+          .event-label { font-bold; font-size: 0.875rem; }
+          .event-meta { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; opacity: 0.85; }
+          .event-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+          .moving-ticker { position: relative; overflow: hidden; flex: 1; height: 1.5rem; display: flex; align-items: center; }
+          .ticker-animation { display: flex; gap: 2rem; animation: slideIn 12s ease-in-out infinite; white-space: nowrap; align-items: center; }
+          @keyframes slideIn { 
+            0% { transform: translateX(100%); opacity: 0; }
+            5% { opacity: 1; }
+            95% { opacity: 1; }
+            100% { transform: translateX(-100%); opacity: 0; }
+          }
         `}</style>
 
-        <div className="max-w-7xl mx-auto ticker-wrapper">
-          <div className="flex items-center text-xs md:text-sm font-bold tracking-wider">
-            <Calendar className="w-4 h-4 shrink-0 mr-3" />
+        {/* Matching Balanced Dark Overlay from Hero Section */}
+        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md border-y border-white/5" aria-hidden />
 
-            <div className="flex-1 overflow-hidden">
-              <div className="ticker-track">
-                {/* first pass of items */}
-                <div className="ticker-item">
-                  <span className="uppercase">SPRING 2026: April 10-19, 2026 — Tickets on sale</span>
-                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
-                  <span className="uppercase">SUMMER 2026: July 15-24, 2026 — Early bird ends May</span>
-                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
-                  <Link href="/tickets" className="underline decoration-2 underline-offset-4 hover:text-orange-100 transition-colors">
-                    Get Your Tickets Now
-                  </Link>
-                </div>
-
-                {/* duplicate for seamless loop */}
-                <div className="ticker-item" aria-hidden="true">
-                  <span className="uppercase">SPRING 2026: April 10-19, 2026 — Tickets on sale</span>
-                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
-                  <span className="uppercase">SUMMER 2026: July 15-24, 2026 — Early bird ends May</span>
-                  <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
-                  <Link href="/tickets" className="underline decoration-2 underline-offset-4 hover:text-orange-100 transition-colors">
-                    Get Your Tickets Now
-                  </Link>
-                </div>
+        <div className="relative z-10 text-white">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            {/* Static Events - Show 2 main events */}
+            <div className="event-banner">
+              <Calendar className="w-4 h-4 shrink-0" />
+              <div className="static-events">
+                {[displayEvents[0], displayEvents[1]].map((idx) => (
+                  <div key={idx} className="static-event">
+                    <span className="event-label">{seasonalEvents[idx].season}</span>
+                    <div className="event-meta">
+                      <span>{seasonalEvents[idx].dates}</span>
+                      <div className="event-dot" />
+                      <span>{seasonalEvents[idx].event}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {/* Moving Ticker - 2 upcoming events scrolling in */}
+            <div className="moving-ticker">
+              <div className="ticker-animation">
+                {[(displayEvents[0] + 2) % 4, (displayEvents[1] + 2) % 4].map((idx) => (
+                  <div key={idx} className="static-event">
+                    <span className="event-label">{seasonalEvents[idx].season}</span>
+                    <div className="event-meta">
+                      <span>{seasonalEvents[idx].dates}</span>
+                      <div className="event-dot" />
+                      <span>{seasonalEvents[idx].event}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Link
+              href="/tickets"
+              className="shrink-0 underline decoration-2 underline-offset-4 hover:text-white/80 transition-colors font-bold text-xs whitespace-nowrap"
+            >
+              Get Tickets
+            </Link>
           </div>
         </div>
       </div>

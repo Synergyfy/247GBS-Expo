@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { 
+ motion, AnimatePresence } from "framer-motion";
 import { 
   Check, Ticket, Users, Gift, ArrowRight, Sparkles, 
   CreditCard, ShieldCheck, Zap, Globe, Cpu, ShoppingBag, 
-  QrCode, Landmark, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Clock, Shield
+  QrCode, Landmark, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Clock, Shield, Copy
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -14,13 +15,13 @@ import Footer from "@/app/component/landing/Footer";
 import OtpInput from "@/app/component/OtpInput";
 import Modal from "@/app/component/Modal";
 
-const STEPS = ["Event", "Tickets", "Add-ons", "Review", "Identity", "Payment", "Passport"];
+const STEPS = ["General Pass", "Event Marketplace", "Add-ons", "Review", "Identity", "Payment", "Digital Passport"];
 
 interface CartItem {
   id: string;
   name: string;
   price: number;
-  type: 'ticket' | 'product';
+  type: 'pass' | 'ticket' | 'product';
   quantity: number;
   eventId?: string;
 }
@@ -30,8 +31,17 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(false);
   
   // State for Flow
+  const [hasGeneralPass, setHasGeneralPass] = useState(false);
+  const [activeAccessToken, setAccessToken] = useState("");
+  const [enteredToken, setEnteredToken] = useState("");
+  const [isTokenValidated, setIsTokenValidated] = useState(false);
+  const [generatedToken, setGeneratedToken] = useState("");
+  const [showTokenScreen, setShowTokenScreen] = useState(false);
+
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const EVENTS_PER_PAGE = 6;
   const [selectedEventInfo, setSelectedEventInfo] = useState<any>(null);
   const [selectedProductInfo, setSelectedProductInfo] = useState<any>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -40,12 +50,38 @@ export default function TicketsPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
-  const [userInfo, setUserInfo] = useState({ name: "", email: "", phone: "" });
+  const [userInfo, setUserInfo] = useState({ firstName: "", lastName: "", email: "", phone: "" });
   const [otpVerified, setOtpVerified] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
+  // UK Pricing Constants
+  const BOOKING_FEE = 1.50; // Flat £1.50 per transaction
+  const VAT_RATE = 0.20; // 20% UK VAT
+
+  // Reset pagination on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   // Mock Data
+  const passes = [
+    {
+      id: "spring_pass",
+      name: "Spring 2026 Season Pass",
+      price: 25,
+      description: "Mandatory platform entry pass. Valid for the entire Spring season duration.",
+      features: ["Marketplace Access", "General Networking", "Standard Rewards"]
+    },
+    {
+      id: "annual_pass",
+      name: "Annual All-Access Pass",
+      price: 75,
+      description: "Best value. Entry to all 4 seasons in 2026. Includes 24/7 lobby access.",
+      features: ["4 Seasons Entry", "VIP Lounge Access", "Priority Queue", "Premium Rewards"],
+      popular: true
+    }
+  ];
   const events = [
     { 
       id: "spring2026", 
@@ -137,6 +173,51 @@ export default function TicketsPage() {
       videoUrl: "#",
       organizer: "EcoVision"
     },
+    { 
+      id: "fintech", 
+      name: "Global Fintech Summit", 
+      date: "Dec 01-03, 2026", 
+      location: "Financial District", 
+      category: "Finance", 
+      image: "bg-indigo-100",
+      fullImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000",
+      description: "Exploring the future of money. Blockchain, decentralized finance, and the next generation of banking.",
+      benefits: ["Investor Pitches", "Regulation Updates", "Fintech Demos"],
+      rating: 4.7,
+      reviews: 112,
+      videoUrl: "#",
+      organizer: "Finance Forward"
+    },
+    { 
+      id: "retail", 
+      name: "Future of Retail Expo", 
+      date: "Jan 12-15, 2027", 
+      location: "Commerce Hub", 
+      category: "Retail", 
+      image: "bg-rose-100",
+      fullImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1000",
+      description: "Transforming the shopping experience. AR/VR in retail, omnichannel strategies, and consumer behavior analysis.",
+      benefits: ["Retail Tech Demos", "Supply Chain Insights", "Brand Strategy"],
+      rating: 4.6,
+      reviews: 84,
+      videoUrl: "#",
+      organizer: "Retail Innovators"
+    },
+    { 
+      id: "education", 
+      name: "EdTech World Congress", 
+      date: "Feb 20-22, 2027", 
+      location: "Learning Lab", 
+      category: "Education", 
+      image: "bg-amber-100",
+      fullImage: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=1000",
+      description: "The future of learning. AI in education, virtual classrooms, and lifelong learning platforms.",
+      benefits: ["Teacher Workshops", "Curriculum Design", "EdTech Startup Showcase"],
+      rating: 4.8,
+      reviews: 136,
+      videoUrl: "#",
+      organizer: "Learning Network"
+    },
   ];
 
   const tiers = [
@@ -186,14 +267,25 @@ export default function TicketsPage() {
   ];
 
   const toggleEvent = (id: string) => {
-    setSelectedEvents(prev => 
-      prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]
-    );
+    const isSelected = selectedEvents.includes(id);
+    if (isSelected) {
+      setSelectedEvents(prev => prev.filter(e => e !== id));
+      removeFromCart("standard", id);
+    } else {
+      setSelectedEvents(prev => [...prev, id]);
+      addToCart(tiers[0], 'ticket', id);
+    }
   };
 
-  const addToCart = (item: any, type: 'ticket' | 'product', eventId?: string) => {
+  const addToCart = (item: any, type: 'pass' | 'ticket' | 'product', eventId?: string) => {
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id && (type === 'product' || i.eventId === eventId));
+      // For General Pass, replace any existing pass
+      if (type === 'pass') {
+        const otherItems = prev.filter(i => i.type !== 'pass');
+        return [...otherItems, { id: item.id, name: item.name, price: item.price, type, quantity: 1 }];
+      }
+
+      const existing = prev.find(i => i.id === item.id && (type !== 'ticket' || i.eventId === eventId));
       if (existing) {
         return prev.map(i => (i.id === item.id && i.eventId === eventId) ? { ...i, quantity: i.quantity + 1 } : i);
       }
@@ -221,9 +313,11 @@ export default function TicketsPage() {
     }));
   };
 
-  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const itemsTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const discount = promoApplied ? 5 : 0;
-  const finalPrice = Math.max(0, subtotal - discount);
+  const subtotal = Math.max(0, itemsTotal - discount);
+  const totalBookingFee = cart.length > 0 ? BOOKING_FEE : 0;
+  const finalPrice = subtotal + totalBookingFee;
 
   const handleNext = () => {
     setLoading(true);
@@ -250,6 +344,18 @@ export default function TicketsPage() {
       }, 1500);
     }
   };
+
+  const filteredEvents = events.filter(e => 
+    e.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    e.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredEvents.length / EVENTS_PER_PAGE);
+  const paginatedEvents = filteredEvents.slice(
+    (currentPage - 1) * EVENTS_PER_PAGE,
+    currentPage * EVENTS_PER_PAGE
+  );
 
   return (
     <main className="min-h-screen bg-slate-50 font-sans">
@@ -285,19 +391,182 @@ export default function TicketsPage() {
 
         <AnimatePresence mode="wait">
           
-          {/* STEP 0: EVENT SELECTION */}
+          {/* STEP 0: GENERAL PASS SELECTION (UK Pattern: Entry Fee) */}
           {step === 0 && (
             <motion.div 
               key="step0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
+              className="max-w-5xl mx-auto"
+            >
+              {!showTokenScreen ? (
+                <>
+                  <div className="text-center mb-12">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Platform Entry Pass</h1>
+                    <p className="text-xl text-slate-600 max-w-2xl mx-auto">To explore the marketplace and attend exhibitor events, a valid season pass is required. Choose your entry level.</p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+                    {passes.map((pass) => (
+                      <div 
+                        key={pass.id}
+                        onClick={() => addToCart(pass, 'pass')}
+                        className={`relative p-8 rounded-[2rem] border-2 transition-all cursor-pointer ${
+                          cart.some(i => i.id === pass.id) 
+                            ? "border-orange-600 bg-orange-50/50 shadow-2xl" 
+                            : "border-slate-100 bg-white hover:border-orange-300"
+                        }`}
+                      >
+                        {pass.popular && (
+                          <div className="absolute -top-4 right-8 bg-slate-900 text-white px-4 py-1 rounded-full text-[10px] font-black tracking-widest shadow-lg">
+                            BEST VALUE
+                          </div>
+                        )}
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-orange-600 shadow-sm border border-slate-100">
+                            <Globe className="w-7 h-7" />
+                          </div>
+                          <div className="text-right">
+                            <span className="text-3xl font-black">£{pass.price}</span>
+                            <span className="text-slate-400 text-xs block">Inc. VAT</span>
+                          </div>
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">{pass.name}</h3>
+                        <p className="text-slate-500 text-sm mb-8 leading-relaxed">{pass.description}</p>
+                        <ul className="space-y-3 mb-8">
+                          {pass.features.map(f => (
+                            <li key={f} className="flex items-center gap-3 text-xs font-bold text-slate-700">
+                              <Check className="w-4 h-4 text-green-500" /> {f}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className={`w-full py-4 rounded-xl font-black text-center transition-all ${
+                          cart.some(i => i.id === pass.id) 
+                            ? "bg-orange-600 text-white" 
+                            : "bg-slate-100 text-slate-600 group-hover:bg-orange-600 group-hover:text-white"
+                        }`}>
+                          {cart.some(i => i.id === pass.id) ? "Selected" : "Select This Pass"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-center">
+                    <button 
+                      disabled={!cart.some(i => i.type === 'pass')}
+                      onClick={() => {
+                        setLoading(true);
+                        setTimeout(() => {
+                          const token = "GBX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                          setGeneratedToken(token);
+                          setLoading(false);
+                          setShowTokenScreen(true);
+                        }, 1500);
+                      }}
+                      className="px-12 py-4 bg-slate-900 text-white rounded-full font-bold text-lg flex items-center justify-center gap-2 hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-slate-900/20"
+                    >
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Purchase & Get Access Token"} <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="max-w-2xl mx-auto text-center bg-white p-12 md:p-16 rounded-[40px] shadow-2xl border border-slate-100">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8 text-green-600">
+                    <ShieldCheck className="w-10 h-10" />
+                  </div>
+                  <h2 className="text-3xl font-extrabold text-slate-900 mb-4">Pass Activated!</h2>
+                  <p className="text-slate-600 mb-8">Your general entry pass has been secured. Copy your unique Access Token below; you'll need it to book exhibitor events.</p>
+                  
+                  <div className="bg-slate-50 p-6 rounded-3xl border-2 border-dashed border-slate-200 mb-10 group relative">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Your Access Token</p>
+                    <div className="flex items-center justify-center gap-4">
+                      <span className="text-3xl font-mono font-black text-slate-900 tracking-tighter">{generatedToken}</span>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedToken);
+                          alert("Token copied to clipboard!");
+                        }}
+                        className="p-3 bg-white rounded-xl shadow-sm text-orange-600 hover:bg-orange-600 hover:text-white transition-all"
+                      >
+                        <Copy className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleNext}
+                    className="w-full py-5 bg-orange-600 text-white rounded-full font-bold text-xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
+                  >
+                    Enter Marketplace <ArrowRight className="ml-2 inline w-6 h-6" />
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* STEP 1: EVENT SELECTION */}
+          {step === 1 && (
+            <motion.div 
+              key="step1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="max-w-7xl mx-auto"
             >
-              <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Event Marketplace</h1>
-                <p className="text-xl text-slate-600 max-w-2xl mx-auto">Explore and select from our diverse range of upcoming digital exhibitions. Multi-select events to purchase tickets for all.</p>
+              <div className="text-center mb-8">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Exhibitor Events</h1>
+                <p className="text-xl text-slate-600 max-w-2xl mx-auto">Explore brand showcases. A valid Platform Pass is required to book these events.</p>
               </div>
+
+              {/* Season Pass Status Banner (UK Requirement) */}
+              {cart.some(i => i.type === 'pass') && (
+                <div className="max-w-4xl mx-auto mb-10 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white">
+                      <Check className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-emerald-900 uppercase tracking-widest">Entry Pass Active</p>
+                      <p className="text-sm text-emerald-700 font-medium">{cart.find(i => i.type === 'pass')?.name}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setStep(0)}
+                    className="text-xs font-bold text-emerald-600 underline hover:text-emerald-800 transition-colors"
+                  >
+                    Change Pass
+                  </button>
+                </div>
+              )}
+
+              {/* Top Action Bar (New) */}
+              <AnimatePresence>
+                {selectedEvents.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="fixed bottom-12 right-12 z-[60]"
+                  >
+                    <button 
+                      onClick={handleNext}
+                      className="px-8 py-5 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center justify-center gap-3 hover:bg-orange-700 transition-all shadow-[0_20px_50px_rgba(234,88,12,0.4)] hover:scale-105 active:scale-95"
+                    >
+                      {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                        <>
+                          <span className="hidden md:inline">Continue to Tickets</span>
+                          <span className="md:hidden">Continue</span>
+                          <div className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-sm">
+                            {selectedEvents.length}
+                          </div>
+                          <ArrowRight className="w-6 h-6" />
+                        </>
+                      )}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Search and Filter Bar */}
               <div className="flex flex-col md:flex-row gap-4 mb-10 max-w-4xl mx-auto">
@@ -318,11 +587,7 @@ export default function TicketsPage() {
 
               {/* Events Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                {events.filter(e => 
-                  e.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  e.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  e.category.toLowerCase().includes(searchTerm.toLowerCase())
-                ).map((event) => (
+                {paginatedEvents.map((event) => (
                   <div 
                     key={event.id}
                     onClick={() => toggleEvent(event.id)}
@@ -339,16 +604,6 @@ export default function TicketsPage() {
                           {event.category}
                         </span>
                         <div className="flex gap-2">
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedEventInfo(event);
-                              setShowInfoModal(true);
-                            }}
-                            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-slate-600 hover:text-orange-600 transition-all shadow-sm"
-                          >
-                            <Info className="w-5 h-5" />
-                          </button>
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                             selectedEvents.includes(event.id) 
                               ? "bg-orange-600 text-white" 
@@ -372,9 +627,21 @@ export default function TicketsPage() {
                       <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
                         {event.name}
                       </h3>
-                      <p className="flex items-center gap-2 text-slate-500 text-sm mb-6">
-                        <MapPin className="w-4 h-4" /> {event.location}
-                      </p>
+                      <div className="space-y-3 mb-6">
+                        <p className="flex items-center gap-2 text-slate-500 text-sm">
+                          <MapPin className="w-4 h-4" /> {event.location}
+                        </p>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedEventInfo(event);
+                            setShowInfoModal(true);
+                          }}
+                          className="text-xs font-bold text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors flex items-center gap-1.5"
+                        >
+                          <Info className="w-3.5 h-3.5" /> Learn More
+                        </button>
+                      </div>
                       
                       <div className="mt-auto pt-6 border-t border-slate-100 flex justify-between items-center">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Starts from £19</span>
@@ -392,136 +659,40 @@ export default function TicketsPage() {
                 ))}
               </div>
 
-              {/* Action Bar */}
-              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-6 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-50 md:static md:bg-transparent md:border-none md:shadow-none md:p-0">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                  <div className="hidden md:block">
-                     <p className="text-slate-500 font-medium">
-                       <span className="text-slate-900 font-bold">{selectedEvents.length}</span> event(s) selected
-                     </p>
-                  </div>
+              {/* Pagination Controls (New) */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mb-12">
                   <button 
-                    disabled={selectedEvents.length === 0}
-                    onClick={handleNext}
-                    className="w-full md:w-auto px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center justify-center gap-2 hover:bg-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-600/30"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="p-3 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Continue to Tickets"} <ArrowRight className="w-5 h-5" />
+                    <ArrowLeft className="w-5 h-5" />
                   </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 1: TICKET SELECTION (Multi-Event Support) */}
-          {step === 1 && (
-            <motion.div 
-              key="step1"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="max-w-5xl mx-auto"
-            >
-              <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Choose Your Tickets</h1>
-                <p className="text-xl text-slate-600">Select access levels for your chosen events.</p>
-              </div>
-
-              <div className="space-y-16 mb-12">
-                {selectedEvents.map(eventId => {
-                  const event = events.find(e => e.id === eventId);
-                  return (
-                    <div key={eventId} className="space-y-8">
-                      <div className="flex items-center gap-4 px-4">
-                        <div className="h-px flex-1 bg-slate-200" />
-                        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                          <Calendar className="text-orange-600 w-6 h-6" /> {event?.name}
-                        </h2>
-                        <div className="h-px flex-1 bg-slate-200" />
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {tiers.map((tier) => (
-                          <div 
-                            key={tier.id}
-                            className={`relative p-8 rounded-3xl bg-white border-2 border-slate-100 shadow-xl hover:border-orange-500 transition-all group`}
-                          >
-                            {tier.popular && (
-                              <div className="absolute top-0 right-8 -translate-y-1/2 bg-orange-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
-                                RECOMMENDED
-                              </div>
-                            )}
-                            <div className="flex justify-between items-start mb-6">
-                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tier.color === 'orange' ? 'bg-orange-50' : 'bg-slate-100'}`}>
-                                {tier.icon}
-                              </div>
-                              <div className="text-right">
-                                <span className="text-3xl font-bold">£{tier.price}</span>
-                                <span className="text-slate-500 text-sm">/ticket</span>
-                              </div>
-                            </div>
-                            <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
-                            <p className="text-slate-600 mb-6">{tier.description}</p>
-                            <ul className="space-y-4 mb-8">
-                              {tier.features.map(f => (
-                                <li key={f} className="flex items-center gap-3 text-sm font-medium text-slate-700">
-                                  <Check className={`w-5 h-5 ${tier.color === 'orange' ? 'text-orange-600' : 'text-slate-900'}`} /> {f}
-                                </li>
-                              ))}
-                            </ul>
-                            <button 
-                              onClick={() => addToCart(tier, 'ticket', eventId)}
-                              className="w-full py-3 rounded-full font-bold text-center bg-slate-900 text-white hover:bg-orange-600 transition-all flex items-center justify-center gap-2"
-                            >
-                              <Plus className="w-4 h-4" /> Add to Cart
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              
-              {/* Current Cart Preview */}
-              {cart.filter(i => i.type === 'ticket').length > 0 && (
-                <div className="max-w-4xl mx-auto bg-white p-6 rounded-3xl shadow-lg border border-slate-100 mb-12">
-                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <Ticket className="w-5 h-5 text-orange-600" /> Selected Tickets
-                  </h3>
-                  <div className="space-y-4">
-                    {cart.filter(i => i.type === 'ticket').map(item => (
-                      <div key={`${item.id}-${item.eventId}`} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                        <div>
-                          <p className="font-bold text-slate-900">{item.name}</p>
-                          <p className="text-xs text-orange-600 font-bold uppercase tracking-wider">
-                            {events.find(e => e.id === item.eventId)?.name}
-                          </p>
-                          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">£{item.price} per ticket</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                            <button onClick={() => updateQuantity(item.id, -1, item.eventId)} className="text-slate-400 hover:text-orange-600"><Minus className="w-4 h-4" /></button>
-                            <span className="font-bold text-lg w-6 text-center">{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, 1, item.eventId)} className="text-slate-400 hover:text-orange-600"><Plus className="w-4 h-4" /></button>
-                          </div>
-                          <button onClick={() => removeFromCart(item.id, item.eventId)} className="text-red-500 hover:text-red-700 font-bold text-sm">Remove</button>
-                        </div>
-                      </div>
+                  <div className="flex gap-2">
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                          currentPage === i + 1 
+                            ? "bg-orange-600 text-white shadow-lg shadow-orange-600/20" 
+                            : "bg-white border border-slate-200 text-slate-400 hover:border-orange-600 hover:text-orange-600"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
                     ))}
                   </div>
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="p-3 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
                 </div>
               )}
-
-              <div className="flex justify-center gap-4">
-                <button onClick={handleBack} className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50">Back</button>
-                <button 
-                  disabled={cart.filter(i => i.type === 'ticket').length === 0}
-                  onClick={handleNext}
-                  className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-600/30"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Continue to Add-ons"}
-                </button>
-              </div>
             </motion.div>
           )}
 
@@ -599,7 +770,7 @@ export default function TicketsPage() {
             </motion.div>
           )}
 
-          {/* STEP 3: REVIEW (PRD 5.3 COMPLIANT) */}
+          {/* STEP 3: REVIEW (UK Pattern: Booking Fee & VAT) */}
           {step === 3 && (
             <motion.div 
               key="step3"
@@ -609,49 +780,93 @@ export default function TicketsPage() {
               className="max-w-2xl mx-auto"
             >
               <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
-                <h2 className="text-3xl font-bold mb-8 text-slate-900">Order Summary</h2>
+                <h2 className="text-3xl font-extrabold mb-8 text-slate-900">Checkout Review</h2>
                 
+                {/* Cart Items List */}
                 <div className="space-y-4 mb-8">
                   {cart.map(item => (
-                    <div key={`${item.id}-${item.eventId}`} className="flex justify-between items-center py-3 border-b border-slate-100 last:border-0">
+                    <div key={`${item.id}-${item.eventId}`} className="flex justify-between items-center py-4 border-b border-slate-100 last:border-0">
                       <div>
-                        <p className="font-bold text-slate-900">{item.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-slate-900">{item.name}</p>
+                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${
+                            item.type === 'pass' ? "bg-slate-900 text-white" : "bg-orange-100 text-orange-600"
+                          }`}>
+                            {item.type}
+                          </span>
+                        </div>
                         {item.type === 'ticket' && (
-                          <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
-                            {events.find(e => e.id === item.eventId)?.name}
+                          <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider mt-1">
+                            Exhibitor: {events.find(e => e.id === item.eventId)?.organizer}
                           </p>
                         )}
-                        <p className="text-xs text-slate-500">{item.quantity} unit(s) • £{item.price} ea</p>
+                        <p className="text-xs text-slate-400 mt-1">{item.quantity} unit(s) • £{item.price} ea</p>
                       </div>
                       <span className="font-bold text-slate-900">£{(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* Promo Code Entry */}
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Apply Promo Code</label>
+                {/* Access Token Redemption Area (New Requirement) */}
+                <div className="bg-orange-50 p-6 rounded-3xl border border-orange-100 mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Zap className="w-4 h-4 text-orange-600" />
+                    <label className="text-xs font-black text-orange-900 uppercase tracking-widest">Redeem Access Token</label>
+                  </div>
+                  <p className="text-[10px] text-orange-700/60 font-medium mb-4 leading-relaxed">
+                    If you already have a General Pass, enter your Access Token below to unlock Exhibitor events.
+                  </p>
                   <div className="flex gap-2">
                     <input 
                       type="text" 
-                      placeholder="e.g. EXPO2026" 
-                      className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 uppercase font-bold text-sm"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="e.g. GBX-TOKEN-2026" 
+                      className="flex-1 px-4 py-3 bg-white border border-orange-200 rounded-xl focus:outline-none focus:border-orange-500 uppercase font-mono font-bold text-sm"
+                      value={enteredToken}
+                      onChange={(e) => setEnteredToken(e.target.value)}
                     />
                     <button 
-                      onClick={handleApplyPromo}
-                      className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all"
+                      onClick={() => {
+                        if (enteredToken.length > 5) {
+                          setAccessToken(enteredToken);
+                          setIsTokenValidated(true);
+                        }
+                      }}
+                      className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all text-xs"
                     >
-                      Apply
+                      {isTokenValidated ? "Validated" : "Validate"}
                     </button>
                   </div>
-                  {promoApplied && <p className="text-green-600 text-xs font-bold mt-2 flex items-center gap-1"><Check className="w-3 h-3" /> £5.00 discount applied</p>}
+                  {isTokenValidated && (
+                    <p className="text-green-600 text-[10px] font-bold mt-2 flex items-center gap-1 italic">
+                      <Check className="w-3 h-3" /> Token active: Full Marketplace access granted.
+                    </p>
+                  )}
                 </div>
 
-                <div className="flex justify-between items-center pt-4 border-t-2 border-slate-200 mb-8">
-                  <span className="font-bold text-lg text-slate-900">Final Total</span>
-                  <div className="text-right">
+                {/* Final Cost Breakdown (UK Standard) */}
+                <div className="space-y-3 bg-slate-50 p-6 rounded-3xl mb-8">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium">Subtotal</span>
+                    <span className="text-slate-900 font-bold">£{itemsTotal.toFixed(2)}</span>
+                  </div>
+                  {promoApplied && (
+                    <div className="flex justify-between items-center text-sm text-green-600">
+                      <span className="font-medium italic">Seasonal Discount</span>
+                      <span className="font-bold">-£{discount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-sm">
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-500 font-medium">Booking Fee</span>
+                      <Info className="w-3 h-3 text-slate-300" />
+                    </div>
+                    <span className="text-slate-900 font-bold">£{totalBookingFee.toFixed(2)}</span>
+                  </div>
+                  <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                    <div>
+                      <span className="font-black text-slate-900 text-lg">Total Amount</span>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Includes 20% UK VAT</p>
+                    </div>
                     <span className="font-black text-3xl text-orange-600">£{finalPrice.toFixed(2)}</span>
                   </div>
                 </div>
@@ -666,7 +881,7 @@ export default function TicketsPage() {
             </motion.div>
           )}
 
-          {/* STEP 4: IDENTITY & VERIFICATION (PRD 7.3 COMPLIANT) */}
+          {/* STEP 4: IDENTITY & VERIFICATION */}
           {step === 4 && (
             <motion.div 
               key="step4"
@@ -676,23 +891,35 @@ export default function TicketsPage() {
               className="max-w-2xl mx-auto"
             >
               <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
-                <h2 className="text-3xl font-bold mb-2 text-slate-900">Verify Identity</h2>
-                <p className="text-slate-500 mb-8">Secure your tickets with email verification.</p>
+                <h2 className="text-3xl font-extrabold mb-2 text-slate-900">Verify Identity</h2>
+                <p className="text-slate-500 mb-8">Secure your tickets with UK-compliant email verification.</p>
                 
                 {!otpVerified ? (
                   <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Full Name</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Jane Doe"
-                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
-                        value={userInfo.name}
-                        onChange={(e) => setUserInfo({...userInfo, name: e.target.value})}
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">First Name</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Jane"
+                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
+                          value={userInfo.firstName}
+                          onChange={(e) => setUserInfo({...userInfo, firstName: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Last Name</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Doe"
+                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
+                          value={userInfo.lastName}
+                          onChange={(e) => setUserInfo({...userInfo, lastName: e.target.value})}
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Email Address</label>
+                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
                       <input 
                         type="email" 
                         placeholder="e.g. jane@company.com"
@@ -702,10 +929,10 @@ export default function TicketsPage() {
                       />
                     </div>
                     
-                    {userInfo.email && userInfo.name && (
+                    {userInfo.email && userInfo.firstName && userInfo.lastName && (
                       <div className="mt-8 pt-8 border-t border-slate-100">
-                        <label className="block text-sm font-bold text-orange-600 mb-4 uppercase tracking-wider text-center">Enter Verification Code</label>
-                        <p className="text-center text-slate-400 text-sm mb-6">Verification required for high-security digital assets.</p>
+                        <label className="block text-sm font-bold text-orange-600 mb-4 uppercase tracking-wider text-center">Secure Access Code</label>
+                        <p className="text-center text-slate-400 text-[10px] mb-6 font-medium">Verification required for platform access tokens.</p>
                         <OtpInput length={6} onComplete={handleOtpComplete} />
                       </div>
                     )}
@@ -715,8 +942,8 @@ export default function TicketsPage() {
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                       <Check className="w-10 h-10 text-green-600" />
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Security Verified</h3>
-                    <p className="text-slate-500 mb-8">Your identity has been confirmed. Proceed to secure payment.</p>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Identity Confirmed</h3>
+                    <p className="text-slate-500 mb-8">Verification successful. Proceed to secure payment gateway.</p>
                     <button 
                       onClick={handleNext}
                       className="w-full py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 transition-all"
@@ -735,7 +962,7 @@ export default function TicketsPage() {
             </motion.div>
           )}
 
-          {/* STEP 5: PAYMENT (PRD 6.1 COMPLIANT) */}
+          {/* STEP 5: PAYMENT */}
           {step === 5 && (
             <motion.div 
               key="step5"
@@ -745,28 +972,32 @@ export default function TicketsPage() {
               className="max-w-2xl mx-auto"
             >
               <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
-                <h2 className="text-3xl font-bold mb-2 text-slate-900">Payment</h2>
-                <p className="text-slate-500 mb-8">All transactions are encrypted and secured.</p>
+                <h2 className="text-3xl font-extrabold mb-2 text-slate-900">Payment</h2>
+                <p className="text-slate-500 mb-8">All transactions are encrypted and secured via UK payment standards.</p>
 
                 <div className="space-y-4 mb-8">
                   {[
                     { id: "card", label: "Credit / Debit Card", icon: <CreditCard className="w-6 h-6" /> },
-                    { id: "bank", label: "Bank Transfer", icon: <Landmark className="w-6 h-6" /> },
-                    { id: "wallet", label: "Expo Wallet Balance", icon: <Wallet className="w-6 h-6" /> }
+                    { id: "wallet", label: "Expo Wallet Balance", icon: <Wallet className="w-6 h-6" />, balance: "£120.50" }
                   ].map((method) => (
                     <div 
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`flex items-center gap-4 p-6 rounded-2xl cursor-pointer border-2 transition-all ${
+                      className={`flex items-center gap-4 p-6 rounded-3xl cursor-pointer border-2 transition-all ${
                         paymentMethod === method.id 
                           ? "border-orange-600 bg-orange-50 text-orange-900 shadow-md" 
                           : "border-slate-100 hover:border-orange-200 text-slate-700 hover:bg-slate-50"
                       }`}
                     >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === method.id ? "bg-white text-orange-600" : "bg-slate-100 text-slate-500"}`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === method.id ? "bg-white text-orange-600" : "bg-slate-100 text-slate-500"}`}>
                         {method.icon}
                       </div>
-                      <span className="font-bold text-lg">{method.label}</span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-lg">{method.label}</span>
+                        {method.balance && (
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Available: {method.balance}</span>
+                        )}
+                      </div>
                       {paymentMethod === method.id && <Check className="ml-auto w-6 h-6 text-orange-600" />}
                     </div>
                   ))}
@@ -783,13 +1014,18 @@ export default function TicketsPage() {
                         />
                          <Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" />
                       </div>
-                      <span className="text-sm text-slate-600 pt-0.5">I agree to the Terms of Service and Privacy Policy.</span>
+                      <span className="text-xs text-slate-600 pt-0.5 leading-relaxed">
+                        I agree to the Terms of Service and understand that exhibitor event data may be shared with organizers.
+                      </span>
                    </label>
                 </div>
 
-                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 mb-8 flex justify-between items-center">
-                  <span className="font-bold text-slate-600">Payable Amount</span>
-                  <span className="text-3xl font-black text-slate-900">£{finalPrice.toFixed(2)}</span>
+                <div className="p-6 bg-slate-900 text-white rounded-3xl mb-8 flex justify-between items-center shadow-xl">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Payable Amount</span>
+                    <p className="text-3xl font-black">£{finalPrice.toFixed(2)}</p>
+                  </div>
+                  <ShieldCheck className="w-10 h-10 text-orange-500 opacity-50" />
                 </div>
 
                 <div className="flex gap-4">
@@ -806,7 +1042,7 @@ export default function TicketsPage() {
             </motion.div>
           )}
 
-          {/* STEP 6: PASSPORT (SUCCESS / PRD 8.1 COMPLIANT) */}
+          {/* STEP 6: PASSPORT (SUCCESS) */}
           {step === 6 && (
             <motion.div 
               key="step6"
@@ -838,7 +1074,7 @@ export default function TicketsPage() {
 
                   <div className="mb-8">
                     <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Pass Holder</p>
-                    <p className="text-xl font-bold tracking-tight">{userInfo.name || "EXPO VISITOR"}</p>
+                    <p className="text-xl font-bold tracking-tight">{userInfo.firstName} {userInfo.lastName || "EXPO VISITOR"}</p>
                     <p className="text-xs text-slate-400 font-medium">{userInfo.email}</p>
                   </div>
 
@@ -895,16 +1131,13 @@ export default function TicketsPage() {
                   Your digital passport is ready. Create a secure account now to permanently save your tickets, access exclusive rewards, and enter the expo from any device.
                 </p>
                 
-                <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                <div className="flex flex-col items-center justify-center gap-4">
                   <Link 
-                    href={`/signup?role=customer&email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name)}`}
-                    className="w-full md:w-auto px-8 py-4 bg-orange-600 text-white rounded-full font-bold text-lg hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex items-center justify-center gap-2"
+                    href={`/signup?role=customer&email=${encodeURIComponent(userInfo.email)}&firstName=${encodeURIComponent(userInfo.firstName)}&lastName=${encodeURIComponent(userInfo.lastName)}`}
+                    className="w-full max-w-sm px-12 py-5 bg-orange-600 text-white rounded-full font-bold text-xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex items-center justify-center gap-3 transform hover:scale-105 active:scale-95"
                   >
-                    Create Account & Save Ticket <ArrowRight className="w-5 h-5" />
+                    Save Ticket <ArrowRight className="w-6 h-6" />
                   </Link>
-                  <button className="w-full md:w-auto px-8 py-4 border-2 border-slate-200 text-slate-600 rounded-full font-bold text-lg hover:bg-slate-50 transition-all">
-                    Download PDF
-                  </button>
                 </div>
                 <p className="mt-6 text-xs text-slate-400">
                   Already have an account? <Link href="/login" className="text-orange-600 font-bold hover:underline">Log in to sync</Link>

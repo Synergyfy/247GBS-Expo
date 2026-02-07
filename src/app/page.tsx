@@ -2,8 +2,10 @@
 
 import Navbar from "@/app/component/landing/Navbar";
 import Hero from "@/app/component/landing/Hero";
+import EventTypes from "@/app/component/landing/EventTypes";
 import StatsSection from "@/app/component/landing/StatsSection";
 import Gallery from "@/app/component/landing/Gallery";
+import NewsTrend from "@/app/component/landing/NewsTrend";
 import CoreSystems from "@/app/component/landing/CoreSystems";
 import UserJourney from "@/app/component/landing/UserJourney";
 import SeasonalEvents from "@/app/component/landing/SeasonalEvents";
@@ -14,8 +16,10 @@ export default function Home() {
     <main className="min-h-screen bg-white font-sans selection:bg-orange-100 selection:text-orange-900">
       <Navbar />
       <Hero />
+      <EventTypes />
       <StatsSection />
       <Gallery />
+      <NewsTrend />
       <SeasonalEvents />
       <CoreSystems />
       <UserJourney />
