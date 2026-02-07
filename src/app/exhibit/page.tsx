@@ -605,6 +605,7 @@ export default function ExhibitPage() {
           setHasSkippedPass(true);
         }}
         title="Get Your Platform Pass"
+        maxWidth="4xl"
       >
         <div className="max-w-4xl mx-auto">
           {!showTokenScreen ? (
