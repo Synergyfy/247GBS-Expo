@@ -40,9 +40,14 @@ const SidebarItem = ({ icon: Icon, label, href, isOpen, isActive }: SidebarItemP
                 <Icon className="w-5 h-5" />
             </div>
             {isOpen && (
-                <span className="font-bold text-sm tracking-tight whitespace-nowrap overflow-hidden">
-                    {label}
-                </span>
+                <div className="flex items-center justify-between w-full min-w-0">
+                    <span className="font-bold text-sm tracking-tight whitespace-nowrap overflow-hidden">
+                        {label}
+                    </span>
+                    {label === "Discover Events" && (
+                        <span className="bg-red-600 text-[8px] text-white px-1.5 py-0.5 rounded font-black animate-pulse">LIVE</span>
+                    )}
+                </div>
             )}
         </Link>
     );

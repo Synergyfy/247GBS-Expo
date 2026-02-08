@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Menu, X, Calendar } from "lucide-react";
+import { Search, Menu, X, Calendar, ChevronDown } from "lucide-react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [nextEvent, setNextEvent] = useState({ season: "SPRING 2026", dates: "April 10-19, 2026" });
   const [displayEvents, setDisplayEvents] = useState([0, 1]); // Which 2 seasons to show as static
 
@@ -49,10 +50,18 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "What's On", href: "#whats-on" },
-    { name: "Who's Here", href: "#exhibitors" },
-    { name: "Show Sections", href: "#categories" },
-    { name: "Galleries", href: "#gallery" },
+    { name: "Home", href: "/" },
+    {
+      name: "Event",
+      href: "#",
+      dropdown: [
+        { name: "National", href: "/events/national" },
+        { name: "Platform-led", href: "/events/platform-led" },
+        { name: "Business-led", href: "/events/business-led" },
+      ],
+    },
+    { name: "Exhibit & Partner", href: "/partnership" },
+    { name: "Galleries", href: "/galleries" },
   ];
 
   return (
@@ -80,13 +89,34 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors"
-              >
-                {link.name}
-              </Link>
+              <div key={link.name} className="relative group">
+                {link.dropdown ? (
+                  <>
+                    <button className="flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors">
+                      {link.name}
+                      <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform" />
+                    </button>
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                      {link.dropdown.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors"
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Link
+                    href={link.href}
+                    className="text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                )}
+              </div>
             ))}
           </div>
 
@@ -108,7 +138,7 @@ export default function Navbar() {
               Tickets
             </Link>
             <Link
-              href="/exhibit"
+              href="/partnership"
               className="bg-slate-900 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-slate-800 transition-colors"
             >
               Exhibit
@@ -129,14 +159,41 @@ export default function Navbar() {
           <div className="lg:hidden mt-4 pb-4 border-t border-slate-100 pt-4 animate-in slide-in-from-top-2">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-base font-semibold text-slate-700 hover:text-orange-600"
-                >
-                  {link.name}
-                </Link>
+                <div key={link.name} className="flex flex-col gap-2">
+                  {link.dropdown ? (
+                    <>
+                      <button
+                        onClick={() => setOpenDropdown(openDropdown === link.name ? null : link.name)}
+                        className="flex items-center justify-between text-base font-semibold text-slate-700 hover:text-orange-600 w-full text-left"
+                      >
+                        {link.name}
+                        <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === link.name ? "rotate-180" : ""}`} />
+                      </button>
+                      {openDropdown === link.name && (
+                        <div className="flex flex-col gap-2 pl-4 border-l-2 border-slate-100 ml-1">
+                          {link.dropdown.map((item) => (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="text-sm font-medium text-slate-600 hover:text-orange-600"
+                            >
+                              {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-base font-semibold text-slate-700 hover:text-orange-600"
+                    >
+                      {link.name}
+                    </Link>
+                  )}
+                </div>
               ))}
               <hr className="border-slate-100" />
               <div className="flex flex-col gap-3">
@@ -154,7 +211,7 @@ export default function Navbar() {
                   Get Tickets
                 </Link>
                 <Link
-                  href="/exhibit"
+                  href="/partnership"
                   className="bg-slate-900 text-white px-6 py-3 rounded-full text-center font-bold hover:bg-slate-800"
                 >
                   Become an Exhibitor

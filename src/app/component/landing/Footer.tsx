@@ -31,9 +31,9 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-6">Platform</h4>
             <ul className="space-y-3 text-sm">
-              {['About Us', 'How it Works', 'Pricing', 'Core Systems', 'Seasonal Events'].map((item) => (
+              {['About Us', 'How it Works', 'Pricing', 'Core Systems', 'Seasonal Events', 'Galleries'].map((item) => (
                 <li key={item}>
-                  <Link href="#" className="hover:text-orange-200 transition-colors text-orange-50">{item}</Link>
+                  <Link href={item === 'Galleries' ? '/galleries' : '#'} className="hover:text-orange-200 transition-colors text-orange-50">{item}</Link>
                 </li>
               ))}
             </ul>
@@ -58,15 +58,6 @@ export default function Footer() {
               <li className="flex items-start gap-3 text-orange-50">
                 <Mail className="w-5 h-5 text-white shrink-0" />
                 <span>support@247gbs.com<br />partners@247gbs.com</span>
-              </li>
-              <li>
-                <div className="bg-orange-700 p-4 rounded-xl border border-orange-500">
-                  <p className="font-bold text-white mb-1">Need help?</p>
-                  <p className="text-xs mb-3 text-orange-100">Our support team is available 24/7.</p>
-                  <button className="w-full bg-white text-orange-600 py-2 rounded text-xs font-bold hover:bg-orange-50 transition-colors">
-                    Start Live Chat
-                  </button>
-                </div>
               </li>
             </ul>
           </div>

@@ -14,6 +14,7 @@ import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import OtpInput from "@/app/component/OtpInput";
 import Modal from "@/app/component/Modal";
+import { events } from "@/data/events";
 
 const STEPS = ["Event Marketplace", "Add-ons", "Review", "Identity", "Payment", "Digital Passport"];
 
@@ -80,13 +81,6 @@ export default function TicketsPage() {
   // Mock Data
   const passes = [
     {
-      id: "spring_pass",
-      name: "Spring 2026 Season Pass",
-      price: 25,
-      description: "Mandatory platform entry pass. Valid for the entire Spring season duration.",
-      features: ["Marketplace Access", "General Networking", "Standard Rewards"]
-    },
-    {
       id: "annual_pass",
       name: "Annual All-Access Pass",
       price: 75,
@@ -94,152 +88,6 @@ export default function TicketsPage() {
       features: ["4 Seasons Entry", "VIP Lounge Access", "Priority Queue", "Premium Rewards"],
       popular: true
     }
-  ];
-  const events = [
-    { 
-      id: "spring2026", 
-      name: "Global Innovation Fair (Spring 2026)", 
-      date: "April 10-19, 2026", 
-      location: "Virtual Main Hall", 
-      category: "Technology", 
-      type: "national-expo",
-      image: "bg-blue-100",
-      fullImage: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1000",
-      description: "The world's premier digital innovation showcase. Experience cutting-edge tech, AI demonstrations, and keynote speeches from industry leaders.",
-      benefits: ["Access to 500+ Booths", "Live Keynotes", "Networking Lounge"],
-      rating: 4.8,
-      reviews: 124,
-      videoUrl: "#",
-      organizer: "TechGlobal Inc."
-    },
-    { 
-      id: "summer2026", 
-      name: "Summer Trade Carnival", 
-      date: "July 15-24, 2026", 
-      location: "Expo Center Alpha", 
-      category: "Trade", 
-      type: "platform-led",
-      image: "bg-orange-100",
-      fullImage: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1000",
-      description: "A vibrant marketplace for global traders. Source products, meet suppliers, and explore new market trends in a festive digital environment.",
-      benefits: ["Direct Supplier Chat", "Wholesale Deals", "Export Workshops"],
-      rating: 4.5,
-      reviews: 89,
-      videoUrl: "#",
-      organizer: "World Trade Org"
-    },
-    { 
-      id: "techsummit", 
-      name: "Future Tech Summit", 
-      date: "Aug 05-08, 2026", 
-      location: "Innovation Hub", 
-      category: "Technology", 
-      type: "business-led",
-      image: "bg-purple-100",
-      fullImage: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=1000",
-      description: "Deep dive into the future of humanity and technology. Workshops on quantum computing, biotech, and space exploration.",
-      benefits: ["Certified Workshops", "Expert Q&A", "Digital Courseware"],
-      rating: 4.9,
-      reviews: 210,
-      videoUrl: "#",
-      organizer: "Future Minds"
-    },
-    { 
-      id: "creative", 
-      name: "Digital Arts Expo", 
-      date: "Sep 12-14, 2026", 
-      location: "Creative Quarter", 
-      category: "Art", 
-      type: "platform-led",
-      image: "bg-pink-100",
-      fullImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1000",
-      description: "Celebrating digital creativity. NFT galleries, 3D art showcases, and live digital painting sessions.",
-      benefits: ["NFT Drops", "Artist Meetups", "Creative Tools Demo"],
-      rating: 4.7,
-      reviews: 56,
-      videoUrl: "#",
-      organizer: "ArtBlock"
-    },
-    { 
-      id: "health", 
-      name: "Global Health Symposium", 
-      date: "Oct 20-22, 2026", 
-      location: "Health Wing", 
-      category: "Health", 
-      type: "business-led",
-      image: "bg-green-100",
-      fullImage: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=1000",
-      description: "Connecting global health professionals. Discussions on longevity, digital health records, and telemedicine.",
-      benefits: ["CME Credits", "Expert Panels", "Health Tech Showcase"],
-      rating: 4.6,
-      reviews: 78,
-      videoUrl: "#",
-      organizer: "Global Health Alliance"
-    },
-    { 
-      id: "green", 
-      name: "Sustainable Energy Conclave", 
-      date: "Nov 15-18, 2026", 
-      location: "Eco Center", 
-      category: "Environment", 
-      type: "national-expo",
-      image: "bg-teal-100",
-      fullImage: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1000",
-      description: "Driving the green transition. Focused on renewable energy, carbon capture, and sustainable urban design.",
-      benefits: ["Investor Networking", "Policy Briefings", "Green Tech Demos"],
-      rating: 4.8,
-      reviews: 95,
-      videoUrl: "#",
-      organizer: "EcoVision"
-    },
-    { 
-      id: "fintech", 
-      name: "Global Fintech Summit", 
-      date: "Dec 01-03, 2026", 
-      location: "Financial District", 
-      category: "Finance", 
-      type: "business-led",
-      image: "bg-indigo-100",
-      fullImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000",
-      description: "Exploring the future of money. Blockchain, decentralized finance, and the next generation of banking.",
-      benefits: ["Investor Pitches", "Regulation Updates", "Fintech Demos"],
-      rating: 4.7,
-      reviews: 112,
-      videoUrl: "#",
-      organizer: "Finance Forward"
-    },
-    { 
-      id: "retail", 
-      name: "Future of Retail Expo", 
-      date: "Jan 12-15, 2027", 
-      location: "Commerce Hub", 
-      category: "Retail", 
-      type: "platform-led",
-      image: "bg-rose-100",
-      fullImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1000",
-      description: "Transforming the shopping experience. AR/VR in retail, omnichannel strategies, and consumer behavior analysis.",
-      benefits: ["Retail Tech Demos", "Supply Chain Insights", "Brand Strategy"],
-      rating: 4.6,
-      reviews: 84,
-      videoUrl: "#",
-      organizer: "Retail Innovators"
-    },
-    { 
-      id: "education", 
-      name: "EdTech World Congress", 
-      date: "Feb 20-22, 2027", 
-      location: "Learning Lab", 
-      category: "Education", 
-      type: "national-expo",
-      image: "bg-amber-100",
-      fullImage: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=1000",
-      description: "The future of learning. AI in education, virtual classrooms, and lifelong learning platforms.",
-      benefits: ["Teacher Workshops", "Curriculum Design", "EdTech Startup Showcase"],
-      rating: 4.8,
-      reviews: 136,
-      videoUrl: "#",
-      organizer: "Learning Network"
-    },
   ];
 
   const tiers = [
@@ -335,11 +183,15 @@ export default function TicketsPage() {
     }));
   };
 
+  const hasPassInCart = cart.some(i => i.type === 'pass');
+  const needsPassFee = !isTokenValidated && !hasPassInCart;
+  const passFee = needsPassFee ? 75 : 0;
+
   const itemsTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const discount = promoApplied ? 5 : 0;
   const subtotal = Math.max(0, itemsTotal - discount);
-  const totalBookingFee = cart.length > 0 ? BOOKING_FEE : 0;
-  const finalPrice = subtotal + totalBookingFee;
+  const totalBookingFee = cart.length > 0 || needsPassFee ? BOOKING_FEE : 0;
+  const finalPrice = subtotal + totalBookingFee + passFee;
 
   const handleNext = () => {
     setLoading(true);
@@ -495,7 +347,7 @@ export default function TicketsPage() {
                       className="appearance-none px-6 pr-12 py-4 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
                       <option value="all">All Event Types</option>
-                      <option value="national-expo">National Expo</option>
+                      <option value="national">National Expo</option>
                       <option value="platform-led">Platform-led</option>
                       <option value="business-led">Business-led</option>
                     </select>
@@ -593,7 +445,7 @@ export default function TicketsPage() {
                         onClick={() => setCurrentPage(i + 1)}
                         className={`w-10 h-10 rounded-xl font-bold transition-all ${
                           currentPage === i + 1 
-                            ? "bg-orange-600 text-white shadow-lg shadow-orange-600/20" 
+                            ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" 
                             : "bg-white border border-slate-200 text-slate-400 hover:border-orange-600 hover:text-orange-600"
                         }`}
                       >
@@ -758,12 +610,7 @@ export default function TicketsPage() {
                       <Check className="w-3 h-3" /> Token active: Full Marketplace access granted.
                     </p>
                   ) : (
-                    <button 
-                      onClick={() => setShowPassModal(true)}
-                      className="mt-4 text-[10px] font-bold text-orange-600 hover:underline flex items-center gap-1"
-                    >
-                      <Plus className="w-3 h-3" /> Don't have a pass? Get one here
-                    </button>
+                    null
                   )}
                 </div>
 
@@ -773,6 +620,12 @@ export default function TicketsPage() {
                     <span className="text-slate-500 font-medium">Subtotal</span>
                     <span className="text-slate-900 font-bold">£{itemsTotal.toFixed(2)}</span>
                   </div>
+                  {needsPassFee && (
+                    <div className="flex justify-between items-center text-sm text-orange-600">
+                      <span className="font-bold">Mandatory Pass Fee</span>
+                      <span className="font-black">£{passFee.toFixed(2)}</span>
+                    </div>
+                  )}
                   {promoApplied && (
                     <div className="flex justify-between items-center text-sm text-green-600">
                       <span className="font-medium italic">Seasonal Discount</span>

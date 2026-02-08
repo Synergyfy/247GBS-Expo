@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { Globe, Lightbulb, Store, ArrowRight } from "lucide-react";
 
 const EVENT_TYPES = [
@@ -11,7 +12,8 @@ const EVENT_TYPES = [
     image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop",
     icon: Globe,
     tag: "SEASONAL FLAGSHIP",
-    color: "from-orange-600/90 to-orange-900/90"
+    color: "from-orange-600/90 to-orange-900/90",
+    href: "/events/national"
   },
   {
     title: "Workshops & Demos",
@@ -19,7 +21,8 @@ const EVENT_TYPES = [
     image: "https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=800&auto=format&fit=crop",
     icon: Lightbulb,
     tag: "PLATFORM-LED",
-    color: "from-blue-600/90 to-blue-900/90"
+    color: "from-blue-600/90 to-blue-900/90",
+    href: "/events/platform-led"
   },
   {
     title: "Exhibitor Events",
@@ -27,7 +30,8 @@ const EVENT_TYPES = [
     image: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?q=80&w=800&auto=format&fit=crop",
     icon: Store,
     tag: "BUSINESS-LED",
-    color: "from-slate-800/90 to-slate-950/90"
+    color: "from-slate-800/90 to-slate-950/90",
+    href: "/events/business-led"
   }
 ];
 
@@ -111,10 +115,10 @@ export default function EventTypes() {
                 <p className="text-white/90 text-lg leading-relaxed font-medium">
                   {event.description}
                 </p>
-                <div className="mt-10 flex items-center gap-3 text-white font-bold group/btn">
+                <Link href={event.href} className="mt-10 flex items-center gap-3 text-white font-bold group/btn">
                   <span className="border-b-2 border-white/50 group-hover/btn:border-white transition-colors">Explore Category</span>
                   <ArrowRight className="w-5 h-5 transition-transform group-hover/btn:translate-x-2" />
-                </div>
+                </Link>
               </motion.div>
             </motion.div>
           ))}

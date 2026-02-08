@@ -1,4 +1,5 @@
 import { CalendarDays, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const events = [
   {
@@ -58,16 +59,17 @@ export default function SeasonalEvents() {
               While our platform is open 24/7, these special seasonal exhibitions bring focused traffic, live events, and exclusive launches.
             </p>
           </div>
-          <a href="#" className="flex items-center gap-2 text-slate-900 font-semibold hover:text-orange-600 transition-colors">
+            <Link href="/tickets" className="flex items-center gap-2 text-slate-900 font-semibold hover:text-orange-600 transition-colors">
             View Full Schedule <ArrowRight className="w-4 h-4" />
-          </a>
+          </Link>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {events.map((event, index) => (
-            <div
+            <Link
               key={index}
-              className={`bg-white rounded-2xl p-6 border border-slate-200 hover:border-orange-600 transition-all duration-300 group hover:-translate-y-2 hover:shadow-xl shadow-sm`}
+              href="/tickets"
+              className={`bg-white rounded-2xl p-6 border border-slate-200 hover:border-orange-600 transition-all duration-300 group hover:-translate-y-2 hover:shadow-xl shadow-sm block`}
             >
               <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${event.bg} ${event.color}`}>
                 {event.season}
@@ -83,11 +85,11 @@ export default function SeasonalEvents() {
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                   {event.status}
                 </span>
-                <button className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-orange-600 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-orange-600 transition-colors">
                   <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-white" />
-                </button>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

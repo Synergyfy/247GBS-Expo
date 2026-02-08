@@ -18,6 +18,7 @@ const EVENTS = [
         location: "Virtual Main Hall",
         price: "From £19",
         category: "Technology",
+        isLive: true,
         image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1000",
         description: "The world's premier digital innovation showcase. Experience cutting-edge tech, AI demonstrations, and keynote speeches from industry leaders.",
         benefits: ["Access to 500+ Booths", "Live Keynotes", "Networking Lounge"],
@@ -120,8 +121,16 @@ export default function DiscoverEventsPage() {
                                 fill
                                 className="object-cover group-hover:scale-105 transition-transform duration-700"
                              />
-                             <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-slate-900">
-                                {event.category}
+                             <div className="absolute top-4 left-4 flex gap-2">
+                                <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-slate-900">
+                                    {event.category}
+                                </div>
+                                {event.isLive && (
+                                    <div className="bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black animate-pulse flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                        LIVE
+                                    </div>
+                                )}
                              </div>
                              <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1">
                                 <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {event.rating} ({event.reviews})

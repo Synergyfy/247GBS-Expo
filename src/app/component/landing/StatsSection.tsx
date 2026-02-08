@@ -1,9 +1,49 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
+
+function AnimatedNumber({ value, start }: { value: number; start: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const motionValue = useMotionValue(0);
+  const springValue = useSpring(motionValue, {
+    damping: 30,
+    stiffness: 100,
+  });
+
+  useEffect(() => {
+    if (start) {
+      motionValue.set(value);
+    }
+  }, [start, value, motionValue]);
+
+  useEffect(() => {
+    const unsubscribe = springValue.on("change", (latest) => {
+      if (ref.current) {
+        ref.current.textContent = Intl.NumberFormat("en-US").format(
+          Math.floor(latest)
+        );
+      }
+    });
+
+    if (ref.current) {
+      ref.current.textContent = "0";
+    }
+
+    return () => unsubscribe();
+  }, [springValue]);
+
+  return <span ref={ref} />;
+}
 
 export default function StatsSection() {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
   return (
-    <section className="relative py-20 md:py-24 overflow-visible bg-white">
+    <section ref={sectionRef} className="relative py-20 md:py-24 overflow-visible bg-white">
       {/* Slanted Background Container */}
       <div 
         className="absolute inset-0 bg-orange-600 z-0 transform -skew-y-2 origin-center scale-x-110 md:scale-x-105"
@@ -14,7 +54,12 @@ export default function StatsSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="text-white space-y-6 lg:pr-12">
-            <div className="space-y-4">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6 }}
+              className="space-y-4"
+            >
               <h2 className="text-3xl md:text-5xl font-extrabold leading-tight">
                 Experience the UK's Premier Digital Expo, <br />
                 connecting businesses 24/7.
@@ -22,34 +67,39 @@ export default function StatsSection() {
               <p className="text-lg md:text-xl text-orange-50 max-w-xl font-medium">
                 Discover the latest trends in technology, trade, and lifestyle with expert insights and innovative products to grow your business.
               </p>
-            </div>
+            </motion.div>
 
             {/* Stats Row */}
-            <div className="flex flex-wrap items-start gap-8 md:gap-12 py-2">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex flex-wrap items-start gap-8 md:gap-12 py-2"
+            >
               <div className="relative">
                 <div className="text-4xl md:text-6xl font-black flex items-baseline">
-                  2,500<span className="text-lime-400 text-2xl md:text-3xl ml-1">+</span>
+                  <AnimatedNumber value={2500} start={isInView} /><span className="text-lime-400 text-2xl md:text-3xl ml-1">+</span>
                 </div>
                 <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-orange-100 mt-1">Brands Exhibiting</p>
               </div>
               
               <div className="relative pl-6 border-l border-white/20">
                 <div className="text-4xl md:text-6xl font-black flex items-baseline">
-                  50<span className="text-lime-400 text-2xl md:text-3xl ml-1">k+</span>
+                  <AnimatedNumber value={50} start={isInView} /><span className="text-lime-400 text-2xl md:text-3xl ml-1">k+</span>
                 </div>
                 <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-orange-100 mt-1">Seasonal Visitors</p>
               </div>
 
               <div className="relative pl-6 border-l border-white/20">
                 <div className="text-4xl md:text-6xl font-black flex items-baseline">
-                  365
+                  <AnimatedNumber value={365} start={isInView} />
                 </div>
                 <div className="flex flex-col mt-1">
                   <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-lime-400">Days</span>
                   <span className="text-[10px] md:text-xs font-bold text-orange-100 uppercase">Of Innovation</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 pt-4">
