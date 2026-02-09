@@ -231,8 +231,10 @@ export default function TicketsPage() {
       (currentPage - 1) * EVENTS_PER_PAGE,
       currentPage * EVENTS_PER_PAGE
     );
-  
-    return (
+
+  const totalSelectedTicketsQuantity = cart.filter(item => item.type === 'ticket').reduce((acc, item) => acc + item.quantity, 0);
+
+  return (
       <main className="min-h-screen bg-slate-50 font-sans">
         <Navbar />
         
@@ -301,32 +303,70 @@ export default function TicketsPage() {
                           </div>
                         )}  
                 {/* Top Action Bar (New) */}
-                <AnimatePresence>
-                  {selectedEvents.length > 0 && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      className="fixed bottom-12 right-12 z-[60]"
-                    >
-                      <button 
-                        onClick={handleNext}
-                        className="px-8 py-5 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center justify-center gap-3 hover:bg-orange-700 transition-all shadow-[0_20px_50px_rgba(234,88,12,0.4)] hover:scale-105 active:scale-95"
-                      >
-                        {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                          <>
-                            <span className="hidden md:inline">Continue to Tickets</span>
-                            <span className="md:hidden">Continue</span>
-                            <div className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-sm">
-                              {selectedEvents.length}
-                            </div>
-                            <ArrowRight className="w-6 h-6" />
-                          </>
-                        )}
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                 {step === 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="fixed bottom-12 right-12 z-[60]"
+                  >
+                    <AnimatePresence>
+                      {totalSelectedTicketsQuantity > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 50 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 50 }}
+                          transition={{ duration: 0.3 }}
+                          className="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden"
+                        >
+                          <div className="p-4 bg-orange-600 text-white flex items-center justify-between">
+                            <span className="font-bold text-lg">Your Selected Events</span>
+                            <span className="bg-white/20 rounded-full px-3 py-1 text-sm font-bold">{totalSelectedTicketsQuantity} Tickets</span>
+                          </div>
+                          <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar">
+                            {cart.filter(item => item.type === 'ticket').map(item => (
+                              <div key={`${item.id}-${item.eventId}`} className="flex items-center justify-between p-3 border-b border-slate-100 last:border-b-0">
+                                <div className="flex-1 pr-2">
+                                  <p className="font-medium text-slate-800 text-sm leading-tight">{item.name}</p>
+                                  <p className="text-xs text-slate-500">£{(item.price * item.quantity).toFixed(2)}</p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, -1, item.eventId); }}
+                                    className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
+                                  >
+                                    <Minus className="w-4 h-4" />
+                                  </button>
+                                  <span className="font-bold text-slate-900 text-sm w-6 text-center">{item.quantity}</span>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, 1, item.eventId); }}
+                                    className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <button 
+                            onClick={handleNext}
+                            className="w-full py-4 bg-slate-900 text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-orange-700 transition-all active:scale-95 shadow-lg"
+                          >
+                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                              <>
+                                <span>Continue to Tickets</span>
+                                <div className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-sm">
+                                  {totalSelectedTicketsQuantity}
+                                </div>
+                                <ArrowRight className="w-6 h-6" />
+                              </>
+                            )}
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                )}
   
                 {/* Search and Filter Bar */}
                 <div className="flex flex-col md:flex-row gap-4 mb-10 max-w-4xl mx-auto">
