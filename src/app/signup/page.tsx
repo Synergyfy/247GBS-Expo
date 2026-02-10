@@ -73,6 +73,11 @@ function SignupForm() {
                     <input type="password" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="••••••••" />
                 </div>
 
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Confirm Password</label>
+                    <input type="password" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all" placeholder="••••••••" />
+                </div>
+
                 <button onClick={handleSignup} className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg">
                     Create Account
                 </button>

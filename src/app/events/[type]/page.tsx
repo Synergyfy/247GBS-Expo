@@ -40,27 +40,19 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
       <Navbar />
       
       {/* Hero Section / Show and Tell */}
-      <section className="pt-40 pb-20 bg-white relative overflow-hidden">
+      <section className="pt-28 pb-4 bg-white relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-100/30 rounded-full blur-3xl opacity-50" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-3xl opacity-50" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 text-orange-600 text-sm font-bold mb-6"
-            >
-              <Sparkles className="w-4 h-4" />
-              {info.subtitle}
-            </motion.div>
+          <div className="max-w-4xl mx-auto text-center mb-6">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight"
+              className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2 tracking-tight"
             >
               {info.title}
             </motion.h1>
@@ -68,13 +60,13 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xl text-slate-600 leading-relaxed mb-10"
+              className="text-base text-slate-600 leading-relaxed"
             >
               {info.description}
             </motion.p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 items-center max-w-6xl mx-auto">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -82,18 +74,17 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
               className="space-y-6"
             >
               <h2 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <Target className="w-8 h-8 text-orange-600" />
-                Key Characteristics
+                <Play className="w-8 h-8 text-orange-600 fill-orange-600/20" />
+                Event Experience
               </h2>
-              <div className="grid gap-4">
-                {info.characteristics.map((char, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-orange-200 transition-colors">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-orange-600 shadow-sm">
-                      <Check className="w-5 h-5" />
-                    </div>
-                    <span className="font-semibold text-slate-700">{char}</span>
-                  </div>
-                ))}
+              <div className="aspect-video rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl relative bg-slate-900 group">
+                <iframe 
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                  title="Event Preview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                ></iframe>
               </div>
             </motion.div>
 
@@ -129,9 +120,9 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
       </section>
 
       {/* Events Section */}
-      <section className="py-20 bg-slate-50 relative">
+      <section className="pt-4 pb-20 bg-slate-50 relative">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
             <div className="max-w-2xl">
               <h2 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Upcoming {info.title}s</h2>
               <p className="text-lg text-slate-600">Discover and book tickets for these exclusive events.</p>

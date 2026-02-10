@@ -78,6 +78,9 @@ export default function DiscoverEventsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [activeTab, setActiveTab] = useState("overview"); // overview, schedule, reviews
+    
+    // Mock state for joined events
+    const [joinedEvents, setJoinedEvents] = useState<string[]>(["spring2026"]); 
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -298,16 +301,35 @@ export default function DiscoverEventsPage() {
 
                         {/* Footer / CTA (Purchase Flow Entry) */}
                         <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-                            <div>
-                                <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Total Price</p>
-                                <p className="text-2xl font-black text-slate-900">{selectedEvent.price}</p>
-                            </div>
-                            <Link 
-                                href="/tickets" 
-                                className="px-8 py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 transition-all flex items-center gap-2"
-                            >
-                                Get Tickets <ArrowRight className="w-5 h-5" />
-                            </Link>
+                            {joinedEvents.includes(selectedEvent.id) ? (
+                                <>
+                                    <div>
+                                        <p className="text-xs text-green-600 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                                            <Check className="w-3.5 h-3.5" /> Ticket Secured
+                                        </p>
+                                        <p className="text-2xl font-black text-slate-900">Registered</p>
+                                    </div>
+                                    <Link 
+                                        href={selectedEvent.isLive ? `/dashboard/customer/events/${selectedEvent.id}/lobby` : "/dashboard/customer/tickets"} 
+                                        className={`px-8 py-4 ${selectedEvent.isLive ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-900 hover:bg-slate-800'} text-white rounded-full font-bold shadow-xl transition-all flex items-center gap-2`}
+                                    >
+                                        {selectedEvent.isLive ? "Enter Event Space" : "View My Ticket"} <ArrowRight className="w-5 h-5" />
+                                    </Link>
+                                </>
+                            ) : (
+                                <>
+                                    <div>
+                                        <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Total Price</p>
+                                        <p className="text-2xl font-black text-slate-900">{selectedEvent.price}</p>
+                                    </div>
+                                    <Link 
+                                        href={`/tickets?season=${selectedEvent.id}`} 
+                                        className="px-8 py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 transition-all flex items-center gap-2"
+                                    >
+                                        Get Tickets <ArrowRight className="w-5 h-5" />
+                                    </Link>
+                                </>
+                            )}
                         </div>
                         <p className="text-center text-[10px] text-slate-400">
                             By purchasing you agree to the <a href="#" className="underline">Terms of Service</a> and <a href="#" className="underline">Privacy Policy</a>.

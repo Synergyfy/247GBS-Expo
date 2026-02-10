@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { 
  motion, AnimatePresence } from "framer-motion";
 import { 
@@ -10,10 +10,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import OtpInput from "@/app/component/OtpInput";
 import Modal from "@/app/component/Modal";
+import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 
 const STEPS = ["Event Marketplace", "Add-ons", "Review", "Identity", "Payment", "Digital Passport"];
@@ -27,7 +29,8 @@ interface CartItem {
   eventId?: string;
 }
 
-export default function TicketsPage() {
+function TicketsContent() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   
@@ -67,6 +70,29 @@ export default function TicketsPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, eventType]);
+
+  // Handle Season Pre-selection
+  useEffect(() => {
+    const seasonId = searchParams.get('season');
+    if (seasonId) {
+      const event = events.find(e => e.id === seasonId);
+      if (event) {
+        setSelectedEvents([event.id]);
+        setCart(prev => {
+          if (prev.find(i => i.id === 'standard' && i.eventId === event.id)) return prev;
+          return [...prev, { 
+            id: 'standard', 
+            name: event.name, 
+            price: 0, 
+            type: 'ticket', 
+            quantity: 1,
+            eventId: event.id 
+          }];
+        });
+        setStep(1);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Show pass modal on mount
@@ -662,7 +688,12 @@ export default function TicketsPage() {
                   </div>
                   {needsPassFee && (
                     <div className="flex justify-between items-center text-sm text-orange-600">
-                      <span className="font-bold">Mandatory Pass Fee</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold">Mandatory Pass Fee</span>
+                        <Tooltip content="Required for full event access, digital passport generation, and reward redemption.">
+                          <Info className="w-3.5 h-3.5 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <span className="font-black">£{passFee.toFixed(2)}</span>
                     </div>
                   )}
@@ -1188,15 +1219,14 @@ export default function TicketsPage() {
                 <p className="text-slate-600">To enjoy an amazing event and unlock all marketplace features, get your season pass now!</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="flex justify-center mb-8">
                 {passes.map((pass) => (
                   <div 
                     key={pass.id}
-                    onClick={() => addToCart(pass, 'pass')}
-                    className={`relative p-6 rounded-3xl border-2 transition-all cursor-pointer ${
+                    className={`relative p-8 rounded-3xl border-2 transition-all max-w-sm w-full ${
                       cart.some(i => i.id === pass.id) 
                         ? "border-orange-600 bg-orange-50/50 shadow-lg" 
-                        : "border-slate-100 bg-white hover:border-orange-300"
+                        : "border-slate-100 bg-white hover:border-orange-300 shadow-sm"
                     }`}
                   >
                     {pass.popular && (
@@ -1205,37 +1235,33 @@ export default function TicketsPage() {
                       </div>
                     )}
                     <div className="flex justify-between items-start mb-4">
-                      <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-orange-600">
-                        <Globe className="w-5 h-5" />
+                      <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-orange-600">
+                        <Globe className="w-6 h-6" />
                       </div>
                       <div className="text-right">
-                        <span className="text-xl font-black">£{pass.price}</span>
+                        <span className="text-2xl font-black">£{pass.price}</span>
                       </div>
                     </div>
-                    <h3 className="text-lg font-bold mb-1">{pass.name}</h3>
-                    <p className="text-slate-500 text-xs mb-4">{pass.description}</p>
-                    <ul className="space-y-2 mb-6">
-                      {pass.features.slice(0, 3).map(f => (
-                        <li key={f} className="flex items-center gap-2 text-[10px] font-bold text-slate-700">
-                          <Check className="w-3 h-3 text-green-500" /> {f}
+                    <h3 className="text-xl font-bold mb-2">{pass.name}</h3>
+                    <p className="text-slate-500 text-sm mb-6">{pass.description}</p>
+                    <ul className="space-y-3 mb-2">
+                      {pass.features.slice(0, 4).map(f => (
+                        <li key={f} className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                          <Check className="w-4 h-4 text-green-500" /> {f}
                         </li>
                       ))}
                     </ul>
-                    <div className={`w-full py-2 rounded-xl text-xs font-black text-center transition-all ${
-                      cart.some(i => i.id === pass.id) 
-                        ? "bg-orange-600 text-white" 
-                        : "bg-slate-100 text-slate-600"
-                    }`}>
-                      {cart.some(i => i.id === pass.id) ? "Selected" : "Select Pass"}
-                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 max-w-sm mx-auto">
                 <button 
-                  disabled={!cart.some(i => i.type === 'pass')}
                   onClick={() => {
+                    const pass = passes[0];
+                    if (!cart.some(i => i.id === pass.id)) {
+                      addToCart(pass, 'pass');
+                    }
                     setLoading(true);
                     setTimeout(() => {
                       const token = "GBX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
@@ -1244,7 +1270,7 @@ export default function TicketsPage() {
                       setShowTokenScreen(true);
                     }, 1500);
                   }}
-                  className="w-full py-4 bg-slate-900 text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition-all disabled:opacity-50 shadow-lg"
+                  className="w-full py-4 bg-slate-900 text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-lg"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Purchase & Get Access Token"}
                 </button>
@@ -1296,5 +1322,17 @@ export default function TicketsPage() {
         </div>
       </Modal>
     </main>
+  );
+}
+
+export default function TicketsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
+      </div>
+    }>
+      <TicketsContent />
+    </Suspense>
   );
 }

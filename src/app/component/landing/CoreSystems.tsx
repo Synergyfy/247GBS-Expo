@@ -151,7 +151,7 @@ export default function CoreSystems() {
                </div>
                <div className="relative z-10">
                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-orange-500 mb-2">The Strategic Benefit</h5>
-                 <p className="text-lg font-medium leading-relaxed italic">"{selectedFeature.details.benefit}"</p>
+                 <p className="text-lg font-normal leading-relaxed text-slate-400">"{selectedFeature.details.benefit}"</p>
                </div>
             </div>
 

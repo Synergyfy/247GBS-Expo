@@ -3,6 +3,7 @@ import Link from "next/link";
 
 const events = [
   {
+    id: "spring2026",
     season: "Spring 2026",
     title: "Global Innovation Fair",
     dates: "April 10 - 19, 2026",
@@ -12,6 +13,7 @@ const events = [
     border: "border-green-200"
   },
   {
+    id: "summer2026",
     season: "Summer 2026",
     title: "Summer Trade Carnival",
     dates: "July 15 - 24, 2026",
@@ -21,6 +23,7 @@ const events = [
     border: "border-orange-200"
   },
   {
+    id: "health",
     season: "Autumn 2026",
     title: "Harvest Business Expo",
     dates: "October 10 - 19, 2026",
@@ -30,6 +33,7 @@ const events = [
     border: "border-amber-200"
   },
   {
+    id: "fintech",
     season: "Winter 2026",
     title: "Holiday Shopping Festival",
     dates: "December 5 - 14, 2026",
@@ -68,7 +72,7 @@ export default function SeasonalEvents() {
           {events.map((event, index) => (
             <Link
               key={index}
-              href="/tickets"
+              href={`/tickets?season=${event.id}`}
               className={`bg-white rounded-2xl p-6 border border-slate-200 hover:border-orange-600 transition-all duration-300 group hover:-translate-y-2 hover:shadow-xl shadow-sm block`}
             >
               <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${event.bg} ${event.color}`}>

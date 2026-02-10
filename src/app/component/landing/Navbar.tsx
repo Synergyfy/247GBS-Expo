@@ -35,13 +35,13 @@ export default function Navbar() {
     const upcoming = events.find(event => event.start > now) || events[0];
     setNextEvent(upcoming);
 
-    // Rotate display events every 8 seconds
+    // Rotate display events every 15 seconds
     const timer = setInterval(() => {
       setDisplayEvents((prev) => [
         (prev[0] + 2) % 4,
         (prev[1] + 2) % 4,
       ]);
-    }, 8000);
+    }, 15000);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -232,7 +232,7 @@ export default function Navbar() {
           .event-meta { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; opacity: 0.85; }
           .event-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.5); }
           .moving-ticker { position: relative; overflow: hidden; flex: 1; height: 1.5rem; display: flex; align-items: center; }
-          .ticker-animation { display: flex; gap: 2rem; animation: slideIn 12s ease-in-out infinite; white-space: nowrap; align-items: center; }
+          .ticker-animation { display: flex; gap: 2rem; animation: slideIn 25s linear infinite; white-space: nowrap; align-items: center; }
           @keyframes slideIn { 
             0% { transform: translateX(100%); opacity: 0; }
             5% { opacity: 1; }
