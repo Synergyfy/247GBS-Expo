@@ -138,7 +138,7 @@ export default function Navbar() {
               Tickets
             </Link>
             <Link
-              href="/partnership"
+              href="/exhibit"
               className="bg-slate-900 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-slate-800 transition-colors"
             >
               Exhibit

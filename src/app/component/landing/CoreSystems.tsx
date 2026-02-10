@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Store, Gift, Wallet, Network, QrCode, MessageSquare, Info, ArrowRight, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
+import { Store, Gift, Wallet, Network, QrCode, MessageSquare, Info, CheckCircle2 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 
 const features = [
@@ -83,7 +82,7 @@ export default function CoreSystems() {
             A Complete <span className="text-orange-600">Digital Economy</span>.
           </h3>
           <p className="text-lg text-slate-600 leading-relaxed">
-            We provide the tools for businesses to thrive and customers to earn. 
+            We provide the tools for businesses to thrive and customers to earn.
             All systems are interconnected to create a seamless experience.
           </p>
         </div>
@@ -96,18 +95,18 @@ export default function CoreSystems() {
               className="group bg-white rounded-[2.5rem] p-8 hover:shadow-2xl transition-all duration-500 border border-slate-100 hover:border-orange-200 relative overflow-hidden cursor-pointer"
             >
               <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-transparent to-slate-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`} />
-              
+
               <div className={`w-14 h-14 rounded-2xl ${feature.color} bg-opacity-10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}>
                 <feature.icon className={`w-7 h-7 ${feature.color.replace('bg-', 'text-')}`} />
               </div>
-              
+
               <h4 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-orange-600 transition-colors tracking-tight">
                 {feature.name}
               </h4>
               <p className="text-slate-500 leading-relaxed mb-8">
                 {feature.description}
               </p>
-              
+
               <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-orange-600 transition-colors">
                 <Info className="w-4 h-4" /> Learn More
               </div>
@@ -124,7 +123,7 @@ export default function CoreSystems() {
         {selectedFeature && (
           <div className="space-y-8 p-2">
             <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-               <div className={`w-16 h-16 rounded-2xl ${selectedFeature.color} bg-opacity-10 flex items-center justify-center`}>
+              <div className={`w-16 h-16 rounded-2xl ${selectedFeature.color} bg-opacity-10 flex items-center justify-center`}>
                 <selectedFeature.icon className={`w-8 h-8 ${selectedFeature.color.replace('bg-', 'text-')}`} />
               </div>
               <div>
@@ -146,28 +145,22 @@ export default function CoreSystems() {
             </div>
 
             <div className="p-6 bg-slate-900 text-white rounded-[2rem] relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-8 opacity-10">
-                 <selectedFeature.icon className="w-20 h-20" />
-               </div>
-               <div className="relative z-10">
-                 <h5 className="text-xs font-black uppercase tracking-[0.2em] text-orange-500 mb-2">The Strategic Benefit</h5>
-                 <p className="text-lg font-normal leading-relaxed text-slate-400">"{selectedFeature.details.benefit}"</p>
-               </div>
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <selectedFeature.icon className="w-20 h-20" />
+              </div>
+              <div className="relative z-10">
+                <h5 className="text-xs font-black uppercase tracking-[0.2em] text-orange-500 mb-2">The Strategic Benefit</h5>
+                <p className="text-lg font-normal leading-relaxed text-slate-400">"{selectedFeature.details.benefit}"</p>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <button 
+            <div className="pt-4">
+              <button
                 onClick={() => setSelectedFeature(null)}
-                className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+                className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
               >
                 Close
               </button>
-              <Link 
-                href="/exhibit"
-                className="flex-[2] py-4 bg-orange-600 text-white rounded-2xl font-bold hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex justify-center items-center gap-2"
-              >
-                Start Using This System <ArrowRight className="w-5 h-5" />
-              </Link>
             </div>
           </div>
         )}

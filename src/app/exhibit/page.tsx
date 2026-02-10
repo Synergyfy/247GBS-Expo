@@ -59,6 +59,8 @@ export default function ExhibitPage() {
     const timer = setTimeout(() => {
       if (!hasSkippedPass) {
         setShowPassModal(true);
+        // Pre-select the Annual Pass
+        addToCart(passes[0], 'pass');
       }
     }, 1000);
     return () => clearTimeout(timer);
@@ -91,18 +93,11 @@ export default function ExhibitPage() {
 
   const passes = [
     {
-      id: "spring_pass",
-      name: "Spring 2026 Season Pass",
-      price: "25",
-      description: "Mandatory platform entry pass. Valid for the entire Spring season duration.",
-      features: ["Marketplace Access", "General Networking", "Standard Rewards"]
-    },
-    {
       id: "annual_pass",
       name: "Annual All-Access Pass",
       price: "75",
-      description: "Best value. Entry to all 4 seasons in 2026. Includes 24/7 lobby access.",
-      features: ["4 Seasons Entry", "VIP Lounge Access", "Priority Queue", "Premium Rewards"],
+      description: "Mandatory platform entry pass. Entry to all seasons in 2026. Includes 24/7 lobby access.",
+      features: ["All Seasons Entry", "VIP Lounge Access", "Priority Queue", "Premium Rewards"],
       popular: true
     }
   ];
@@ -604,22 +599,22 @@ export default function ExhibitPage() {
           setShowPassModal(false);
           setHasSkippedPass(true);
         }}
-        title="Get Your Platform Pass"
-        maxWidth="4xl"
+        title="Activate Your Platform Pass"
+        maxWidth="2xl"
       >
         <div className="max-w-4xl mx-auto">
           {!showTokenScreen ? (
             <>
               <div className="text-center mb-8">
-                <p className="text-slate-600">To enjoy an amazing event and unlock all marketplace features, get your season pass now!</p>
+                <p className="text-slate-600">Unlock full marketplace features and exhibition tools with your all-access pass.</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="flex justify-center mb-8">
                 {passes.map((pass) => (
                   <div
                     key={pass.id}
                     onClick={() => addToCart(pass, 'pass')}
-                    className={`relative p-6 rounded-3xl border-2 transition-all cursor-pointer ${cart.some(i => i.id === pass.id)
+                    className={`relative p-8 rounded-3xl border-2 transition-all cursor-pointer max-w-sm w-full ${cart.some(i => i.id === pass.id)
                       ? "border-orange-600 bg-orange-50/50 shadow-lg"
                       : "border-slate-100 bg-white hover:border-orange-300"
                       }`}
