@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import BusinessSidebar from "../../component/BusinessSidebar";
+import DashboardHeader from "../../component/DashboardHeader";
 import FloatingChat from "../../component/FloatingChat";
 
 export default function BusinessLayout({ children }: { children: React.ReactNode }) {
@@ -9,14 +10,24 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
 
     return (
         <div className="min-h-screen bg-slate-50 flex font-sans overflow-x-hidden relative">
-            <BusinessSidebar isOpen={isSidebarOpen} />
+            <BusinessSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-            {/* MAIN CONTENT WRAPPER */}
-            <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-20'}`}>
-                <main className="p-4 md:p-8 lg:p-12">
+            <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
+                <DashboardHeader
+                    user={{
+                        name: "Acme Corp",
+                        role: "Premium Exhibitor",
+                        email: "contact@acme.com",
+                        initials: "AC"
+                    }}
+                    searchPlaceholder="Search products, sales, or messages..."
+                    dashboardType="business"
+                />
+
+                <div className="p-4 md:p-8 lg:p-12">
                     {children}
-                </main>
-            </div>
+                </div>
+            </main>
 
             {/* SHARED FLOATING COMPONENTS */}
             <FloatingChat />

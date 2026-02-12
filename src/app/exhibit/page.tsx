@@ -12,6 +12,7 @@ import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import Tooltip from "@/app/component/Tooltip";
 import Modal from "@/app/component/Modal";
+import { PASS_PLANS } from "@/data/passes";
 
 const STEPS = ["Registration", "KYC & Documents", "Module Activation"];
 
@@ -91,16 +92,7 @@ export default function ExhibitPage() {
     }
   };
 
-  const passes = [
-    {
-      id: "annual_pass",
-      name: "Annual All-Access Pass",
-      price: "75",
-      description: "Mandatory platform entry pass. Entry to all seasons in 2026. Includes 24/7 lobby access.",
-      features: ["All Seasons Entry", "VIP Lounge Access", "Priority Queue", "Premium Rewards"],
-      popular: true
-    }
-  ];
+  const passes = PASS_PLANS.filter(p => p.type === 'business');
 
   const packages = [
     { name: "Starter", price: "99", features: ["Standard Template", "20 Products"] },

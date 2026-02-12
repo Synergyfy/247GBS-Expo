@@ -275,7 +275,7 @@ export default function Hero() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
-              href="/tickets"
+              href={`/tickets?season=${['spring2026', 'summer2026', 'health', 'fintech'][currentSeason]}`}
               className={`w-full sm:w-auto px-10 py-5 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 ${currentData.colors.cta}`}
             >
               Get Visitor Tickets <ArrowRight className="w-5 h-5" />

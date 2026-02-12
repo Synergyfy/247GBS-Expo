@@ -3,20 +3,21 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  Play, 
-  Ticket, 
-  Building2, 
-  Zap, 
-  ArrowRight, 
-  BarChart3, 
-  Users, 
-  Globe, 
-  PlayCircle 
+import {
+  Play,
+  Ticket,
+  Building2,
+  Zap,
+  ArrowRight,
+  BarChart3,
+  Users,
+  Globe,
+  PlayCircle
 } from "lucide-react";
 
 const EXPOS = [
   {
+    id: "spring2026",
     title: "Global Innovation Fair",
     season: "Spring 2026",
     dates: "April 10-19",
@@ -26,6 +27,7 @@ const EXPOS = [
     stats: "500+ Tech Exhibitors"
   },
   {
+    id: "summer2026",
     title: "Summer Trade Carnival",
     season: "Summer 2026",
     dates: "July 15-24",
@@ -35,6 +37,7 @@ const EXPOS = [
     stats: "10k+ Daily Trade Visitors"
   },
   {
+    id: "health",
     title: "Autumn Growth Summit",
     season: "Autumn 2026",
     dates: "October 10-19",
@@ -65,7 +68,7 @@ export default function Gallery() {
     <section id="gallery" className="py-24 bg-slate-50 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-orange-100 rounded-full blur-3xl opacity-50" />
-      
+
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-2xl">
@@ -81,9 +84,9 @@ export default function Gallery() {
             </p>
           </div>
           <div className="flex gap-4">
-             <Link href="/tickets" className="px-6 py-3 bg-white border-2 border-slate-200 rounded-full font-bold text-slate-900 hover:border-orange-600 transition-all flex items-center gap-2">
-               View All Events <ArrowRight className="w-4 h-4" />
-             </Link>
+            <Link href="/tickets" className="px-6 py-3 bg-white border-2 border-slate-200 rounded-full font-bold text-slate-900 hover:border-orange-600 transition-all flex items-center gap-2">
+              View All Events <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
@@ -127,7 +130,7 @@ export default function Gallery() {
                   <BarChart3 className="w-4 h-4 text-orange-500" /> {expo.stats}
                 </div>
                 <div className="flex gap-3">
-                  <Link href="/tickets" className="flex-1 py-3 bg-orange-600 text-white rounded-xl font-bold text-center text-sm hover:bg-orange-700 transition-all">
+                  <Link href={`/tickets?season=${expo.id}`} className="flex-1 py-3 bg-orange-600 text-white rounded-xl font-bold text-center text-sm hover:bg-orange-700 transition-all">
                     Get Tickets
                   </Link>
                   <Link href="/exhibit" className="flex-1 py-3 bg-slate-100 text-slate-900 rounded-xl font-bold text-center text-sm hover:bg-slate-200 transition-all">
@@ -152,7 +155,7 @@ export default function Gallery() {
             <p className="text-lg text-slate-400 leading-relaxed">
               We engineer success by combining targeted UK-focused marketing with a global partner network. Our platform ensures that every exhibition is packed with high-intent buyers and networking opportunities.
             </p>
-            
+
             <div className="grid sm:grid-cols-2 gap-6 pt-4">
               <div className="space-y-3">
                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-orange-500">

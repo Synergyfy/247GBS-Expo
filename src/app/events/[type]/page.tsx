@@ -2,8 +2,8 @@
 
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Calendar, MapPin, Info, Plus, Check, Star, Play, 
+import {
+  Calendar, MapPin, Info, Plus, Check, Star, Play,
   ArrowRight, Sparkles, Target, Zap, ShieldCheck, Globe
 } from "lucide-react";
 import Link from "next/link";
@@ -16,7 +16,7 @@ import { events, eventTypeInfo } from "@/data/events";
 export default function EventTypePage({ params }: { params: Promise<{ type: string }> }) {
   const resolvedParams = use(params);
   const type = resolvedParams.type as keyof typeof eventTypeInfo;
-  
+
   const [selectedEventInfo, setSelectedEventInfo] = useState<any>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [activeInfoTab, setActiveInfoTab] = useState("overview");
@@ -38,7 +38,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
   return (
     <main className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
-      
+
       {/* Hero Section / Show and Tell */}
       <section className="pt-28 pb-4 bg-white relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -48,7 +48,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-6">
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -56,7 +56,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
             >
               {info.title}
             </motion.h1>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -78,11 +78,11 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                 Event Experience
               </h2>
               <div className="aspect-video rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl relative bg-slate-900 group">
-                <iframe 
+                <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
                   title="Event Preview"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
               </div>
@@ -92,7 +92,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden group"
+              className="bg-orange-50 rounded-[3rem] p-10 text-slate-900 relative overflow-hidden group border border-orange-100"
             >
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
                 <Globe className="w-32 h-32" />
@@ -105,12 +105,12 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                 {info.examples.map((ex, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                    <span className="text-lg text-slate-300 font-medium">{ex}</span>
+                    <span className="text-lg text-slate-600 font-medium">{ex}</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-10 p-6 bg-white/5 rounded-2xl border border-white/10">
-                <p className="text-sm text-slate-400 font-medium italic">
+              <div className="mt-10 p-6 bg-white rounded-2xl border border-orange-200/50 shadow-sm">
+                <p className="text-sm text-slate-500 font-medium italic">
                   "These events are designed to maximize engagement and provide unique value within our digital ecosystem."
                 </p>
               </div>
@@ -135,7 +135,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEvents.map((event) => (
-              <motion.div 
+              <motion.div
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -144,7 +144,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
               >
                 {/* Card Header / Image Area */}
                 <div className={`h-56 ${event.image} relative overflow-hidden`}>
-                  <Image 
+                  <Image
                     src={event.fullImage}
                     alt={event.name}
                     fill
@@ -161,9 +161,9 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                   </div>
                   <div className="absolute bottom-6 left-6">
                     <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl inline-block shadow-lg">
-                       <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                         <Calendar className="w-4 h-4 text-orange-600" /> {event.date.split(",")[0]}
-                       </span>
+                      <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                        <Calendar className="w-4 h-4 text-orange-600" /> {event.date.split(",")[0]}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -184,13 +184,13 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                       <span className="text-xs font-bold text-slate-400 ml-2">{event.reviews} reviews</span>
                     </div>
                   </div>
-                  
+
                   <div className="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
                     <div>
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Entry Price</span>
                       <span className="text-xl font-black text-slate-900">£19.00</span>
                     </div>
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedEventInfo(event);
                         setShowInfoModal(true);
@@ -224,14 +224,14 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
           <h2 className="text-4xl font-extrabold mb-6 tracking-tight">Ready to join the experience?</h2>
           <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">Get your General Platform Pass today and unlock access to all events, workshops, and brand showcases.</p>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-            <Link 
-              href="/tickets" 
+            <Link
+              href="/tickets"
               className="px-10 py-4 bg-white text-orange-600 rounded-full font-bold text-lg hover:scale-105 transition-all shadow-xl shadow-black/10"
             >
               Get Your Tickets
             </Link>
-            <Link 
-              href="/exhibit" 
+            <Link
+              href="/exhibit"
               className="px-10 py-4 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-all shadow-xl shadow-black/10"
             >
               Become an Exhibitor
@@ -255,8 +255,8 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
         {selectedEventInfo && (
           <div className="space-y-8">
             <div className="relative rounded-3xl overflow-hidden bg-black aspect-video group cursor-pointer shadow-2xl">
-              <Image 
-                src={selectedEventInfo.fullImage} 
+              <Image
+                src={selectedEventInfo.fullImage}
                 alt={selectedEventInfo.name}
                 fill
                 className="object-cover opacity-60 group-hover:opacity-40 transition-opacity duration-500"
@@ -273,11 +273,10 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                 <button
                   key={tab}
                   onClick={() => setActiveInfoTab(tab)}
-                  className={`px-8 py-4 font-bold text-sm capitalize border-b-2 transition-all ${
-                    activeInfoTab === tab 
-                      ? "border-orange-600 text-orange-600" 
-                      : "border-transparent text-slate-400 hover:text-slate-800"
-                  }`}
+                  className={`px-8 py-4 font-bold text-sm capitalize border-b-2 transition-all ${activeInfoTab === tab
+                    ? "border-orange-600 text-orange-600"
+                    : "border-transparent text-slate-400 hover:text-slate-800"
+                    }`}
                 >
                   {tab}
                 </button>
@@ -291,7 +290,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                     <h4 className="font-bold text-slate-900 text-lg mb-3">Event Overview</h4>
                     <p className="text-slate-600 leading-relaxed">{selectedEventInfo.description}</p>
                   </div>
-                  
+
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="bg-orange-50/50 p-6 rounded-[2rem] border border-orange-100">
                       <h5 className="font-bold text-orange-900 text-xs mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
@@ -354,8 +353,8 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                       <div key={i} className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
                         <div className="flex justify-between items-center mb-3">
                           <span className="font-bold text-slate-900 flex items-center gap-2">
-                             <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-xs">U</div>
-                             User Attendee
+                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-xs">U</div>
+                            User Attendee
                           </span>
                           <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Verified Ticket</span>
                         </div>
@@ -372,8 +371,8 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                 <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-1">Admission Price</p>
                 <p className="text-3xl font-black text-slate-900">£19.00</p>
               </div>
-              <Link 
-                href="/tickets"
+              <Link
+                href={`/tickets?season=${selectedEventInfo.id}`}
                 className="px-10 py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 hover:scale-105 transition-all flex items-center gap-2"
               >
                 Book Your Ticket <ArrowRight className="w-5 h-5" />

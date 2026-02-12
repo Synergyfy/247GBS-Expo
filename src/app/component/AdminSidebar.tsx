@@ -3,20 +3,24 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-    LayoutDashboard, 
-    ClipboardList, 
-    Gavel, 
-    Banknote, 
-    ShieldCheck, 
-    AlertTriangle, 
-    Activity, 
+import {
+    LayoutDashboard,
+    ClipboardList,
+    Gavel,
+    Banknote,
+    ShieldCheck,
+    AlertTriangle,
+    Activity,
     MessageSquare,
     Settings,
     ChevronLeft,
     ChevronRight,
     BarChart3,
-    History
+    Newspaper,
+    History,
+    CreditCard,
+    Building2,
+    Users
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -38,6 +42,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
     const menuItems: MenuItem[] = [
         { label: "Governance", icon: <Gavel className="w-5 h-5" />, href: "/dashboard/admin/governance" },
         { label: "Approvals", icon: <ClipboardList className="w-5 h-5" />, href: "/dashboard/admin/approvals", badge: 12 },
+        { label: "Businesses", icon: <Building2 className="w-5 h-5" />, href: "/dashboard/admin/businesses" },
+        { label: "Visitors", icon: <Users className="w-5 h-5" />, href: "/dashboard/admin/visitors" },
         { label: "Revenue", icon: <Banknote className="w-5 h-5" />, href: "/dashboard/admin/revenue" },
         { label: "Risk", icon: <AlertTriangle className="w-5 h-5" />, href: "/dashboard/admin/risk" },
         { label: "Compliance", icon: <ShieldCheck className="w-5 h-5" />, href: "/dashboard/admin/compliance" },
@@ -45,6 +51,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
         { label: "Reporting", icon: <BarChart3 className="w-5 h-5" />, href: "/dashboard/admin/reporting" },
         { label: "Health", icon: <Activity className="w-5 h-5" />, href: "/dashboard/admin/health" },
         { label: "Disputes", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/disputes", badge: 3 },
+        { label: "Content Manager", icon: <Newspaper className="w-5 h-5" />, href: "/dashboard/admin/news" },
+        { label: "Pass Plans", icon: <CreditCard className="w-5 h-5" />, href: "/dashboard/admin/passes" },
         { label: "Configuration", icon: <Settings className="w-5 h-5" />, href: "/dashboard/admin/configuration" },
         { label: "Support", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/support" },
     ];
@@ -58,7 +66,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
                 </div>
             </div>
 
-            <nav className="flex-1 w-full space-y-2 px-3">
+            <nav className="flex-1 w-full space-y-2 px-3 overflow-y-auto overflow-x-hidden pt-2 custom-scrollbar">
                 {menuItems.map((item, i) => {
                     const isActive = item.exact
                         ? pathname === item.href
@@ -84,8 +92,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
                 })}
             </nav>
 
-            <div className="w-full px-3 mb-2">
-                <button 
+            <div className="w-full px-3 mb-2 mt-2">
+                <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="w-full flex items-center justify-center py-2 rounded-xl bg-orange-700/20 text-orange-100 hover:bg-orange-700/40 transition-all"
                 >
@@ -104,6 +112,22 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
                     )}
                 </div>
             </div>
+
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                }
+            `}</style>
         </aside>
     );
 }

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { 
- motion, AnimatePresence } from "framer-motion";
-import { 
-  Check, Ticket, Users, Gift, ArrowRight, Sparkles, 
-  CreditCard, ShieldCheck, Zap, Globe, Cpu, ShoppingBag, 
+import {
+  motion, AnimatePresence
+} from "framer-motion";
+import {
+  Check, Ticket, Users, Gift, ArrowRight, Sparkles,
+  CreditCard, ShieldCheck, Zap, Globe, Cpu, ShoppingBag,
   QrCode, Landmark, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Clock, Shield, Copy
 } from "lucide-react";
 import Link from "next/link";
@@ -17,6 +18,7 @@ import OtpInput from "@/app/component/OtpInput";
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
+import { PASS_PLANS } from "@/data/passes";
 
 const STEPS = ["Event Marketplace", "Add-ons", "Review", "Identity", "Payment", "Digital Passport"];
 
@@ -33,7 +35,7 @@ function TicketsContent() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  
+
   // State for Flow
   const [hasGeneralPass, setHasGeneralPass] = useState(false);
   const [activeAccessToken, setAccessToken] = useState("");
@@ -80,13 +82,13 @@ function TicketsContent() {
         setSelectedEvents([event.id]);
         setCart(prev => {
           if (prev.find(i => i.id === 'standard' && i.eventId === event.id)) return prev;
-          return [...prev, { 
-            id: 'standard', 
-            name: event.name, 
-            price: 0, 
-            type: 'ticket', 
+          return [...prev, {
+            id: 'standard',
+            name: event.name,
+            price: 0,
+            type: 'ticket',
             quantity: 1,
-            eventId: event.id 
+            eventId: event.id
           }];
         });
         setStep(1);
@@ -104,17 +106,7 @@ function TicketsContent() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Mock Data
-  const passes = [
-    {
-      id: "annual_pass",
-      name: "Annual All-Access Pass",
-      price: 75,
-      description: "Best value. Entry to all 4 seasons in 2026. Includes 24/7 lobby access.",
-      features: ["4 Seasons Entry", "VIP Lounge Access", "Priority Queue", "Premium Rewards"],
-      popular: true
-    }
-  ];
+  const passes = PASS_PLANS.filter(p => p.type === 'visitor');
 
   const tiers = [
     {
@@ -139,24 +131,24 @@ function TicketsContent() {
   ];
 
   const products = [
-    { 
-      id: "guide", 
-      name: "Digital Guidebook", 
-      price: 5, 
+    {
+      id: "guide",
+      name: "Digital Guidebook",
+      price: 5,
       icon: <ShoppingBag className="w-5 h-5" />,
       description: "A comprehensive digital guide featuring exhibitor maps, speaker bios, and exclusive discount codes for booth products."
     },
-    { 
-      id: "credits", 
-      name: "100 Expo Credits", 
-      price: 10, 
+    {
+      id: "credits",
+      name: "100 Expo Credits",
+      price: 10,
       icon: <Cpu className="w-5 h-5" />,
       description: "Virtual currency that can be spent at any digital booth for product samples, premium downloads, or limited edition NFT assets."
     },
-    { 
-      id: "recording", 
-      name: "Session Recordings", 
-      price: 25, 
+    {
+      id: "recording",
+      name: "Session Recordings",
+      price: 25,
       icon: <Play className="w-5 h-5" />,
       description: "Lifetime access to high-definition video recordings of all keynote speeches and workshops from the entire exhibition period."
     },
@@ -185,13 +177,13 @@ function TicketsContent() {
       if (existing) {
         return prev.map(i => (i.id === item.id && i.eventId === eventId) ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { 
-        id: item.id, 
-        name: item.name, 
-        price: item.price, 
-        type, 
+      return [...prev, {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        type,
         quantity: 1,
-        eventId: type === 'ticket' ? eventId : undefined 
+        eventId: type === 'ticket' ? eventId : undefined
       }];
     });
   };
@@ -245,192 +237,190 @@ function TicketsContent() {
     }
   };
 
-    const filteredEvents = events.filter(e => 
-      (e.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      e.location.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredEvents = events.filter(e =>
+    (e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       e.category.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (eventType === "all" || e.type === eventType)
-    );
-  
-    const totalPages = Math.ceil(filteredEvents.length / EVENTS_PER_PAGE);
-    const paginatedEvents = filteredEvents.slice(
-      (currentPage - 1) * EVENTS_PER_PAGE,
-      currentPage * EVENTS_PER_PAGE
-    );
+    (eventType === "all" || e.type === eventType)
+  );
+
+  const totalPages = Math.ceil(filteredEvents.length / EVENTS_PER_PAGE);
+  const paginatedEvents = filteredEvents.slice(
+    (currentPage - 1) * EVENTS_PER_PAGE,
+    currentPage * EVENTS_PER_PAGE
+  );
 
   const totalSelectedTicketsQuantity = cart.filter(item => item.type === 'ticket').reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-      <main className="min-h-screen bg-slate-50 font-sans">
-        <Navbar />
-        
-        {/* Background Decorative Elements */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-100/50 rounded-full blur-3xl opacity-50" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 rounded-full blur-3xl opacity-50" />
-        </div>
-  
-        <div className="container mx-auto px-4 pt-40 pb-20 relative z-10">
-          {/* Step Indicator */}
-          <div className="flex justify-center mb-12">
-            <div className="flex items-center gap-2 md:gap-4 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
-              {STEPS.map((s, i) => (
-                <div key={s} className="flex items-center shrink-0">
-                  <div 
-                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-base transition-all duration-300 ${
-                      i <= step ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" : "bg-white text-slate-300 border border-slate-200"
+    <main className="min-h-screen bg-slate-50 font-sans">
+      <Navbar />
+
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-100/50 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 rounded-full blur-3xl opacity-50" />
+      </div>
+
+      <div className="container mx-auto px-4 pt-40 pb-20 relative z-10">
+        {/* Step Indicator */}
+        <div className="flex justify-center mb-12">
+          <div className="flex items-center gap-2 md:gap-4 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
+            {STEPS.map((s, i) => (
+              <div key={s} className="flex items-center shrink-0">
+                <div
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-base transition-all duration-300 ${i <= step ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" : "bg-white text-slate-300 border border-slate-200"
                     }`}
-                  >
-                    {i < step ? <Check className="w-4 h-4 md:w-6 md:h-6" /> : i + 1}
-                  </div>
-                  <span className={`ml-2 text-xs md:text-sm font-bold hidden md:block ${i <= step ? "text-slate-900" : "text-slate-300"}`}>{s}</span>
-                  {i < STEPS.length - 1 && (
-                    <div className={`w-4 md:w-12 h-1 mx-2 md:mx-4 rounded-full ${i < step ? "bg-orange-600" : "bg-slate-200"}`} />
-                  )}
+                >
+                  {i < step ? <Check className="w-4 h-4 md:w-6 md:h-6" /> : i + 1}
                 </div>
-              ))}
-            </div>
+                <span className={`ml-2 text-xs md:text-sm font-bold hidden md:block ${i <= step ? "text-slate-900" : "text-slate-300"}`}>{s}</span>
+                {i < STEPS.length - 1 && (
+                  <div className={`w-4 md:w-12 h-1 mx-2 md:mx-4 rounded-full ${i < step ? "bg-orange-600" : "bg-slate-200"}`} />
+                )}
+              </div>
+            ))}
           </div>
-  
-                  <AnimatePresence mode="wait">
-                    
-                    {/* STEP 0: EVENT SELECTION */}
-                    {step === 0 && (
-                      <motion.div 
-                        key="step0"
-                        initial={{ opacity: 0, y: 20 }}
+        </div>
+
+        <AnimatePresence mode="wait">
+
+          {/* STEP 0: EVENT SELECTION */}
+          {step === 0 && (
+            <motion.div
+              key="step0"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-7xl mx-auto"
+            >
+              <div className="text-center mb-8">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Exhibitor Events</h1>
+                <p className="text-xl text-slate-600 max-w-2xl mx-auto">Explore brand showcases. A valid Platform Pass is required to book these events.</p>
+              </div>
+
+              {/* Season Pass Status Banner (UK Requirement) */}
+              {cart.some(i => i.type === 'pass') && (
+                <div className="max-w-4xl mx-auto mb-10 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white">
+                      <Check className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-emerald-900 uppercase tracking-widest">Entry Pass Active</p>
+                      <p className="text-sm text-emerald-700 font-medium">{cart.find(i => i.type === 'pass')?.name}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowPassModal(true)}
+                    className="text-xs font-bold text-emerald-600 underline hover:text-emerald-800 transition-colors"
+                  >
+                    Change Pass
+                  </button>
+                </div>
+              )}
+              {/* Top Action Bar (New) */}
+              {step === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="fixed bottom-12 right-12 z-[60]"
+                >
+                  <AnimatePresence>
+                    {totalSelectedTicketsQuantity > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="max-w-7xl mx-auto"
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden"
                       >
-                        <div className="text-center mb-8">
-                          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Exhibitor Events</h1>
-                          <p className="text-xl text-slate-600 max-w-2xl mx-auto">Explore brand showcases. A valid Platform Pass is required to book these events.</p>
+                        <div className="p-4 bg-orange-600 text-white flex items-center justify-between">
+                          <span className="font-bold text-lg">Your Selected Events</span>
+                          <span className="bg-white/20 rounded-full px-3 py-1 text-sm font-bold">{totalSelectedTicketsQuantity} Tickets</span>
                         </div>
-          
-                        {/* Season Pass Status Banner (UK Requirement) */}
-                        {cart.some(i => i.type === 'pass') && (
-                          <div className="max-w-4xl mx-auto mb-10 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-between shadow-sm">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white">
-                                <Check className="w-6 h-6" />
+                        <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar">
+                          {cart.filter(item => item.type === 'ticket').map(item => (
+                            <div key={`${item.id}-${item.eventId}`} className="flex items-center justify-between p-3 border-b border-slate-100 last:border-b-0">
+                              <div className="flex-1 pr-2">
+                                <p className="font-medium text-slate-800 text-sm leading-tight">{item.name}</p>
+                                <p className="text-xs text-slate-500">£{(item.price * item.quantity).toFixed(2)}</p>
                               </div>
-                              <div>
-                                <p className="text-xs font-black text-emerald-900 uppercase tracking-widest">Entry Pass Active</p>
-                                <p className="text-sm text-emerald-700 font-medium">{cart.find(i => i.type === 'pass')?.name}</p>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, -1, item.eventId); }}
+                                  className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </button>
+                                <span className="font-bold text-slate-900 text-sm w-6 text-center">{item.quantity}</span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, 1, item.eventId); }}
+                                  className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
                               </div>
                             </div>
-                            <button 
-                              onClick={() => setShowPassModal(true)}
-                              className="text-xs font-bold text-emerald-600 underline hover:text-emerald-800 transition-colors"
-                            >
-                              Change Pass
-                            </button>
-                          </div>
-                        )}  
-                {/* Top Action Bar (New) */}
-                 {step === 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    className="fixed bottom-12 right-12 z-[60]"
-                  >
-                    <AnimatePresence>
-                      {totalSelectedTicketsQuantity > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 50 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 50 }}
-                          transition={{ duration: 0.3 }}
-                          className="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden"
+                          ))}
+                        </div>
+                        <button
+                          onClick={handleNext}
+                          className="w-full py-4 bg-slate-900 text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-orange-700 transition-all active:scale-95 shadow-lg"
                         >
-                          <div className="p-4 bg-orange-600 text-white flex items-center justify-between">
-                            <span className="font-bold text-lg">Your Selected Events</span>
-                            <span className="bg-white/20 rounded-full px-3 py-1 text-sm font-bold">{totalSelectedTicketsQuantity} Tickets</span>
-                          </div>
-                          <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar">
-                            {cart.filter(item => item.type === 'ticket').map(item => (
-                              <div key={`${item.id}-${item.eventId}`} className="flex items-center justify-between p-3 border-b border-slate-100 last:border-b-0">
-                                <div className="flex-1 pr-2">
-                                  <p className="font-medium text-slate-800 text-sm leading-tight">{item.name}</p>
-                                  <p className="text-xs text-slate-500">£{(item.price * item.quantity).toFixed(2)}</p>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, -1, item.eventId); }}
-                                    className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-                                  >
-                                    <Minus className="w-4 h-4" />
-                                  </button>
-                                  <span className="font-bold text-slate-900 text-sm w-6 text-center">{item.quantity}</span>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, 1, item.eventId); }}
-                                    className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
+                          {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                            <>
+                              <span>Continue to Tickets</span>
+                              <div className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-sm">
+                                {totalSelectedTicketsQuantity}
                               </div>
-                            ))}
-                          </div>
-                          <button 
-                            onClick={handleNext}
-                            className="w-full py-4 bg-slate-900 text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-orange-700 transition-all active:scale-95 shadow-lg"
-                          >
-                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                              <>
-                                <span>Continue to Tickets</span>
-                                <div className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-sm">
-                                  {totalSelectedTicketsQuantity}
-                                </div>
-                                <ArrowRight className="w-6 h-6" />
-                              </>
-                            )}
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                )}
-  
-                {/* Search and Filter Bar */}
-                <div className="flex flex-col md:flex-row gap-4 mb-10 max-w-4xl mx-auto">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <input 
-                      type="text" 
-                      placeholder="Search events by name, location, or category..." 
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm text-lg"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="relative">
-                    <select 
-                      value={eventType}
-                      onChange={(e) => setEventType(e.target.value)}
-                      className="appearance-none px-6 pr-12 py-4 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    >
-                      <option value="all">All Event Types</option>
-                      <option value="national">National Expo</option>
-                      <option value="platform-led">Platform-led</option>
-                      <option value="business-led">Business-led</option>
-                    </select>
-                    <Filter className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-                  </div>
+                              <ArrowRight className="w-6 h-6" />
+                            </>
+                          )}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+
+              {/* Search and Filter Bar */}
+              <div className="flex flex-col md:flex-row gap-4 mb-10 max-w-4xl mx-auto">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search events by name, location, or category..."
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm text-lg"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
+                <div className="relative">
+                  <select
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value)}
+                    className="appearance-none px-6 pr-12 py-4 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="all">All Event Types</option>
+                    <option value="national">National Expo</option>
+                    <option value="platform-led">Platform-led</option>
+                    <option value="business-led">Business-led</option>
+                  </select>
+                  <Filter className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                </div>
+              </div>
               {/* Events Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                 {paginatedEvents.map((event) => (
-                  <div 
+                  <div
                     key={event.id}
                     onClick={() => toggleEvent(event.id)}
-                    className={`relative group rounded-[2rem] overflow-hidden cursor-pointer border-2 transition-all duration-300 flex flex-col ${
-                      selectedEvents.includes(event.id) 
-                        ? "border-orange-600 shadow-2xl scale-[1.02]" 
-                        : "border-slate-100 hover:border-orange-300 hover:shadow-xl bg-white"
-                    }`}
+                    className={`relative group rounded-[2rem] overflow-hidden cursor-pointer border-2 transition-all duration-300 flex flex-col ${selectedEvents.includes(event.id)
+                      ? "border-orange-600 shadow-2xl scale-[1.02]"
+                      : "border-slate-100 hover:border-orange-300 hover:shadow-xl bg-white"
+                      }`}
                   >
                     {/* Card Header / Image Area */}
                     <div className={`h-48 ${event.image} relative p-6 flex flex-col justify-between`}>
@@ -439,20 +429,19 @@ function TicketsContent() {
                           {event.category}
                         </span>
                         <div className="flex gap-2">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                            selectedEvents.includes(event.id) 
-                              ? "bg-orange-600 text-white" 
-                              : "bg-white/50 text-slate-400 group-hover:bg-white"
-                          }`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${selectedEvents.includes(event.id)
+                            ? "bg-orange-600 text-white"
+                            : "bg-white/50 text-slate-400 group-hover:bg-white"
+                            }`}>
                             {selectedEvents.includes(event.id) ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                           </div>
                         </div>
                       </div>
                       <div>
                         <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl inline-block shadow-sm">
-                           <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                             <Calendar className="w-4 h-4 text-orange-600" /> {event.date.split(",")[0]}
-                           </span>
+                          <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                            <Calendar className="w-4 h-4 text-orange-600" /> {event.date.split(",")[0]}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -466,7 +455,7 @@ function TicketsContent() {
                         <p className="flex items-center gap-2 text-slate-500 text-sm">
                           <MapPin className="w-4 h-4" /> {event.location}
                         </p>
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedEventInfo(event);
@@ -477,7 +466,7 @@ function TicketsContent() {
                           <Info className="w-3.5 h-3.5" /> Learn More
                         </button>
                       </div>
-                      
+
                       <div className="mt-auto pt-6 border-t border-slate-100 flex justify-between items-center">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Starts from £19</span>
                         <span className={`text-sm font-bold transition-colors ${selectedEvents.includes(event.id) ? "text-orange-600" : "text-slate-300 group-hover:text-orange-400"}`}>
@@ -485,7 +474,7 @@ function TicketsContent() {
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* Selection Overlay (Subtle) */}
                     {selectedEvents.includes(event.id) && (
                       <div className="absolute inset-0 border-[3px] border-orange-600 rounded-[2rem] pointer-events-none" />
@@ -497,7 +486,7 @@ function TicketsContent() {
               {/* Pagination Controls (New) */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-4 mb-12">
-                  <button 
+                  <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     className="p-3 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
@@ -509,17 +498,16 @@ function TicketsContent() {
                       <button
                         key={i}
                         onClick={() => setCurrentPage(i + 1)}
-                        className={`w-10 h-10 rounded-xl font-bold transition-all ${
-                          currentPage === i + 1 
-                            ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" 
-                            : "bg-white border border-slate-200 text-slate-400 hover:border-orange-600 hover:text-orange-600"
-                        }`}
+                        className={`w-10 h-10 rounded-xl font-bold transition-all ${currentPage === i + 1
+                          ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30"
+                          : "bg-white border border-slate-200 text-slate-400 hover:border-orange-600 hover:text-orange-600"
+                          }`}
                       >
                         {i + 1}
                       </button>
                     ))}
                   </div>
-                  <button 
+                  <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     className="p-3 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
@@ -533,7 +521,7 @@ function TicketsContent() {
 
           {/* STEP 1: ADD-ONS (Products System) */}
           {step === 1 && (
-            <motion.div 
+            <motion.div
               key="step1"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -547,7 +535,7 @@ function TicketsContent() {
 
               <div className="grid md:grid-cols-3 gap-6 mb-12">
                 {products.map((product) => (
-                  <div 
+                  <div
                     key={product.id}
                     className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl hover:border-orange-500 transition-all flex flex-col items-center text-center"
                   >
@@ -556,7 +544,7 @@ function TicketsContent() {
                     </div>
                     <h3 className="font-bold text-slate-900 mb-1">{product.name}</h3>
                     <p className="text-2xl font-black text-slate-900 mb-4">£{product.price}</p>
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedProductInfo(product);
                         setShowProductModal(true);
@@ -565,7 +553,7 @@ function TicketsContent() {
                     >
                       <Info className="w-3 h-3" /> Learn More
                     </button>
-                    <button 
+                    <button
                       onClick={() => addToCart(product, 'product')}
                       className="mt-auto w-full py-3 bg-slate-50 text-slate-900 rounded-xl font-bold hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-2"
                     >
@@ -595,7 +583,7 @@ function TicketsContent() {
 
               <div className="flex justify-center gap-4">
                 <button onClick={handleBack} className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50">Back</button>
-                <button 
+                <button
                   onClick={handleNext}
                   className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
                 >
@@ -607,7 +595,7 @@ function TicketsContent() {
 
           {/* STEP 2: REVIEW (UK Pattern: Booking Fee & VAT) */}
           {step === 2 && (
-            <motion.div 
+            <motion.div
               key="step2"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -616,7 +604,7 @@ function TicketsContent() {
             >
               <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
                 <h2 className="text-3xl font-extrabold mb-8 text-slate-900">Checkout Review</h2>
-                
+
                 {/* Cart Items List */}
                 <div className="space-y-4 mb-8">
                   {cart.map(item => (
@@ -624,9 +612,8 @@ function TicketsContent() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-bold text-slate-900">{item.name}</p>
-                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${
-                            item.type === 'pass' ? "bg-slate-900 text-white" : "bg-orange-100 text-orange-600"
-                          }`}>
+                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${item.type === 'pass' ? "bg-slate-900 text-white" : "bg-orange-100 text-orange-600"
+                            }`}>
                             {item.type}
                           </span>
                         </div>
@@ -652,14 +639,14 @@ function TicketsContent() {
                     If you already have a General Pass, enter your Access Token below to unlock Exhibitor events.
                   </p>
                   <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      placeholder="e.g. GBX-TOKEN-2026" 
+                    <input
+                      type="text"
+                      placeholder="e.g. GBX-TOKEN-2026"
                       className="flex-1 px-4 py-3 bg-white border border-orange-200 rounded-xl focus:outline-none focus:border-orange-500 uppercase font-mono font-bold text-sm"
                       value={enteredToken}
                       onChange={(e) => setEnteredToken(e.target.value)}
                     />
-                    <button 
+                    <button
                       onClick={() => {
                         if (enteredToken.length > 5) {
                           setAccessToken(enteredToken);
@@ -731,7 +718,7 @@ function TicketsContent() {
 
           {/* STEP 3: IDENTITY & VERIFICATION */}
           {step === 3 && (
-            <motion.div 
+            <motion.div
               key="step3"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -741,42 +728,42 @@ function TicketsContent() {
               <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
                 <h2 className="text-3xl font-extrabold mb-2 text-slate-900">Verify Identity</h2>
                 <p className="text-slate-500 mb-8">Secure your tickets with UK-compliant email verification.</p>
-                
+
                 {!otpVerified ? (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">First Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="e.g. Jane"
                           className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
                           value={userInfo.firstName}
-                          onChange={(e) => setUserInfo({...userInfo, firstName: e.target.value})}
+                          onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })}
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Last Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="e.g. Doe"
                           className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
                           value={userInfo.lastName}
-                          onChange={(e) => setUserInfo({...userInfo, lastName: e.target.value})}
+                          onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })}
                         />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         placeholder="e.g. jane@company.com"
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
                         value={userInfo.email}
-                        onChange={(e) => setUserInfo({...userInfo, email: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
                       />
                     </div>
-                    
+
                     {userInfo.email && userInfo.firstName && userInfo.lastName && (
                       <div className="mt-8 pt-8 border-t border-slate-100">
                         <label className="block text-sm font-bold text-orange-600 mb-4 uppercase tracking-wider text-center">Secure Access Code</label>
@@ -792,7 +779,7 @@ function TicketsContent() {
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-2">Identity Confirmed</h3>
                     <p className="text-slate-500 mb-8">Verification successful. Proceed to secure payment gateway.</p>
-                    <button 
+                    <button
                       onClick={handleNext}
                       className="w-full py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 transition-all"
                     >
@@ -800,11 +787,11 @@ function TicketsContent() {
                     </button>
                   </div>
                 )}
-                
+
                 {!otpVerified && (
-                   <div className="flex gap-4 mt-8">
-                     <button onClick={handleBack} className="flex-1 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all">Back</button>
-                   </div>
+                  <div className="flex gap-4 mt-8">
+                    <button onClick={handleBack} className="flex-1 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all">Back</button>
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -812,7 +799,7 @@ function TicketsContent() {
 
           {/* STEP 4: PAYMENT */}
           {step === 4 && (
-            <motion.div 
+            <motion.div
               key="step4"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -828,14 +815,13 @@ function TicketsContent() {
                     { id: "card", label: "Credit / Debit Card", icon: <CreditCard className="w-6 h-6" /> },
                     { id: "wallet", label: "Expo Wallet Balance", icon: <Wallet className="w-6 h-6" />, balance: "£120.50" }
                   ].map((method) => (
-                    <div 
+                    <div
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`flex items-center gap-4 p-6 rounded-3xl cursor-pointer border-2 transition-all ${
-                        paymentMethod === method.id 
-                          ? "border-orange-600 bg-orange-50 text-orange-900 shadow-md" 
-                          : "border-slate-100 hover:border-orange-200 text-slate-700 hover:bg-slate-50"
-                      }`}
+                      className={`flex items-center gap-4 p-6 rounded-3xl cursor-pointer border-2 transition-all ${paymentMethod === method.id
+                        ? "border-orange-600 bg-orange-50 text-orange-900 shadow-md"
+                        : "border-slate-100 hover:border-orange-200 text-slate-700 hover:bg-slate-50"
+                        }`}
                     >
                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === method.id ? "bg-white text-orange-600" : "bg-slate-100 text-slate-500"}`}>
                         {method.icon}
@@ -850,22 +836,22 @@ function TicketsContent() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="mb-8">
-                   <label className="flex items-start gap-3 cursor-pointer p-4 hover:bg-slate-50 rounded-xl transition-colors">
-                      <div className="relative flex items-center">
-                        <input 
-                          type="checkbox" 
-                          className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 shadow-sm checked:border-orange-600 checked:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-600/20"
-                          checked={agreedToTerms}
-                          onChange={(e) => setAgreedToTerms(e.target.checked)}
-                        />
-                         <Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" />
-                      </div>
-                      <span className="text-xs text-slate-600 pt-0.5 leading-relaxed">
-                        I agree to the Terms of Service and understand that exhibitor event data may be shared with organizers.
-                      </span>
-                   </label>
+                  <label className="flex items-start gap-3 cursor-pointer p-4 hover:bg-slate-50 rounded-xl transition-colors">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 shadow-sm checked:border-orange-600 checked:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-600/20"
+                        checked={agreedToTerms}
+                        onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      />
+                      <Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" />
+                    </div>
+                    <span className="text-xs text-slate-600 pt-0.5 leading-relaxed">
+                      I agree to the Terms of Service and understand that exhibitor event data may be shared with organizers.
+                    </span>
+                  </label>
                 </div>
 
                 <div className="p-6 bg-slate-900 text-white rounded-3xl mb-8 flex justify-between items-center shadow-xl">
@@ -878,8 +864,8 @@ function TicketsContent() {
 
                 <div className="flex gap-4">
                   <button onClick={handleBack} className="flex-1 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all">Back</button>
-                  <button 
-                    onClick={handleNext} 
+                  <button
+                    onClick={handleNext}
                     disabled={!paymentMethod || !agreedToTerms}
                     className="flex-[2] py-4 bg-orange-600 text-white rounded-full font-bold hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -892,7 +878,7 @@ function TicketsContent() {
 
           {/* STEP 5: PASSPORT (SUCCESS) */}
           {step === 5 && (
-            <motion.div 
+            <motion.div
               key="step5"
               initial={{ opacity: 0, scale: 0.5, rotateY: 90 }}
               animate={{ opacity: 1, scale: 1, rotateY: 0 }}
@@ -900,8 +886,8 @@ function TicketsContent() {
             >
               <div className="relative group perspective-1000">
                 <div className="absolute inset-0 bg-gradient-to-tr from-orange-600 to-orange-400 rounded-[32px] blur-2xl opacity-40 animate-pulse" />
-                
-                <motion.div 
+
+                <motion.div
                   className="relative bg-[#1a1a1a] text-white p-8 rounded-[32px] overflow-hidden shadow-2xl border border-white/10"
                   whileHover={{ scale: 1.02, rotateY: 5, rotateX: 5 }}
                 >
@@ -942,7 +928,7 @@ function TicketsContent() {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-3 h-3 text-orange-500" />
                         <p className="font-bold text-xs">
-                          {selectedEvents.length > 0 
+                          {selectedEvents.length > 0
                             ? events.find(e => e.id === selectedEvents[0])?.date
                             : "N/A"}
                         </p>
@@ -953,8 +939,8 @@ function TicketsContent() {
                       <div className="flex items-center gap-2">
                         <MapPin className="w-3 h-3 text-orange-500" />
                         <p className="font-bold text-xs truncate">
-                          {selectedEvents.length === 1 
-                            ? events.find(e => e.id === selectedEvents[0])?.location 
+                          {selectedEvents.length === 1
+                            ? events.find(e => e.id === selectedEvents[0])?.location
                             : "Multiple Virtual Venues"}
                         </p>
                       </div>
@@ -978,9 +964,9 @@ function TicketsContent() {
                 <p className="text-slate-600 mb-8 max-w-lg mx-auto">
                   Your digital passport is ready. Create a secure account now to permanently save your tickets, access exclusive rewards, and enter the expo from any device.
                 </p>
-                
+
                 <div className="flex flex-col items-center justify-center gap-4">
-                  <Link 
+                  <Link
                     href={`/signup?role=customer&email=${encodeURIComponent(userInfo.email)}&firstName=${encodeURIComponent(userInfo.firstName)}&lastName=${encodeURIComponent(userInfo.lastName)}`}
                     className="w-full max-w-sm px-12 py-5 bg-orange-600 text-white rounded-full font-bold text-xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex items-center justify-center gap-3 transform hover:scale-105 active:scale-95"
                   >
@@ -1012,8 +998,8 @@ function TicketsContent() {
           <div className="space-y-8">
             {/* Video / Hero Area */}
             <div className="relative rounded-2xl overflow-hidden bg-black aspect-video group cursor-pointer">
-              <Image 
-                src={selectedEventInfo.fullImage} 
+              <Image
+                src={selectedEventInfo.fullImage}
                 alt={selectedEventInfo.name}
                 fill
                 className="object-cover opacity-60 group-hover:opacity-40 transition-opacity"
@@ -1032,11 +1018,10 @@ function TicketsContent() {
                 <button
                   key={tab}
                   onClick={() => setActiveInfoTab(tab)}
-                  className={`px-6 py-3 font-bold text-sm capitalize border-b-2 transition-colors ${
-                    activeInfoTab === tab 
-                      ? "border-orange-600 text-orange-600" 
-                      : "border-transparent text-slate-500 hover:text-slate-800"
-                  }`}
+                  className={`px-6 py-3 font-bold text-sm capitalize border-b-2 transition-colors ${activeInfoTab === tab
+                    ? "border-orange-600 text-orange-600"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                    }`}
                 >
                   {tab}
                 </button>
@@ -1051,7 +1036,7 @@ function TicketsContent() {
                     <h4 className="font-bold text-slate-900 mb-2">About the Event</h4>
                     <p className="text-slate-600 leading-relaxed text-sm">{selectedEventInfo.description}</p>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 p-4 rounded-xl">
                       <h5 className="font-bold text-slate-900 text-xs mb-3 flex items-center gap-2 uppercase tracking-widest">
@@ -1133,18 +1118,17 @@ function TicketsContent() {
                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Starting Price</p>
                 <p className="text-2xl font-black text-slate-900">£19.00</p>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   if (!selectedEvents.includes(selectedEventInfo.id)) {
                     toggleEvent(selectedEventInfo.id);
                   }
                   setShowInfoModal(false);
                 }}
-                className={`px-8 py-4 rounded-full font-bold shadow-xl transition-all flex items-center gap-2 ${
-                  selectedEvents.includes(selectedEventInfo.id)
-                    ? "bg-slate-100 text-slate-400 cursor-default"
-                    : "bg-orange-600 text-white hover:bg-orange-700 shadow-orange-600/30"
-                }`}
+                className={`px-8 py-4 rounded-full font-bold shadow-xl transition-all flex items-center gap-2 ${selectedEvents.includes(selectedEventInfo.id)
+                  ? "bg-slate-100 text-slate-400 cursor-default"
+                  : "bg-orange-600 text-white hover:bg-orange-700 shadow-orange-600/30"
+                  }`}
               >
                 {selectedEvents.includes(selectedEventInfo.id) ? <><Check className="w-5 h-5" /> Already Selected</> : <><Plus className="w-5 h-5" /> Select This Event</>}
               </button>
@@ -1189,7 +1173,7 @@ function TicketsContent() {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={() => {
                 addToCart(selectedProductInfo, 'product');
                 setShowProductModal(false);
@@ -1221,13 +1205,12 @@ function TicketsContent() {
 
               <div className="flex justify-center mb-8">
                 {passes.map((pass) => (
-                  <div 
+                  <div
                     key={pass.id}
-                    className={`relative p-8 rounded-3xl border-2 transition-all max-w-sm w-full ${
-                      cart.some(i => i.id === pass.id) 
-                        ? "border-orange-600 bg-orange-50/50 shadow-lg" 
-                        : "border-slate-100 bg-white hover:border-orange-300 shadow-sm"
-                    }`}
+                    className={`relative p-8 rounded-3xl border-2 transition-all max-w-sm w-full ${cart.some(i => i.id === pass.id)
+                      ? "border-orange-600 bg-orange-50/50 shadow-lg"
+                      : "border-slate-100 bg-white hover:border-orange-300 shadow-sm"
+                      }`}
                   >
                     {pass.popular && (
                       <div className="absolute -top-3 right-4 bg-slate-900 text-white px-3 py-0.5 rounded-full text-[8px] font-black tracking-widest">
@@ -1256,7 +1239,7 @@ function TicketsContent() {
               </div>
 
               <div className="flex flex-col gap-3 max-w-sm mx-auto">
-                <button 
+                <button
                   onClick={() => {
                     const pass = passes[0];
                     if (!cart.some(i => i.id === pass.id)) {
@@ -1274,7 +1257,7 @@ function TicketsContent() {
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Purchase & Get Access Token"}
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setShowPassModal(false);
                     setHasSkippedPass(true);
@@ -1292,11 +1275,11 @@ function TicketsContent() {
               </div>
               <h2 className="text-2xl font-black text-slate-900 mb-2">Pass Secured!</h2>
               <p className="text-slate-600 text-sm mb-6">Copy your unique Access Token below. Use it during review to unlock full event access.</p>
-              
+
               <div className="bg-slate-50 p-4 rounded-2xl border-2 border-dashed border-slate-200 mb-8">
                 <div className="flex items-center justify-center gap-4">
                   <span className="text-2xl font-mono font-black text-slate-900 tracking-tighter">{generatedToken}</span>
-                  <button 
+                  <button
                     onClick={() => {
                       navigator.clipboard.writeText(generatedToken);
                       alert("Token copied!");
@@ -1308,7 +1291,7 @@ function TicketsContent() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => {
                   setShowPassModal(false);
                   setShowTokenScreen(false);
