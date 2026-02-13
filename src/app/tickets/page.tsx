@@ -33,7 +33,11 @@ interface CartItem {
 
 function TicketsContent() {
   const searchParams = useSearchParams();
-  const [step, setStep] = useState(0);
+
+  // Determine initial step and pass status from URL
+  const hasPreselectedEvents = searchParams.get('season') || searchParams.get('selectedEvents');
+
+  const [step, setStep] = useState(hasPreselectedEvents ? 1 : 0);
   const [loading, setLoading] = useState(false);
 
   // State for Flow
@@ -44,7 +48,7 @@ function TicketsContent() {
   const [generatedToken, setGeneratedToken] = useState("");
   const [showTokenScreen, setShowTokenScreen] = useState(false);
   const [showPassModal, setShowPassModal] = useState(false);
-  const [hasSkippedPass, setHasSkippedPass] = useState(false);
+  const [hasSkippedPass, setHasSkippedPass] = useState(!!hasPreselectedEvents);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,9 +77,12 @@ function TicketsContent() {
     setCurrentPage(1);
   }, [searchTerm, eventType]);
 
-  // Handle Season Pre-selection
+  // Handle Season/Event Pre-selection
   useEffect(() => {
     const seasonId = searchParams.get('season');
+    const multiEvents = searchParams.get('selectedEvents');
+    const quantities = searchParams.get('quantities');
+
     if (seasonId) {
       const event = events.find(e => e.id === seasonId);
       if (event) {
@@ -85,26 +92,54 @@ function TicketsContent() {
           return [...prev, {
             id: 'standard',
             name: event.name,
-            price: 0,
+            price: 19,
             type: 'ticket',
             quantity: 1,
             eventId: event.id
           }];
         });
-        setStep(1);
+      }
+    } else if (multiEvents) {
+      const eventIds = multiEvents.split(',');
+      const qts = quantities ? quantities.split(',').map(Number) : [];
+
+      const newSelected: string[] = [];
+      const newCartItems: any[] = [];
+
+      eventIds.forEach((id, index) => {
+        const event = events.find(e => e.id === id);
+        if (event) {
+          newSelected.push(id);
+          newCartItems.push({
+            id: 'standard',
+            name: event.name,
+            price: 19,
+            type: 'ticket',
+            quantity: qts[index] || 1,
+            eventId: event.id
+          });
+        }
+      });
+
+      if (newSelected.length > 0) {
+        setSelectedEvents(newSelected);
+        setCart(prev => {
+          const filtered = prev.filter(item => item.type !== 'ticket');
+          return [...filtered, ...newCartItems];
+        });
       }
     }
   }, [searchParams]);
 
   useEffect(() => {
-    // Show pass modal on mount
+    // Show pass modal on mount if nothing is pre-selected
     const timer = setTimeout(() => {
-      if (!hasSkippedPass) {
+      if (!hasSkippedPass && !hasPreselectedEvents) {
         setShowPassModal(true);
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [hasSkippedPass, hasPreselectedEvents]);
 
   const passes = PASS_PLANS.filter(p => p.type === 'visitor');
 
@@ -319,66 +354,98 @@ function TicketsContent() {
                   </button>
                 </div>
               )}
-              {/* Top Action Bar (New) */}
+              {/* Sticky Shopping Summary (Updated) */}
               {step === 0 && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="fixed bottom-12 right-12 z-[60]"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  className="fixed top-32 right-12 z-[60] hidden xl:block"
                 >
                   <AnimatePresence>
                     {totalSelectedTicketsQuantity > 0 && (
                       <motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
-                        transition={{ duration: 0.3 }}
-                        className="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden"
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="w-96 bg-white rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-slate-100 flex flex-col overflow-hidden h-[calc(100vh-180px)]"
                       >
-                        <div className="p-4 bg-orange-600 text-white flex items-center justify-between">
-                          <span className="font-bold text-lg">Your Selected Events</span>
-                          <span className="bg-white/20 rounded-full px-3 py-1 text-sm font-bold">{totalSelectedTicketsQuantity} Tickets</span>
-                        </div>
-                        <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar">
-                          {cart.filter(item => item.type === 'ticket').map(item => (
-                            <div key={`${item.id}-${item.eventId}`} className="flex items-center justify-between p-3 border-b border-slate-100 last:border-b-0">
-                              <div className="flex-1 pr-2">
-                                <p className="font-medium text-slate-800 text-sm leading-tight">{item.name}</p>
-                                <p className="text-xs text-slate-500">£{(item.price * item.quantity).toFixed(2)}</p>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, -1, item.eventId); }}
-                                  className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-                                >
-                                  <Minus className="w-4 h-4" />
-                                </button>
-                                <span className="font-bold text-slate-900 text-sm w-6 text-center">{item.quantity}</span>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, 1, item.eventId); }}
-                                  className="p-1 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                </button>
-                              </div>
+                        <div className="p-8 bg-slate-900 text-white relative overflow-hidden">
+                          <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <ShoppingBag className="w-24 h-24 rotate-12" />
+                          </div>
+                          <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Live Selection</span>
                             </div>
-                          ))}
+                            <h2 className="text-2xl font-black">Your Cart</h2>
+                            <p className="text-slate-400 text-xs font-bold mt-1 uppercase tracking-widest">{totalSelectedTicketsQuantity} Events Reserved</p>
+                          </div>
                         </div>
-                        <button
-                          onClick={handleNext}
-                          className="w-full py-4 bg-slate-900 text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-orange-700 transition-all active:scale-95 shadow-lg"
-                        >
-                          {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                            <>
-                              <span>Continue to Tickets</span>
-                              <div className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-sm">
-                                {totalSelectedTicketsQuantity}
-                              </div>
-                              <ArrowRight className="w-6 h-6" />
-                            </>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3 bg-slate-50/50">
+                          {cart.filter(item => item.type === 'ticket').length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center opacity-20 py-20">
+                              <Calendar className="w-12 h-12 mb-4" />
+                              <p className="font-bold">No events selected</p>
+                            </div>
+                          ) : (
+                            cart.filter(item => item.type === 'ticket').map(item => (
+                              <motion.div
+                                layout
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                key={`${item.id}-${item.eventId}`}
+                                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+                              >
+                                <div className="flex-1 pr-4">
+                                  <p className="font-bold text-slate-800 text-sm leading-tight line-clamp-2 mb-1 group-hover:text-orange-600 transition-colors">{item.name}</p>
+                                  <p className="text-[10px] text-orange-600 font-black uppercase tracking-widest">£{(item.price * item.quantity).toFixed(2)}</p>
+                                </div>
+                                <div className="flex items-center gap-2 bg-slate-50 rounded-xl p-1 border border-slate-100">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, -1, item.eventId); }}
+                                    className="p-1.5 rounded-lg hover:bg-white text-slate-400 hover:text-orange-600 hover:shadow-sm transition-all"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <span className="font-black text-slate-900 text-xs w-6 text-center">{item.quantity}</span>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, 1, item.eventId); }}
+                                    className="p-1.5 rounded-lg hover:bg-white text-slate-400 hover:text-orange-600 hover:shadow-sm transition-all"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </motion.div>
+                            ))
                           )}
-                        </button>
+                        </div>
+
+                        <div className="p-6 bg-white border-t border-slate-100">
+                          <div className="flex justify-between items-center mb-6">
+                            <div>
+                              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Subtotal</p>
+                              <p className="text-2xl font-black text-slate-900">£{cart.filter(i => i.type === 'ticket').reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2)}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Items</p>
+                              <p className="text-sm font-black text-slate-900">{totalSelectedTicketsQuantity}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleNext}
+                            className="w-full py-5 bg-orange-600 text-white rounded-[1.5rem] font-bold text-base flex items-center justify-center gap-3 hover:bg-orange-700 transition-all active:scale-95 shadow-xl shadow-orange-600/20 group/btn"
+                          >
+                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                              <>
+                                <span>Continue to Add-ons</span>
+                                <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>

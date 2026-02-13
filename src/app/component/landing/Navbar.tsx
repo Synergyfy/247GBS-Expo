@@ -3,21 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Menu, X, Calendar, ChevronDown } from "lucide-react";
+import { TICKER_EVENTS } from "@/data/ticker";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [nextEvent, setNextEvent] = useState({ season: "SPRING 2026", dates: "April 10-19, 2026" });
-  const [displayEvents, setDisplayEvents] = useState([0, 1]); // Which 2 seasons to show as static
 
   // All 4 seasonal events
-  const seasonalEvents = [
-    { season: "SPRING 2026", dates: "April 10-19", event: "Brand Launches", color: "emerald" },
-    { season: "SUMMER 2026", dates: "July 15-24", event: "Peak Season", color: "amber" },
-    { season: "AUTUMN 2026", dates: "Oct 10-19", event: "Product Expo", color: "orange" },
-    { season: "WINTER 2026", dates: "Dec 5-14", event: "Holiday Fest", color: "cyan" },
-  ];
+  const seasonalEvents = TICKER_EVENTS.filter(e => e.isActive);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -35,17 +30,8 @@ export default function Navbar() {
     const upcoming = events.find(event => event.start > now) || events[0];
     setNextEvent(upcoming);
 
-    // Rotate display events every 15 seconds
-    const timer = setInterval(() => {
-      setDisplayEvents((prev) => [
-        (prev[0] + 2) % 4,
-        (prev[1] + 2) % 4,
-      ]);
-    }, 15000);
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      clearInterval(timer);
     };
   }, []);
 
@@ -222,57 +208,54 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Sticky Event Banner - Dual Event Ticker */}
-      <div className="relative py-2 px-4 transition-colors duration-500">
+      {/* Sticky Event Banner - Seamless Ticker */}
+      <div className="relative py-2 px-4 transition-colors duration-500 overflow-hidden">
         <style>{`
-          .event-banner { display: flex; align-items: center; gap: 1.5rem; overflow: hidden; }
-          .static-events { display: flex; gap: 2rem; flex-shrink: 0; align-items: center; }
-          .static-event { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; min-width: fit-content; }
-          .event-label { font-bold; font-size: 0.875rem; }
-          .event-meta { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; opacity: 0.85; }
-          .event-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.5); }
-          .moving-ticker { position: relative; overflow: hidden; flex: 1; height: 1.5rem; display: flex; align-items: center; }
-          .ticker-animation { display: flex; gap: 2rem; animation: slideIn 25s linear infinite; white-space: nowrap; align-items: center; }
-          @keyframes slideIn { 
-            0% { transform: translateX(100%); opacity: 0; }
-            5% { opacity: 1; }
-            95% { opacity: 1; }
-            100% { transform: translateX(-100%); opacity: 0; }
+          .ticker-wrapper { 
+            display: flex; 
+            width: max-content; 
+            animation: scroll 40s linear infinite; 
+          }
+          .ticker-wrapper:hover {
+            animation-play-state: paused;
+          }
+          @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 0 3rem;
           }
         `}</style>
 
-        {/* Matching Balanced Dark Overlay from Hero Section */}
-        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md border-y border-white/5" aria-hidden />
+        {/* Matching Balanced Dark Overlay */}
+        <div className="absolute inset-0 bg-slate-900 border-y border-white/5" aria-hidden />
 
         <div className="relative z-10 text-white">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-            {/* Static Events - Show 2 main events */}
-            <div className="event-banner">
-              <Calendar className="w-4 h-4 shrink-0" />
-              <div className="static-events">
-                {[displayEvents[0], displayEvents[1]].map((idx) => (
-                  <div key={idx} className="static-event">
-                    <span className="event-label">{seasonalEvents[idx].season}</span>
-                    <div className="event-meta">
-                      <span>{seasonalEvents[idx].dates}</span>
-                      <div className="event-dot" />
-                      <span>{seasonalEvents[idx].event}</span>
-                    </div>
-                  </div>
-                ))}
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
+
+            {/* Label Section */}
+            <div className="flex items-center gap-3 shrink-0 border-r border-white/10 pr-6">
+              <Calendar className="w-4 h-4 text-orange-500 animate-pulse" />
+              <div className="flex flex-col">
+                <span className="font-black text-[10px] uppercase tracking-[0.3em] text-white/50 leading-none">Global</span>
+                <span className="font-black text-xs uppercase tracking-[0.1em] text-white leading-tight">Season</span>
               </div>
             </div>
 
-            {/* Moving Ticker - 2 upcoming events scrolling in */}
-            <div className="moving-ticker">
-              <div className="ticker-animation">
-                {[(displayEvents[0] + 2) % 4, (displayEvents[1] + 2) % 4].map((idx) => (
-                  <div key={idx} className="static-event">
-                    <span className="event-label">{seasonalEvents[idx].season}</span>
-                    <div className="event-meta">
-                      <span>{seasonalEvents[idx].dates}</span>
-                      <div className="event-dot" />
-                      <span>{seasonalEvents[idx].event}</span>
+            {/* Ticker Section */}
+            <div className="flex-1 overflow-hidden relative py-1">
+              <div className="ticker-wrapper flex items-center">
+                {[...seasonalEvents, ...seasonalEvents, ...seasonalEvents].map((se, i) => (
+                  <div key={i} className="ticker-item group">
+                    <span className="font-black text-sm text-white group-hover:text-orange-500 transition-colors uppercase tracking-tight">{se.season}</span>
+                    <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 group-hover:border-orange-500/30 transition-all">
+                      <span className="text-[11px] font-black text-orange-500 leading-none">{se.dates}</span>
+                      <div className="w-1 h-1 bg-white/20 rounded-full" />
+                      <span className="text-[11px] font-bold text-white/60 leading-none group-hover:text-white transition-colors">{se.event}</span>
                     </div>
                   </div>
                 ))}
@@ -282,9 +265,9 @@ export default function Navbar() {
             {/* CTA */}
             <Link
               href="/tickets"
-              className="shrink-0 underline decoration-2 underline-offset-4 hover:text-white/80 transition-colors font-bold text-xs whitespace-nowrap"
+              className="shrink-0 bg-orange-600/10 hover:bg-orange-600 border border-orange-600/20 hover:border-orange-600 text-orange-500 hover:text-white px-5 py-2 rounded-full transition-all font-black text-[10px] uppercase tracking-widest"
             >
-              Get Tickets
+              Book Now
             </Link>
           </div>
         </div>

@@ -52,6 +52,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
         { label: "Health", icon: <Activity className="w-5 h-5" />, href: "/dashboard/admin/health" },
         { label: "Disputes", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/disputes", badge: 3 },
         { label: "Content Manager", icon: <Newspaper className="w-5 h-5" />, href: "/dashboard/admin/news" },
+        { label: "Banner Ticker", icon: <Activity className="w-5 h-5" />, href: "/dashboard/admin/ticker" },
         { label: "Pass Plans", icon: <CreditCard className="w-5 h-5" />, href: "/dashboard/admin/passes" },
         { label: "Configuration", icon: <Settings className="w-5 h-5" />, href: "/dashboard/admin/configuration" },
         { label: "Support", icon: <MessageSquare className="w-5 h-5" />, href: "/dashboard/admin/support" },

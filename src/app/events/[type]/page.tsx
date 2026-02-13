@@ -17,12 +17,41 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
   const resolvedParams = use(params);
   const type = resolvedParams.type as keyof typeof eventTypeInfo;
 
+  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  const [cart, setCart] = useState<any[]>([]);
   const [selectedEventInfo, setSelectedEventInfo] = useState<any>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [activeInfoTab, setActiveInfoTab] = useState("overview");
 
   const info = eventTypeInfo[type];
   const filteredEvents = events.filter(e => e.type === type);
+
+  const toggleEvent = (event: any) => {
+    const isSelected = selectedEvents.includes(event.id);
+    if (isSelected) {
+      setSelectedEvents(prev => prev.filter(id => id !== event.id));
+      setCart(prev => prev.filter(item => item.eventId !== event.id));
+    } else {
+      setSelectedEvents(prev => [...prev, event.id]);
+      setCart(prev => [...prev, {
+        id: 'standard',
+        name: event.name,
+        price: 19,
+        type: 'ticket',
+        quantity: 1,
+        eventId: event.id
+      }]);
+    }
+  };
+
+  const updateQuantity = (eventId: string, delta: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.eventId === eventId) {
+        return { ...item, quantity: Math.max(1, item.quantity + delta) };
+      }
+      return item;
+    }));
+  };
 
   if (!info) {
     return (
@@ -66,17 +95,13 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
             </motion.p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 items-center max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 items-start max-w-6xl mx-auto">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
               className="space-y-6"
             >
-              <h2 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <Play className="w-8 h-8 text-orange-600 fill-orange-600/20" />
-                Event Experience
-              </h2>
               <div className="aspect-video rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl relative bg-slate-900 group">
                 <iframe
                   className="w-full h-full"
@@ -92,11 +117,8 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-orange-50 rounded-[3rem] p-10 text-slate-900 relative overflow-hidden group border border-orange-100"
+              className="py-2 md:py-4 px-4 text-slate-900 relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                <Globe className="w-32 h-32" />
-              </div>
               <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                 <Zap className="w-6 h-6 text-orange-500" />
                 Popular Examples
@@ -109,7 +131,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                   </div>
                 ))}
               </div>
-              <div className="mt-10 p-6 bg-white rounded-2xl border border-orange-200/50 shadow-sm">
+              <div className="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm">
                 <p className="text-sm text-slate-500 font-medium italic">
                   "These events are designed to maximize engagement and provide unique value within our digital ecosystem."
                 </p>
@@ -134,75 +156,86 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event) => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                key={event.id}
-                className="relative group rounded-[2.5rem] overflow-hidden border border-slate-100 hover:border-orange-300 transition-all duration-500 flex flex-col bg-white hover:shadow-2xl hover:shadow-orange-600/10"
-              >
-                {/* Card Header / Image Area */}
-                <div className={`h-56 ${event.image} relative overflow-hidden`}>
-                  <Image
-                    src={event.fullImage}
-                    alt={event.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute top-6 left-6 right-6 flex justify-between items-start">
-                    <span className="bg-white/95 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-slate-900 shadow-lg">
-                      {event.category}
-                    </span>
-                    <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 hover:bg-orange-600 hover:border-orange-600 transition-all">
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="absolute bottom-6 left-6">
-                    <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl inline-block shadow-lg">
-                      <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                        <Calendar className="w-4 h-4 text-orange-600" /> {event.date.split(",")[0]}
+            {filteredEvents.map((event) => {
+              const isSelected = selectedEvents.includes(event.id);
+              return (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  key={event.id}
+                  onClick={() => toggleEvent(event)}
+                  className={`relative group rounded-[2.5rem] overflow-hidden border-2 transition-all duration-500 flex flex-col cursor-pointer ${isSelected
+                    ? "border-orange-600 bg-white shadow-2xl scale-[1.02]"
+                    : "border-slate-100 bg-white hover:border-orange-300 hover:shadow-2xl hover:shadow-orange-600/10"
+                    }`}
+                >
+                  {/* Card Header / Image Area */}
+                  <div className={`h-56 ${event.image} relative overflow-hidden`}>
+                    <Image
+                      src={event.fullImage}
+                      alt={event.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute top-6 left-6 right-6 flex justify-between items-start">
+                      <span className="bg-white/95 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-slate-900 shadow-lg">
+                        {event.category}
                       </span>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all ${isSelected
+                        ? "bg-orange-600 border-orange-600 text-white scale-110 shadow-lg shadow-orange-600/30"
+                        : "bg-white/20 backdrop-blur-md text-white border-white/30 hover:bg-orange-600 hover:border-orange-600"
+                        }`}>
+                        {isSelected ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Card Content */}
-                <div className="p-8 flex-1 flex flex-col">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-orange-600 transition-colors leading-tight">
-                    {event.name}
-                  </h3>
-                  <div className="space-y-4 mb-8">
-                    <p className="flex items-center gap-2 text-slate-500 font-medium">
-                      <MapPin className="w-4 h-4 text-orange-600" /> {event.location}
-                    </p>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`w-3.5 h-3.5 ${star <= Math.floor(event.rating) ? "text-yellow-400 fill-yellow-400" : "text-slate-200"}`} />
-                      ))}
-                      <span className="text-xs font-bold text-slate-400 ml-2">{event.reviews} reviews</span>
+                    <div className="absolute bottom-6 left-6">
+                      <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl inline-block shadow-lg">
+                        <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                          <Calendar className="w-4 h-4 text-orange-600" /> {event.date.split(",")[0]}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
-                    <div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Entry Price</span>
-                      <span className="text-xl font-black text-slate-900">£19.00</span>
+                  {/* Card Content */}
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h3 className={`text-2xl font-bold mb-3 transition-colors leading-tight ${isSelected ? "text-orange-600" : "text-slate-900 group-hover:text-orange-600"}`}>
+                      {event.name}
+                    </h3>
+                    <div className="space-y-4 mb-8">
+                      <p className="flex items-center gap-2 text-slate-500 font-medium">
+                        <MapPin className="w-4 h-4 text-orange-600" /> {event.location}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className={`w-3.5 h-3.5 ${star <= Math.floor(event.rating) ? "text-yellow-400 fill-yellow-400" : "text-slate-200"}`} />
+                        ))}
+                        <span className="text-xs font-bold text-slate-400 ml-2">{event.reviews} reviews</span>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setSelectedEventInfo(event);
-                        setShowInfoModal(true);
-                      }}
-                      className="flex items-center gap-2 text-orange-600 font-bold hover:gap-3 transition-all group/btn"
-                    >
-                      Learn More <ArrowRight className="w-5 h-5" />
-                    </button>
+
+                    <div className="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
+                      <div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Entry Price</span>
+                        <span className="text-xl font-black text-slate-900">£19.00</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEventInfo(event);
+                          setShowInfoModal(true);
+                        }}
+                        className="flex items-center gap-2 text-orange-600 font-bold hover:gap-3 transition-all group/btn"
+                      >
+                        Learn More <ArrowRight className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
 
           {filteredEvents.length === 0 && (
@@ -242,6 +275,65 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
 
       <Footer />
 
+      {/* Floating Action Bar */}
+      <AnimatePresence>
+        {selectedEvents.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+            className="fixed bottom-12 right-12 z-[60] w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden"
+          >
+            <div className="p-5 bg-orange-600 text-white flex items-center justify-between">
+              <div>
+                <span className="font-bold text-lg block">Your Selection</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{selectedEvents.length} Events Selected</span>
+              </div>
+              <div className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-full text-sm font-black">
+                {cart.reduce((acc, item) => acc + item.quantity, 0)}
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar p-2">
+              {cart.map(item => (
+                <div key={item.eventId} className="flex items-center justify-between p-3 border-b border-slate-50 last:border-b-0 hover:bg-slate-50 rounded-xl transition-colors">
+                  <div className="flex-1 pr-4">
+                    <p className="font-bold text-slate-800 text-xs leading-tight line-clamp-1">{item.name}</p>
+                    <p className="text-[10px] text-slate-400 font-bold mt-1">£{(item.price * item.quantity).toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-lg p-1 shadow-sm">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); updateQuantity(item.eventId, -1); }}
+                      className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-orange-600 transition-colors"
+                    >
+                      <Plus className="w-3 h-3 rotate-45" />
+                    </button>
+                    <span className="font-black text-slate-900 text-[10px] w-5 text-center">{item.quantity}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); updateQuantity(item.eventId, 1); }}
+                      className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-green-600 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-100">
+              <Link
+                href={`/tickets?${new URLSearchParams({
+                  selectedEvents: selectedEvents.join(','),
+                  quantities: cart.map(i => i.quantity).join(',')
+                }).toString()}`}
+                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-base flex items-center justify-center gap-3 hover:bg-orange-600 transition-all active:scale-95 shadow-xl"
+              >
+                <span>Continue to Checkout</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* EVENT INFO MODAL */}
       <Modal
         isOpen={showInfoModal}
@@ -251,9 +343,28 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
           setActiveInfoTab("overview");
         }}
         title={selectedEventInfo?.name || "Event Details"}
+        maxWidth="4xl"
       >
         {selectedEventInfo && (
           <div className="space-y-8">
+            <div className="flex flex-col md:flex-row items-start justify-between gap-6 bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100">
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-1">Admission Price</p>
+                <p className="text-3xl font-black text-slate-900">£19.00</p>
+              </div>
+              <button
+                onClick={() => {
+                  toggleEvent(selectedEventInfo);
+                  setShowInfoModal(false);
+                  setSelectedEventInfo(null);
+                  setActiveInfoTab("overview");
+                }}
+                className="w-full md:w-auto px-10 py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 hover:scale-105 transition-all flex items-center justify-center gap-2"
+              >
+                Add to Cart <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+
             <div className="relative rounded-3xl overflow-hidden bg-black aspect-video group cursor-pointer shadow-2xl">
               <Image
                 src={selectedEventInfo.fullImage}
@@ -364,19 +475,6 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
                   </div>
                 </div>
               )}
-            </div>
-
-            <div className="flex items-center justify-between pt-8 border-t border-slate-100">
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-1">Admission Price</p>
-                <p className="text-3xl font-black text-slate-900">£19.00</p>
-              </div>
-              <Link
-                href={`/tickets?season=${selectedEventInfo.id}`}
-                className="px-10 py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 hover:scale-105 transition-all flex items-center gap-2"
-              >
-                Book Your Ticket <ArrowRight className="w-5 h-5" />
-              </Link>
             </div>
           </div>
         )}
