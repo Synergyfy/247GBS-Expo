@@ -27,9 +27,15 @@ import {
 interface SidebarProps {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
+    user?: {
+        name: string;
+        role: string;
+        email: string;
+        initials: string;
+    } | null;
 }
 
-export default function BusinessSidebar({ isOpen, setIsOpen }: SidebarProps) {
+export default function BusinessSidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -168,13 +174,13 @@ export default function BusinessSidebar({ isOpen, setIsOpen }: SidebarProps) {
                     </button>
 
                     <div className={`flex items-center ${isOpen ? 'gap-3' : 'justify-center'}`}>
-                        <div className="w-8 h-8 rounded-full bg-orange-700 overflow-hidden relative shrink-0">
-                            <Image src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop" alt="User" fill className="object-cover" />
+                        <div className="w-8 h-8 rounded-full bg-orange-800 flex items-center justify-center shrink-0 text-white font-black text-xs">
+                            {user?.initials ?? "?"}
                         </div>
                         {isOpen && (
                             <div className="text-left overflow-hidden">
-                                <div className="text-sm font-medium text-white truncate">Acme Corp</div>
-                                <div className="text-xs text-orange-200 truncate">Premium Plan</div>
+                                <div className="text-sm font-bold text-white truncate">{user?.name ?? "Loading..."}</div>
+                                <div className="text-xs text-orange-200 truncate">{user?.role ?? "Business Account"}</div>
                             </div>
                         )}
                     </div>

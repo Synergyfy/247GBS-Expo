@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Truck, 
-    Link2, 
-    Database, 
-    Zap, 
-    CheckCircle2, 
-    Plus, 
-    ArrowRight, 
+import { useState, useEffect } from "react";
+import {
+    Truck,
+    Link2,
+    Database,
+    Zap,
+    CheckCircle2,
+    Plus,
+    ArrowRight,
     ExternalLink,
     ShieldCheck,
     Globe,
@@ -16,9 +16,11 @@ import {
     Smartphone,
     Search,
     Code,
-    Cpu
+    Cpu,
+    Loader2
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
+import { api } from "@/lib/api";
 
 const CATEGORIES = [
     { id: "logistics", label: "Logistics & Shipping", icon: Truck },
@@ -28,14 +30,37 @@ const CATEGORIES = [
     { id: "erp", label: "ERP & Accounting", icon: Cpu },
 ];
 
-const CONNECTED = [
-    { name: "DHL Express", cat: "Logistics", status: "Active", icon: Truck, color: "text-red-600" },
-    { name: "Stripe", cat: "Payments", status: "Active", icon: CreditCard, color: "text-blue-600" },
-    { name: "Salesforce", cat: "CRM", status: "Connected", icon: Zap, color: "text-sky-500" },
-];
-
 export default function IntegrationsHubPage() {
     const [activeCat, setActiveCat] = useState("all");
+    const [integrations, setIntegrations] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        fetchIntegrations();
+    }, []);
+
+    const fetchIntegrations = async () => {
+        try {
+            const data = await api.get('/dashboard/business/settings/integrations');
+            setIntegrations(data);
+        } catch (error) {
+            console.error("Failed to fetch integrations", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getFlattenedIntegrations = () => {
+        if (!integrations) return [];
+        if (activeCat === 'all') {
+            return Object.values(integrations).flat();
+        }
+        const categoryLabel = CATEGORIES.find(c => c.id === activeCat)?.label;
+        return integrations[categoryLabel || ''] || [];
+    };
+
+    const allIntegrations = getFlattenedIntegrations();
+    const activeCount = Object.values(integrations || {}).flat().filter((i: any) => i.status === 'Active' || i.status === 'Connected').length;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
@@ -79,18 +104,18 @@ export default function IntegrationsHubPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                
+
                 {/* Categories */}
                 <div className="space-y-2">
                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4 ml-4">Partners by Category</p>
-                    <button 
+                    <button
                         onClick={() => setActiveCat("all")}
                         className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all ${activeCat === 'all' ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
                     >
                         <Globe className="w-5 h-5" /> All Integrations
                     </button>
                     {CATEGORIES.map((cat) => (
-                        <button 
+                        <button
                             key={cat.id}
                             onClick={() => setActiveCat(cat.id)}
                             className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all ${activeCat === cat.id ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50'}`}

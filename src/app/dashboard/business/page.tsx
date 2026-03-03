@@ -1,5 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { Loader2 } from "lucide-react";
+
 // --- ICONS ---
 const StoreIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
@@ -15,6 +19,39 @@ const UserGroupIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
 );
 
 export default function BusinessDashboardPage() {
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            const result = await api.get('/business/stats');
+            setData(result);
+        } catch (error) {
+            console.error("Dashboard error:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            </div>
+        );
+    }
+
+    const statsIcons = [
+        <EyeIcon key="eye" />,
+        <UserGroupIcon key="leads" />,
+        <StoreIcon key="sales" />,
+        <TrendUpIcon key="trend" />
+    ];
+
     return (
         <>
             {/* Header */}
@@ -31,18 +68,15 @@ export default function BusinessDashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                {[
-                    { label: "Total Views", val: "12.5K", icon: <EyeIcon />, trend: "+12%", color: "orange" },
-                    { label: "Active Leads", val: "342", icon: <UserGroupIcon />, trend: "+5%", color: "orange" },
-                    { label: "Product Sales", val: "£4,200", icon: <StoreIcon />, trend: "+8.2%", color: "orange" },
-                    { label: "Avg. Duration", val: "4m 12s", icon: <TrendUpIcon />, trend: "+2%", color: "orange" }
-                ].map((stat, i) => (
+                {data?.stats.map((stat: any, i: number) => (
                     <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-4">
                             <div className={`p-3 rounded-xl bg-orange-50 text-orange-600`}>
-                                {stat.icon}
+                                {statsIcons[i]}
                             </div>
-                            <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-full">{stat.trend}</span>
+                            <span className={`text-xs font-medium ${stat.isUp ? 'text-orange-600 bg-orange-50' : 'text-slate-400 bg-slate-50'} px-2 py-1 rounded-full`}>
+                                {stat.trend}
+                            </span>
                         </div>
                         <h3 className="text-3xl font-bold text-slate-900 mb-1">{stat.val}</h3>
                         <p className="text-slate-500 text-sm">{stat.label}</p>
@@ -57,43 +91,44 @@ export default function BusinessDashboardPage() {
                 <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                     <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                         <h3 className="font-bold text-lg text-slate-900">Booth Completion</h3>
-                        <span className="text-sm font-semibold text-orange-600">85% Completed</span>
+                        <span className="text-sm font-semibold text-orange-600">{data?.completion?.percentage}% Completed</span>
                     </div>
                     <div className="p-6">
                         {/* Progress Bar */}
                         <div className="w-full bg-slate-100 rounded-full h-2 mb-6">
-                            <div className="bg-orange-600 h-2 rounded-full w-[85%]"></div>
+                            <div className="bg-orange-600 h-2 rounded-full transition-all duration-500" style={{ width: `${data?.completion?.percentage}%` }}></div>
                         </div>
 
                         <div className="space-y-4">
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 opacity-50">
-                                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</div>
-                                <span className="text-slate-500 line-through">Upload Business Logo & Banner</span>
-                            </div>
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 opacity-50">
-                                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</div>
-                                <span className="text-slate-500 line-through">Add first 5 products</span>
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-orange-200 shadow-sm ring-2 ring-orange-50">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-6 h-6 rounded-full border-2 border-orange-500"></div>
-                                    <span className="text-slate-900 font-medium">Schedule your first Live Demo</span>
+                            {data?.completion?.tasks.map((task: any, i: number) => (
+                                <div key={i} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${task.completed
+                                        ? 'bg-slate-50 border-slate-100 opacity-60'
+                                        : 'bg-white border-orange-200 shadow-sm ring-2 ring-orange-50'
+                                    }`}>
+                                    <div className="flex items-center gap-4">
+                                        {task.completed ? (
+                                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</div>
+                                        ) : (
+                                            <div className="w-6 h-6 rounded-full border-2 border-orange-500"></div>
+                                        )}
+                                        <span className={`font-medium ${task.completed ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                                            {task.label}
+                                        </span>
+                                    </div>
+                                    {!task.completed && (
+                                        <button className="text-sm font-semibold text-orange-600 hover:text-orange-700">Complete &rarr;</button>
+                                    )}
                                 </div>
-                                <button className="text-sm font-semibold text-orange-600 hover:text-orange-700">Start Now &rarr;</button>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
 
                 {/* Side Widget: Upcoming Schedule */}
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-                    <h3 className="font-bold text-lg text-slate-900 mb-6">Upcoming Live Context</h3>
+                    <h3 className="font-bold text-lg text-slate-900 mb-6">Upcoming Schedule</h3>
                     <div className="space-y-6">
-                        {[
-                            { time: "10:00 AM", title: "Product Launch Q&A", status: "Live Soon" },
-                            { time: "02:30 PM", title: "Industry Panel", status: "Scheduled" },
-                            { time: "04:00 PM", title: "Networking Hour", status: "Scheduled" }
-                        ].map((event, i) => (
+                        {data?.schedule.map((event: any, i: number) => (
                             <div key={i} className="flex gap-4 relative pl-4 border-l-2 border-slate-100">
                                 <div className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${i === 0 ? 'bg-orange-500 animate-pulse' : 'bg-slate-300'}`}></div>
                                 <div>

@@ -1,22 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Users, 
-    UserPlus, 
-    Shield, 
-    Mail, 
-    MoreVertical, 
-    Trash2, 
-    Edit2, 
+import { useState, useEffect } from "react";
+import {
+    Users,
+    UserPlus,
+    Shield,
+    Mail,
+    MoreVertical,
+    Trash2,
+    Edit2,
     CheckCircle2,
     XCircle,
     Search,
     Filter,
-    ArrowLeft
+    ArrowLeft,
+    Loader2
 } from "lucide-react";
 import Link from "next/link";
 import Modal from "@/app/component/Modal";
+import { api } from "@/lib/api";
 
 const ROLES = [
     { id: "admin", label: "Business Admin", desc: "Full access to all dashboard features and settings." },
@@ -28,25 +30,55 @@ const ROLES = [
 
 export default function TeamManagementPage() {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-    const [team, setTeam] = useState([
-        { id: 1, name: "Frank Doe", email: "frank@acmecorp.com", role: "Business Admin", status: "Active" },
-        { id: 2, name: "Sarah Smith", email: "sarah@acmecorp.com", role: "Finance Manager", status: "Active" },
-        { id: 3, name: "Michael Scott", email: "michael@acmecorp.com", role: "POS Operator", status: "Pending" },
-    ]);
+    const [team, setTeam] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-    const handleInvite = (e: React.FormEvent) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const email = formData.get("email") as string;
-        const role = formData.get("role") as string;
-        
-        setTeam([...team, { id: Date.now(), name: "Pending User", email, role, status: "Pending" }]);
-        setIsInviteModalOpen(false);
+    useEffect(() => {
+        fetchTeam();
+    }, []);
+
+    const fetchTeam = async () => {
+        try {
+            const data = await api.get('/dashboard/business/settings/team');
+            setTeam(data);
+        } catch (err: any) {
+            setError("Failed to load team members");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const removeMember = (id: number) => {
+    const handleInvite = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError("");
+
+        const formData = new FormData(e.target as HTMLFormElement);
+        const email = formData.get("email") as string;
+        const name = formData.get("name") as string;
+        const role = formData.get("role") as string;
+
+        try {
+            await api.post('/dashboard/business/settings/team', { email, name, role });
+            await fetchTeam();
+            setIsInviteModalOpen(false);
+        } catch (err: any) {
+            setError(err.message || "Failed to invite member");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const removeMember = async (id: string) => {
         if (confirm("Are you sure you want to remove this team member?")) {
-            setTeam(team.filter(m => m.id !== id));
+            try {
+                await api.delete(`/dashboard/business/settings/team/${id}`);
+                setTeam(team.filter(m => m.id !== id));
+            } catch (err: any) {
+                alert("Failed to remove member");
+            }
         }
     };
 
@@ -63,7 +95,7 @@ export default function TeamManagementPage() {
                         <p className="text-slate-500 text-lg">Manage your organization's members and their access levels.</p>
                     </div>
                 </div>
-                <button 
+                <button
                     onClick={() => setIsInviteModalOpen(true)}
                     className="px-8 py-4 bg-orange-600 text-white font-bold rounded-2xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/20 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                 >
@@ -95,62 +127,88 @@ export default function TeamManagementPage() {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-50">
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Access Level</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {team.map((member) => (
-                                <tr key={member.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
-                                                {member.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-900">{member.name}</p>
-                                                <p className="text-xs text-slate-400 font-medium">{member.email}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-2">
-                                            <Shield className="w-4 h-4 text-orange-500" />
-                                            <span className="text-sm font-bold text-slate-700">{member.role}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                            member.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                        }`}>
-                                            {member.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-2 hover:bg-white text-slate-400 hover:text-orange-600 rounded-lg border border-transparent hover:border-slate-200 transition-all">
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button onClick={() => removeMember(member.id)} className="p-2 hover:bg-white text-slate-400 hover:text-red-600 rounded-lg border border-transparent hover:border-slate-200 transition-all">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </td>
+                    {isLoading ? (
+                        <div className="p-20 flex justify-center">
+                            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+                        </div>
+                    ) : (
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-50">
+                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
+                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Access Level</th>
+                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {team.map((member) => (
+                                    <tr key={member.id} className="hover:bg-slate-50/50 transition-colors group">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
+                                                    {member.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-slate-900">{member.name}</p>
+                                                    <p className="text-xs text-slate-400 font-medium">{member.email || 'No email'}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-2">
+                                                <Shield className="w-4 h-4 text-orange-500" />
+                                                <span className="text-sm font-bold text-slate-700">{member.role}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${member.status === 'ACTIVE' || member.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                {member.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button className="p-2 hover:bg-white text-slate-400 hover:text-orange-600 rounded-lg border border-transparent hover:border-slate-200 transition-all">
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => removeMember(member.id)} className="p-2 hover:bg-white text-slate-400 hover:text-red-600 rounded-lg border border-transparent hover:border-slate-200 transition-all">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {team.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-medium">
+                                            No team members found. Start by inviting someone!
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 
             {/* Invite Modal */}
             <Modal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} title="Invite Team Member">
                 <form onSubmit={handleInvite} className="space-y-6">
+                    {error && (
+                        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Full Name</label>
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input name="name" type="text" required placeholder="Frank Doe" className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 font-medium" />
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Email Address</label>
                         <div className="relative">
@@ -162,7 +220,7 @@ export default function TeamManagementPage() {
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Assign Role</label>
                         <select name="role" className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 font-bold">
-                            {ROLES.map(r => <option key={r.id}>{r.label}</option>)}
+                            {ROLES.map(r => <option key={r.id} value={r.label}>{r.label}</option>)}
                         </select>
                     </div>
 
@@ -173,8 +231,12 @@ export default function TeamManagementPage() {
                     </div>
 
                     <div className="pt-4">
-                        <button type="submit" className="w-full py-4 bg-orange-600 text-white font-bold rounded-2xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 uppercase tracking-widest text-xs">
-                            Send Invitation
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full py-4 bg-orange-600 text-white font-bold rounded-2xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+                        >
+                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Invitation"}
                         </button>
                     </div>
                 </form>

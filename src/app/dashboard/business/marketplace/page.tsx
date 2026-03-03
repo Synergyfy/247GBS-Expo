@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Search,
     Filter,
@@ -16,11 +16,12 @@ import {
     LayoutGrid,
     LayoutList,
     Clock,
-    Star
+    Star,
+    Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { events } from "@/data/events";
 import B2BChatbot from "@/app/component/B2BChatbot";
+import { api } from "@/lib/api";
 
 export default function BusinessMarketplacePage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -29,11 +30,40 @@ export default function BusinessMarketplacePage() {
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
 
-    const categories = ["All", "Technology", "Trade", "Finance", "Retail", "Health", "Environment"];
+    const [fetchedEvents, setFetchedEvents] = useState<any[]>([]);
+    const [categories, setCategories] = useState(["All"]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filteredEvents = events.filter(event => {
-        const matchesSearchText = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.description.toLowerCase().includes(searchTerm.toLowerCase());
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                const [eventsData, catsData] = await Promise.all([
+                    api.get('/marketplace/events'),
+                    api.get('/marketplace/categories')
+                ]);
+
+                setFetchedEvents(eventsData);
+                setCategories(["All", ...catsData]);
+            } catch (error) {
+                console.error("Failed to fetch marketplace data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const filteredEvents = fetchedEvents.filter(event => {
+        const name = event.name || "";
+        const description = event.description || "";
+        const organizer = event.organizer || "";
+
+        const matchesSearchText = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            organizer.toLowerCase().includes(searchTerm.toLowerCase());
+
         const matchesCategory = activeCategory === "All" || event.category === activeCategory;
         return matchesSearchText && matchesCategory;
     });
@@ -42,6 +72,15 @@ export default function BusinessMarketplacePage() {
         setSelectedEvent(event);
         setIsChatOpen(true);
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
+                <p className="text-slate-500 font-bold animate-pulse">Loading Discovery Center...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -52,7 +91,7 @@ export default function BusinessMarketplacePage() {
                         <div className="px-4 py-1.5 bg-orange-100 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-widest">Global Marketplace</div>
                         <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-full">
                             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                            {events.length} Active Opportunities
+                            {fetchedEvents.length} Active Opportunities
                         </div>
                     </div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase mb-4">Discovery Center</h1>
@@ -95,8 +134,8 @@ export default function BusinessMarketplacePage() {
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
                             className={`px-6 py-4 rounded-2xl font-bold whitespace-nowrap transition-all text-sm ${activeCategory === cat
-                                    ? 'bg-orange-600 text-white shadow-xl shadow-orange-600/20'
-                                    : 'bg-white text-slate-500 border border-slate-100 hover:border-orange-200 hover:text-orange-600'
+                                ? 'bg-orange-600 text-white shadow-xl shadow-orange-600/20'
+                                : 'bg-white text-slate-500 border border-slate-100 hover:border-orange-200 hover:text-orange-600'
                                 }`}
                         >
                             {cat}
@@ -119,7 +158,7 @@ export default function BusinessMarketplacePage() {
                         >
                             <div className={`relative ${viewMode === 'list' ? 'w-1/3 h-full' : 'h-64 w-full'}`}>
                                 <img
-                                    src={event.fullImage}
+                                    src={event.fullImage || "/api/placeholder/400/320"}
                                     alt={event.name}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
@@ -137,7 +176,7 @@ export default function BusinessMarketplacePage() {
                                 <div className="absolute bottom-6 left-6 right-6">
                                     <div className="flex items-center gap-3 text-white/90 text-xs font-bold mb-2">
                                         <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-lg border border-white/10">
-                                            <Clock className="w-3.5 h-3.5" /> {event.date}
+                                            <Clock className="w-3.5 h-3.5" /> {new Date(event.startDate).toLocaleDateString()}
                                         </div>
                                     </div>
                                 </div>
@@ -146,9 +185,9 @@ export default function BusinessMarketplacePage() {
                             <div className={`p-8 flex-1 flex flex-col justify-between ${viewMode === 'list' ? 'py-6' : ''}`}>
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{event.organizer}</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{event.organizer || "Community Event"}</p>
                                         <div className="flex items-center gap-1 text-orange-600 font-black text-xs">
-                                            <Users className="w-3.5 h-3.5" /> 2k+ Exhibitors
+                                            <Users className="w-3.5 h-3.5" /> {event.capacity || "1k+"} Capacity
                                         </div>
                                     </div>
                                     <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-4 leading-tight group-hover:text-orange-600 transition-colors">{event.name}</h3>
@@ -157,7 +196,7 @@ export default function BusinessMarketplacePage() {
                                     </p>
 
                                     <div className="flex flex-wrap gap-2 mb-8">
-                                        {event.benefits.slice(0, 2).map((benefit: string, i: number) => (
+                                        {(event.benefits || ["Exhibition", "Networking"]).slice(0, 2).map((benefit: string, i: number) => (
                                             <div key={i} className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
                                                 <Zap className="w-3 h-3 text-orange-500" />
                                                 {benefit}
@@ -206,7 +245,7 @@ export default function BusinessMarketplacePage() {
                     isOpen={isChatOpen}
                     onClose={() => setIsChatOpen(false)}
                     eventName={selectedEvent.name}
-                    organizer={selectedEvent.organizer}
+                    organizer={selectedEvent.organizer || "Organizer"}
                 />
             )}
 

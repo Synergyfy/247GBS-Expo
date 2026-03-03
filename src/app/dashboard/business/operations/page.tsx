@@ -1,33 +1,92 @@
 "use client";
 
 import { useState } from "react";
-import { 
-    Smartphone, 
-    Users, 
-    RefreshCw, 
-    CheckCircle2, 
-    XCircle, 
-    Plus, 
-    ShieldCheck, 
+import {
+    Smartphone,
+    Users,
+    RefreshCw,
+    CheckCircle2,
+    XCircle,
+    Plus,
+    ShieldCheck,
     Zap,
     ArrowRight,
     Loader2,
-    Database
+    Database,
+    ChevronDown
 } from "lucide-react";
+import { api } from "@/lib/api";
+import { useEffect } from "react";
 import Modal from "@/app/component/Modal";
 
 export default function EventOperationsSetupPage() {
+    const [events, setEvents] = useState<any[]>([]);
+    const [selectedEventId, setSelectedEventId] = useState("");
+    const [isEventsLoading, setIsEventsLoading] = useState(true);
+
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncSuccess, setSyncSuccess] = useState(false);
+    const [syncMessage, setSyncMessage] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleSync = () => {
+    const [staff, setStaff] = useState<any[]>([]);
+    const [isStaffLoading, setIsStaffLoading] = useState(true);
+    const [diagnostics, setDiagnostics] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    useEffect(() => {
+        if (selectedEventId) {
+            fetchOperationsData();
+        }
+    }, [selectedEventId]);
+
+    const fetchEvents = async () => {
+        setIsEventsLoading(true);
+        try {
+            const res = await api.get("/dashboard/business/events");
+            const list = res.events || [];
+            setEvents(list);
+            if (list.length > 0) setSelectedEventId(list[0].id);
+        } catch {
+            console.error("Failed to fetch events");
+        } finally {
+            setIsEventsLoading(false);
+        }
+    };
+
+    const fetchOperationsData = async () => {
+        if (!selectedEventId) return;
+        setIsStaffLoading(true);
+        try {
+            const [staffRes, diagRes] = await Promise.all([
+                api.get(`/dashboard/business/operations/staff?eventId=${selectedEventId}`),
+                api.get(`/dashboard/business/operations/diagnostics?eventId=${selectedEventId}`)
+            ]);
+            setStaff(staffRes);
+            setDiagnostics(diagRes);
+        } catch (err) {
+            console.error("Failed to fetch operations data", err);
+        } finally {
+            setIsStaffLoading(false);
+        }
+    };
+
+    const handleSync = async () => {
+        if (!selectedEventId) return;
         setIsSyncing(true);
-        setTimeout(() => {
-            setIsSyncing(false);
+        try {
+            const res = await api.post(`/dashboard/business/operations/sync?eventId=${selectedEventId}`, {});
             setSyncSuccess(true);
+            setSyncMessage(res.message);
             setTimeout(() => setSyncSuccess(false), 3000);
-        }, 2000);
+        } catch (err: any) {
+            alert(err.message || "Sync failed");
+        } finally {
+            setIsSyncing(false);
+        }
     };
 
     return (
@@ -39,12 +98,11 @@ export default function EventOperationsSetupPage() {
                     <p className="text-slate-500 text-lg">System setup and staff management for live event control.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button 
+                    <button
                         onClick={handleSync}
-                        disabled={isSyncing}
-                        className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 ${
-                            syncSuccess ? "bg-emerald-500 text-white" : "bg-slate-900 text-white hover:bg-orange-600"
-                        }`}
+                        disabled={isSyncing || !selectedEventId}
+                        className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 ${syncSuccess ? "bg-emerald-500 text-white" : "bg-slate-900 text-white hover:bg-orange-600"
+                            }`}
                     >
                         {isSyncing ? <RefreshCw className="w-5 h-5 animate-spin" /> : syncSuccess ? <CheckCircle2 className="w-5 h-5" /> : <Database className="w-5 h-5" />}
                         {isSyncing ? "Syncing Database..." : syncSuccess ? "Database Synced" : "Sync Ticket Database"}
@@ -52,8 +110,29 @@ export default function EventOperationsSetupPage() {
                 </div>
             </div>
 
+            {/* Event Selector */}
+            <div className="relative inline-block w-full max-w-md">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Event Context</label>
+                <div className="relative">
+                    <select
+                        value={selectedEventId}
+                        onChange={e => setSelectedEventId(e.target.value)}
+                        className="w-full appearance-none bg-white border border-slate-200 px-6 py-4 rounded-2xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer shadow-sm pr-12"
+                    >
+                        {isEventsLoading ? (
+                            <option>Loading events...</option>
+                        ) : events.length > 0 ? (
+                            events.map(ev => <option key={ev.id} value={ev.id}>{ev.title || ev.name}</option>)
+                        ) : (
+                            <option value="">No events found</option>
+                        )}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* 9.1 Device Registration */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
@@ -78,9 +157,8 @@ export default function EventOperationsSetupPage() {
                                             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-orange-600 shadow-sm transition-colors border border-slate-100">
                                                 <Smartphone className="w-6 h-6" />
                                             </div>
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                                device.status === 'Online' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
-                                            }`}>
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${device.status === 'Online' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+                                                }`}>
                                                 {device.status}
                                             </span>
                                         </div>
@@ -115,30 +193,40 @@ export default function EventOperationsSetupPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
-                                    {[
-                                        { name: "Michael Scott", zone: "Main Hall", role: "Verification Lead", status: "Active" },
-                                        { name: "Pam Beesly", zone: "VIP Lounge", role: "Guest Relations", status: "Break" },
-                                        { name: "Dwight Schrute", zone: "Exhibitor Entry", role: "Security Compliance", status: "Active" },
-                                    ].map((staff, i) => (
-                                        <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">
-                                                        {staff.name.charAt(0)}
-                                                    </div>
-                                                    <span className="font-bold text-slate-900 text-sm">{staff.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5 text-sm text-slate-600">{staff.zone}</td>
-                                            <td className="px-8 py-5 text-sm font-medium text-slate-500">{staff.role}</td>
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${staff.status === 'Active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                                    <span className="text-xs font-bold text-slate-700">{staff.status}</span>
-                                                </div>
+                                    {isStaffLoading ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-8 py-20 text-center">
+                                                <Loader2 className="w-8 h-8 animate-spin text-orange-600 mx-auto" />
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : staff.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-8 py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">
+                                                No staff assigned to this event
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        staff.map((s, i) => (
+                                            <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">
+                                                            {s.name?.charAt(0) || "U"}
+                                                        </div>
+                                                        <span className="font-bold text-slate-900 text-sm">{s.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-5 text-sm text-slate-600">{s.zone}</td>
+                                                <td className="px-8 py-5 text-sm font-medium text-slate-500">{s.role}</td>
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${s.status === 'Active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                                        <span className="text-xs font-bold text-slate-700">{s.status}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -147,7 +235,7 @@ export default function EventOperationsSetupPage() {
 
                 {/* Sidebar Controls */}
                 <div className="space-y-8">
-                    
+
                     {/* System Test Panel */}
                     <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
                         <div className="absolute top-0 right-0 p-6 opacity-10">
@@ -155,11 +243,11 @@ export default function EventOperationsSetupPage() {
                         </div>
                         <h3 className="text-xl font-bold mb-6 relative z-10">Scanner System Test</h3>
                         <div className="space-y-4 relative z-10">
-                            {[
+                            {(diagnostics.length > 0 ? diagnostics : [
                                 { label: "Network Latency", val: "12ms", status: "OK" },
                                 { label: "QR API Status", val: "Operational", status: "OK" },
                                 { label: "DB Mirror Sync", val: "99.9%", status: "OK" },
-                            ].map((test, i) => (
+                            ]).map((test, i) => (
                                 <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex justify-between items-center">
                                     <div>
                                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{test.label}</p>
@@ -204,7 +292,7 @@ export default function EventOperationsSetupPage() {
                         <h3 className="text-xl font-bold text-slate-900 uppercase">Awaiting Connection</h3>
                         <p className="text-sm text-slate-500 mt-2 leading-relaxed">Enter this pairing code on the device's <br /> <strong>247GBS Scanner App</strong></p>
                     </div>
-                    
+
                     <div className="flex justify-center gap-3">
                         {["8", "4", "2", "1"].map((code, i) => (
                             <div key={i} className="w-14 h-16 bg-slate-50 border-2 border-slate-200 rounded-xl flex items-center justify-center text-2xl font-black text-orange-600 shadow-sm">

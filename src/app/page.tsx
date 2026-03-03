@@ -10,6 +10,7 @@ import CoreSystems from "@/app/component/landing/CoreSystems";
 import UserJourney from "@/app/component/landing/UserJourney";
 import SeasonalEvents from "@/app/component/landing/SeasonalEvents";
 import Footer from "@/app/component/landing/Footer";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -23,7 +24,7 @@ export default function Home() {
       <SeasonalEvents />
       <CoreSystems />
       <UserJourney />
-      
+
       {/* CTA Section */}
       <section className="py-24 bg-orange-600 text-white text-center">
         <div className="container mx-auto px-4">
@@ -32,9 +33,9 @@ export default function Home() {
             Whether you are a global brand or a smart shopper, there is a place for you in our digital economy.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-white text-orange-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-100 transition-colors shadow-xl">
+            <Link href="/get-started" className="bg-white text-orange-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-100 transition-colors shadow-xl inline-block">
               Get Started for Free
-            </button>
+            </Link>
             <button className="bg-slate-900 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl border border-slate-700">
               Schedule a Demo
             </button>

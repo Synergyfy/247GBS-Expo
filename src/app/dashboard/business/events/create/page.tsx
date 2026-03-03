@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Plus, 
-    ArrowRight, 
-    ArrowLeft, 
-    Check, 
-    Upload, 
-    Calendar, 
-    Clock, 
-    Ticket, 
-    ShoppingBag, 
-    Layout, 
+import { useState, useEffect } from "react";
+import {
+    Plus,
+    ArrowRight,
+    ArrowLeft,
+    Check,
+    Upload,
+    Calendar,
+    Clock,
+    Ticket,
+    ShoppingBag,
+    Layout,
     Globe,
     Monitor,
     MapPin,
@@ -19,11 +19,13 @@ import {
     Briefcase,
     ShieldCheck,
     Loader2,
-    Info
+    Info,
+    Trash2
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Tooltip from "@/app/component/Tooltip";
+import { api } from "@/lib/api";
 
 const WIZARD_STEPS = [
     "Event Type",
@@ -39,39 +41,92 @@ export default function CreateEventWizard() {
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [inventory, setInventory] = useState<any[]>([]);
+    const [isInventoryLoading, setIsInventoryLoading] = useState(false);
 
     // Form State
     const [eventType, setEventType] = useState("expo");
     const [format, setFormat] = useState("virtual");
-    const [details, setDetails] = useState({ title: "", description: "" });
+    const [details, setDetails] = useState({ title: "", description: "", rating: 5, reviews: 0, organizer: "Me", category: "OTHER", type: "PAID", startDate: "", endDate: "", location: "" });
     const [tickets, setTickets] = useState<any[]>([
-        { id: "1", name: "General Access", price: "0", quantity: "1000", rules: "Non-refundable" }
+        { id: "1", name: "General Access", price: "0", quantity: "1000", rules: "Non-refundable", productIds: [] }
     ]);
 
-    const handleNext = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setStep(prev => Math.min(prev + 1, WIZARD_STEPS.length - 1));
-        }, 500);
+    useEffect(() => {
+        if (step === 5) {
+            fetchInventory();
+        }
+    }, [step]);
+
+    const fetchInventory = async () => {
+        setIsInventoryLoading(true);
+        try {
+            const data = await api.get('/dashboard/business/events/inventory/my-products');
+            setInventory(data || []);
+        } catch (error) {
+            console.error("Failed to fetch inventory:", error);
+        } finally {
+            setIsInventoryLoading(false);
+        }
     };
-    
+
+    const handleNext = () => {
+        setStep(prev => Math.min(prev + 1, WIZARD_STEPS.length - 1));
+    };
+
     const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const payload = {
+                name: details.title,
+                description: details.description,
+                startDate: details.startDate || new Date().toISOString(),
+                endDate: details.endDate || new Date().toISOString(),
+                location: details.location || "Virtual",
+                eventType: eventType,
+                format: format.toUpperCase(),
+                category: details.category,
+                type: details.type,
+                organizer: details.organizer,
+                benefits: ["Access to all sessions"],
+                tickets: tickets.map(t => ({
+                    name: t.name,
+                    price: parseFloat(t.price),
+                    quantity: parseInt(t.quantity),
+                    rules: t.rules,
+                    productIds: t.productIds || []
+                }))
+            };
+            await api.post('/dashboard/business/events', payload);
             setIsSubmitted(true);
-        }, 1500);
+        } catch (error) {
+            console.error("Failed to create event:", error);
+            alert("Failed to create event. Please check all fields.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const addTicketTier = () => {
-        setTickets([...tickets, { id: Date.now().toString(), name: "New Tier", price: "0", quantity: "100", rules: "" }]);
+        setTickets([...tickets, { id: Date.now().toString(), name: "New Tier", price: "0", quantity: "100", rules: "", productIds: [] }]);
     };
 
-    const updateTicket = (id: string, field: string, val: string) => {
+    const updateTicket = (id: string, field: string, val: any) => {
         setTickets(tickets.map(t => t.id === id ? { ...t, [field]: val } : t));
+    };
+
+    const toggleProductInTier = (ticketId: string, productId: string) => {
+        const ticket = tickets.find(t => t.id === ticketId);
+        if (!ticket) return;
+
+        const productIds = ticket.productIds || [];
+        const newProductIds = productIds.includes(productId)
+            ? productIds.filter((id: string) => id !== productId)
+            : [...productIds, productId];
+
+        updateTicket(ticketId, 'productIds', newProductIds);
     };
 
     if (isSubmitted) {
@@ -82,7 +137,7 @@ export default function CreateEventWizard() {
                 </div>
                 <h1 className="text-4xl font-black text-slate-900 mb-4">Submitted for Review</h1>
                 <p className="text-lg text-slate-600 mb-12">
-                    Your event <strong>{details.title}</strong> has been sent to the admin team. 
+                    Your event <strong>{details.title}</strong> has been sent to the admin team.
                     The approval pipeline status is now: <span className="text-orange-600 font-bold uppercase tracking-widest text-sm ml-2 underline">Under Review</span>
                 </p>
                 <Link href="/dashboard/business/events" className="inline-flex items-center gap-2 bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-xl">
@@ -177,7 +232,39 @@ export default function CreateEventWizard() {
                                                     <Info className="w-3 h-3 text-slate-400 cursor-help" />
                                                 </Tooltip>
                                             </div>
-                                            <input type="text" placeholder="Symposium 2026" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold" />
+                                            <input
+                                                type="text"
+                                                placeholder="Symposium 2026"
+                                                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold"
+                                                value={details.title}
+                                                onChange={(e) => setDetails({ ...details, title: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Category</label>
+                                                <select
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                                    value={details.category}
+                                                    onChange={(e) => setDetails({ ...details, category: e.target.value })}
+                                                >
+                                                    <option value="TECH">Technology</option>
+                                                    <option value="ART">Art & Culture</option>
+                                                    <option value="BUSINESS">Business</option>
+                                                    <option value="OTHER">Other</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Pricing Type</label>
+                                                <select
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                                    value={details.type}
+                                                    onChange={(e) => setDetails({ ...details, type: e.target.value })}
+                                                >
+                                                    <option value="PAID">Paid</option>
+                                                    <option value="FREE">Free</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
                                             <div className="flex items-center gap-2">
@@ -186,19 +273,36 @@ export default function CreateEventWizard() {
                                                     <Info className="w-3 h-3 text-slate-400 cursor-help" />
                                                 </Tooltip>
                                             </div>
-                                            <textarea rows={5} placeholder="What is the main value of this event?" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none" />
+                                            <textarea
+                                                rows={4}
+                                                placeholder="What is the main value of this event?"
+                                                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
+                                                value={details.description}
+                                                onChange={(e) => setDetails({ ...details, description: e.target.value })}
+                                            />
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Banner (Media)</label>
-                                            <Tooltip content="High-quality image for event promotion">
-                                                <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                            </Tooltip>
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Organizer</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl"
+                                                value={details.organizer}
+                                                onChange={(e) => setDetails({ ...details, organizer: e.target.value })}
+                                            />
                                         </div>
-                                        <div className="border-4 border-dashed border-slate-100 rounded-[3rem] h-64 flex flex-col items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer group">
-                                            <Upload className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
-                                            <p className="font-black text-sm uppercase">Upload Visuals</p>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Banner (Media)</label>
+                                                <Tooltip content="High-quality image for event promotion">
+                                                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                                                </Tooltip>
+                                            </div>
+                                            <div className="border-4 border-dashed border-slate-100 rounded-[3rem] h-48 flex flex-col items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer group">
+                                                <Upload className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
+                                                <p className="font-black text-sm uppercase">Upload Visuals</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -210,27 +314,52 @@ export default function CreateEventWizard() {
                             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                                 <div className="grid md:grid-cols-2 gap-8">
                                     <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                                        <div className="flex items-center gap-2 mb-6">
+                                        <div className="flex items-center gap-2 mb-4">
                                             <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Calendar className="text-orange-600" /> Key Dates</h3>
                                             <Tooltip content="Start and end dates for your event">
                                                 <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                                             </Tooltip>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
-                                            <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Start Date & Time</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    className="w-full p-4 bg-white border border-slate-200 rounded-2xl"
+                                                    value={details.startDate}
+                                                    onChange={(e) => setDetails({ ...details, startDate: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">End Date & Time</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    className="w-full p-4 bg-white border border-slate-200 rounded-2xl"
+                                                    value={details.endDate}
+                                                    onChange={(e) => setDetails({ ...details, endDate: e.target.value })}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Clock className="text-orange-600" /> Sessions</h3>
-                                            <Tooltip content="Manage individual sessions or workshops">
-                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                            </Tooltip>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><MapPin className="text-orange-600" /> Location</h3>
                                         </div>
-                                        <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold hover:border-orange-500 hover:text-orange-600 transition-all flex items-center justify-center gap-2">
-                                            <Plus className="w-5 h-5" /> Add New Session
-                                        </button>
+                                        <input
+                                            type="text"
+                                            placeholder={format === 'virtual' ? 'e.g. Zoom, Google Meet' : 'e.g. London Excel Centre'}
+                                            className="w-full p-4 border border-slate-200 rounded-2xl"
+                                            value={details.location}
+                                            onChange={(e) => setDetails({ ...details, location: e.target.value })}
+                                        />
+                                        <div className="mt-8 border-t border-slate-50 pt-6">
+                                            <div className="flex items-center gap-2 mb-6">
+                                                <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Clock className="text-orange-600" /> Sessions</h3>
+                                            </div>
+                                            <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold hover:border-orange-500 hover:text-orange-600 transition-all flex items-center justify-center gap-2">
+                                                <Plus className="w-5 h-5" /> Add New Session
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>
@@ -264,7 +393,13 @@ export default function CreateEventWizard() {
                                                         <Info className="w-3 h-3 text-slate-400 cursor-help" />
                                                     </Tooltip>
                                                 </div>
-                                                <input type="number" placeholder="Price £" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
+                                                <input
+                                                    type="number"
+                                                    placeholder="Price ₦"
+                                                    className="w-full p-3 rounded-xl border border-slate-200 font-bold"
+                                                    value={t.price}
+                                                    onChange={(e) => updateTicket(t.id, 'price', e.target.value)}
+                                                />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2 mb-2">
@@ -273,7 +408,13 @@ export default function CreateEventWizard() {
                                                         <Info className="w-3 h-3 text-slate-400 cursor-help" />
                                                     </Tooltip>
                                                 </div>
-                                                <input type="number" placeholder="Stock" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
+                                                <input
+                                                    type="number"
+                                                    placeholder="Stock"
+                                                    className="w-full p-3 rounded-xl border border-slate-200 font-bold"
+                                                    value={t.quantity}
+                                                    onChange={(e) => updateTicket(t.id, 'quantity', e.target.value)}
+                                                />
                                             </div>
                                             <div className="md:col-span-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Advanced: Sale window & Access Rules</div>
                                         </div>
@@ -284,15 +425,61 @@ export default function CreateEventWizard() {
 
                         {/* STEP 5: BUNDLES */}
                         {step === 5 && (
-                            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="text-center py-12">
-                                <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                    <ShoppingBag />
+                            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+                                <div className="text-center max-w-xl mx-auto">
+                                    <h1 className="text-3xl font-black text-slate-900 mb-3 uppercase tracking-tight">Bundled Products</h1>
+                                    <p className="text-slate-500">Select products from your inventory to include with each ticket tier.</p>
                                 </div>
-                                <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase">Bundled Products</h2>
-                                <p className="text-slate-500 mb-10">Attach your existing inventory to these tickets.</p>
-                                <button className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-orange-600 transition-all flex items-center gap-2 mx-auto shadow-lg">
-                                    <Plus /> Browse Inventory
-                                </button>
+
+                                {isInventoryLoading ? (
+                                    <div className="py-20 flex justify-center"><Loader2 className="w-10 h-10 animate-spin text-orange-600" /></div>
+                                ) : inventory.length === 0 ? (
+                                    <div className="text-center py-12 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200">
+                                        <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No products found in your inventory</p>
+                                        <Link href="/dashboard/business/products" className="text-orange-600 font-black text-xs uppercase underline mt-2 inline-block">Manage Products</Link>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-10">
+                                        {tickets.map(ticket => (
+                                            <div key={ticket.id} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
+                                                <h3 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight flex items-center gap-2">
+                                                    <Ticket className="text-orange-600 w-5 h-5" /> {ticket.name} Bundles
+                                                </h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    {inventory.map(product => (
+                                                        <div
+                                                            key={product.id}
+                                                            onClick={() => toggleProductInTier(ticket.id, product.id)}
+                                                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 ${(ticket.productIds || []).includes(product.id)
+                                                                ? "border-orange-600 bg-white shadow-md font-bold"
+                                                                : "border-white bg-white/50 hover:border-slate-200"
+                                                                }`}
+                                                        >
+                                                            <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+                                                                {product.image ? (
+                                                                    <img src={product.image} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <ShoppingBag className="text-slate-400 w-6 h-6" />
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="font-bold text-slate-900 text-sm truncate">{product.name}</p>
+                                                                <p className="text-[10px] font-black text-orange-600 uppercase">₦{product.price.toLocaleString()}</p>
+                                                            </div>
+                                                            <div className={`ml-auto w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${(ticket.productIds || []).includes(product.id)
+                                                                ? "bg-orange-600 border-orange-600 text-white"
+                                                                : "border-slate-200"
+                                                                }`}>
+                                                                <Check className="w-3 h-3" />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </motion.div>
                         )}
 
@@ -305,9 +492,11 @@ export default function CreateEventWizard() {
                                 <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase">Ready for Admin Review</h2>
                                 <p className="text-slate-500 max-w-md mx-auto mb-10">Once submitted, your event enters the approval pipeline. You will be notified via email upon approval.</p>
                                 <div className="max-w-sm mx-auto p-6 bg-slate-50 rounded-3xl border border-slate-100 text-left space-y-3">
+                                    <div className="flex justify-between text-sm"><span>Title:</span> <span className="font-bold truncate max-w-[150px]">{details.title || "Untitled Event"}</span></div>
                                     <div className="flex justify-between text-sm"><span>Type:</span> <span className="font-bold uppercase">{eventType}</span></div>
                                     <div className="flex justify-between text-sm"><span>Format:</span> <span className="font-bold uppercase">{format}</span></div>
                                     <div className="flex justify-between text-sm"><span>Tickets:</span> <span className="font-bold">{tickets.length} Tiers</span></div>
+                                    <div className="flex justify-between text-sm"><span>Total Bundles:</span> <span className="font-bold">{tickets.reduce((acc, t) => acc + (t.productIds?.length || 0), 0)} Products</span></div>
                                 </div>
                             </motion.div>
                         )}
@@ -319,8 +508,8 @@ export default function CreateEventWizard() {
                     <button onClick={handleBack} disabled={step === 0} className="text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-900 disabled:opacity-0 transition-all">
                         Back
                     </button>
-                    <button 
-                        onClick={step === WIZARD_STEPS.length - 1 ? handleSubmit : handleNext} 
+                    <button
+                        onClick={step === WIZARD_STEPS.length - 1 ? handleSubmit : handleNext}
                         className="bg-orange-600 text-white px-12 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-orange-700 shadow-xl shadow-orange-600/20 flex items-center gap-3 transition-all active:scale-95"
                     >
                         {loading ? <Loader2 className="animate-spin w-4 h-4" /> : (

@@ -1,28 +1,57 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    History, 
-    Search, 
-    Filter, 
-    Download, 
-    ShieldCheck, 
-    User, 
-    Settings, 
-    Package, 
+import { useState, useEffect } from "react";
+import {
+    History,
+    Search,
+    Filter,
+    Download,
+    ShieldCheck,
+    User,
+    Settings,
+    Package,
     Database,
     Clock,
     Eye,
-    ChevronRight
+    ChevronRight,
+    Loader2
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 export default function BusinessAuditLogsPage() {
-    const [mockLogs] = useState([
-        { id: "TX-4012", staff: "Sarah Smith", action: "Updated Settlement Rule", target: "Finance Config", time: "10 mins ago", role: "Finance Manager", color: "text-blue-600", bg: "bg-blue-50", icon: Settings },
-        { id: "TX-4011", staff: "Frank Doe", action: "Created Ticket Tier: VIP Platinum", target: "Ticket Manager", time: "1 hour ago", role: "Business Admin", color: "text-orange-600", bg: "bg-orange-50", icon: Package },
-        { id: "TX-4010", staff: "Michael Scott", action: "Bulk Allocation: 50 Tickets", target: "Rewards Engine", time: "2 hours ago", role: "POS Operator", color: "text-emerald-600", bg: "bg-emerald-50", icon: ShieldCheck },
-        { id: "TX-4009", staff: "Frank Doe", action: "Pairing New Device: Scanner B", target: "Operations Setup", time: "Yesterday", role: "Business Admin", color: "text-purple-600", bg: "bg-purple-50", icon: Database },
-    ]);
+    const [logs, setLogs] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        fetchLogs();
+    }, []);
+
+    const fetchLogs = async () => {
+        try {
+            const data = await api.get('/dashboard/business/settings/audits');
+            setLogs(data);
+        } catch (error) {
+            console.error("Failed to fetch audit logs", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getIcon = (action: string) => {
+        if (action.includes('Settlement') || action.includes('Finance')) return Settings;
+        if (action.includes('Ticket') || action.includes('Tier')) return Package;
+        if (action.includes('Allocation') || action.includes('Reward')) return ShieldCheck;
+        if (action.includes('Device') || action.includes('Scanner')) return Database;
+        return History;
+    };
+
+    const getColorClass = (action: string) => {
+        if (action.includes('Settlement')) return { color: "text-blue-600", bg: "bg-blue-50" };
+        if (action.includes('Ticket')) return { color: "text-orange-600", bg: "bg-orange-50" };
+        if (action.includes('Allocation')) return { color: "text-emerald-600", bg: "bg-emerald-50" };
+        if (action.includes('Device')) return { color: "text-purple-600", bg: "bg-purple-50" };
+        return { color: "text-slate-600", bg: "bg-slate-50" };
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
@@ -67,56 +96,73 @@ export default function BusinessAuditLogsPage() {
             {/* Audit Table */}
             <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-50">
-                                <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Timestamp</th>
-                                <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Staff Member</th>
-                                <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Action Performed</th>
-                                <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Module</th>
-                                <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Reference</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {mockLogs.map((log, i) => (
-                                <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-8 py-6">
-                                        <p className="text-sm font-bold text-slate-900">{log.time}</p>
-                                        <p className="text-[10px] text-slate-400 font-medium">Feb 4, 2026</p>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                                <User className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-900">{log.staff}</p>
-                                                <p className="text-[10px] text-orange-600 font-bold uppercase tracking-tighter">{log.role}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg ${log.bg} ${log.color} flex items-center justify-center`}>
-                                                <log.icon className="w-4 h-4" />
-                                            </div>
-                                            <span className="text-sm font-medium text-slate-700">{log.action}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                            {log.target}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <button className="text-xs font-mono font-bold text-slate-400 hover:text-orange-600 flex items-center gap-1 justify-end ml-auto group">
-                                            {log.id} <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
-                                        </button>
-                                    </td>
+                    {isLoading ? (
+                        <div className="flex justify-center p-20">
+                            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+                        </div>
+                    ) : (
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-50">
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Timestamp</th>
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Staff Member</th>
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Action Performed</th>
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Module</th>
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Reference</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {logs.map((log, i) => {
+                                    const Icon = getIcon(log.action);
+                                    const { color, bg } = getColorClass(log.action);
+                                    return (
+                                        <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-8 py-6">
+                                                <p className="text-sm font-bold text-slate-900">{log.time}</p>
+                                                <p className="text-[10px] text-slate-400 font-medium">{log.date || 'Feb 4, 2026'}</p>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                                        <User className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-900">{log.staff}</p>
+                                                        <p className="text-[10px] text-orange-600 font-bold uppercase tracking-tighter">{log.role}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-lg ${bg} ${color} flex items-center justify-center`}>
+                                                        <Icon className="w-4 h-4" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">{log.action}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                    {log.target}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-6 text-right">
+                                                <button className="text-xs font-mono font-bold text-slate-400 hover:text-orange-600 flex items-center gap-1 justify-end ml-auto group">
+                                                    {log.id} <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {logs.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} className="px-8 py-20 text-center text-slate-400 font-medium">
+                                            No audit logs found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
         </div>
