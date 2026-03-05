@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Gavel, 
-    Settings, 
-    Ticket, 
-    Percent, 
-    Clock, 
-    ShieldAlert, 
-    Save, 
-    Plus, 
+import { useState, useEffect } from "react";
+import {
+    Gavel,
+    Settings,
+    Ticket,
+    Percent,
+    Clock,
+    ShieldAlert,
+    Save,
+    Plus,
     Trash2,
     CheckCircle2,
     X,
@@ -23,8 +23,10 @@ import {
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
+import { api } from "@/lib/api";
 
 interface TicketTemplate {
+    id?: string;
     name: string;
     access: string;
     priceRange: string;
@@ -38,56 +40,105 @@ export default function GovernancePage() {
     const [activeTab, setActiveTab] = useState("parameters");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    
-    const [templates, setTemplates] = useState<TicketTemplate[]>([
-        { name: "Standard Day Pass", access: "General", priceRange: "£0 - £50", status: "Active" },
-        { name: "VIP Experience", access: "Full Hall + Lounge", priceRange: "£99 - £500", status: "Active" },
-        { name: "Reward Pass", access: "Specific Booth", priceRange: "Gift Only", status: "Active" },
-    ]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Live state from API
+    const [templates, setTemplates] = useState<TicketTemplate[]>([]);
+    const [parameters, setParameters] = useState({
+        refundWindow: 48, ticketValidity: 30,
+        pointsRatio: 10, redemptionValue: 100,
+        enforceMFA: true, geoFencing: false
+    });
+    const [financial, setFinancial] = useState({
+        platformCommission: 10, affiliateShare: 5, globalVAT: 7.5
+    });
+    const [apiConfig, setApiConfig] = useState({
+        rateLimit: 5000, allowWebhooks: true, sandboxMode: false
+    });
 
     const [newTemplate, setNewTemplate] = useState<TicketTemplate>({
-        name: "",
-        access: "General Access",
-        priceRange: "",
-        status: "Active",
-        description: "",
-        minPrice: 0,
-        maxPrice: 0
+        name: "", access: "General Access", priceRange: "",
+        status: "Active", description: "", minPrice: 0, maxPrice: 0
     });
 
     const accessOptions = [
-        "General Access",
-        "Full Hall + Lounge",
-        "Specific Booth Only",
-        "Workshop Access",
-        "VIP Area + Networking",
-        "Premium All-Access"
+        "General Access", "Full Hall + Lounge", "Specific Booth Only",
+        "Workshop Access", "VIP Area + Networking", "Premium All-Access"
     ];
 
-    const handleCreateTemplate = () => {
-        if (!newTemplate.name || !newTemplate.access) return;
-        
-        setIsSaving(true);
-        setTimeout(() => {
-            const rangeString = newTemplate.minPrice === 0 && newTemplate.maxPrice === 0 
-                ? "Gift Only" 
-                : `£${newTemplate.minPrice} - £${newTemplate.maxPrice}`;
-            
-            const templateToAdd = {
-                ...newTemplate,
-                priceRange: rangeString
-            };
+    useEffect(() => {
+        const fetchGovernance = async () => {
+            try {
+                const res = await api.get('/admin/governance');
+                const d = res.data;
+                if (d.parameters) setParameters(d.parameters);
+                if (d.financial) setFinancial(d.financial);
+                if (d.ecosystem?.api) setApiConfig(d.ecosystem.api);
+                if (d.templates) setTemplates(d.templates);
+            } catch (e) {
+                console.error('Failed to load governance config', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchGovernance();
+    }, []);
 
-            setTemplates([...templates, templateToAdd]);
+    const handleSaveAll = async () => {
+        setIsSaving(true);
+        try {
+            await api.post('/admin/governance', { parameters, financial, ecosystem: { api: apiConfig } });
+        } catch (e) {
+            console.error('Failed to save governance', e);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCreateTemplate = async () => {
+        if (!newTemplate.name || !newTemplate.access) return;
+        setIsSaving(true);
+        try {
+            const res = await api.post('/admin/governance/templates', {
+                name: newTemplate.name,
+                access: newTemplate.access,
+                minPrice: newTemplate.minPrice || 0,
+                maxPrice: newTemplate.maxPrice || 0,
+                description: newTemplate.description || '',
+            });
+            const rangeString = (newTemplate.minPrice === 0 && newTemplate.maxPrice === 0)
+                ? "Gift Only"
+                : `£${newTemplate.minPrice} - £${newTemplate.maxPrice}`;
+            setTemplates([...templates, { ...res.data, priceRange: rangeString }]);
             setNewTemplate({ name: "", access: "General Access", priceRange: "", status: "Active", description: "", minPrice: 0, maxPrice: 0 });
             setIsModalOpen(false);
+        } catch (e) {
+            console.error('Failed to create template', e);
+        } finally {
             setIsSaving(false);
-        }, 1000);
+        }
     };
 
-    const handleDeleteTemplate = (index: number) => {
+    const handleDeleteTemplate = async (index: number) => {
+        const t = templates[index];
+        if (t.id) {
+            try {
+                await api.post(`/admin/governance/templates/${t.id}/delete`, {});
+            } catch (e) {
+                console.error('Failed to delete template', e);
+                return;
+            }
+        }
         setTemplates(templates.filter((_, i) => i !== index));
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -97,8 +148,8 @@ export default function GovernancePage() {
                     <h1 className="text-2xl font-bold text-slate-900">Governance Console</h1>
                     <p className="text-slate-500">Configure global platform rules, commission structures, and ecosystem partners.</p>
                 </div>
-                <button className="flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all">
-                    <Save className="w-5 h-5" /> Save Global Changes
+                <button onClick={handleSaveAll} disabled={isSaving} className="flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all disabled:opacity-60">
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} Save Global Changes
                 </button>
             </div>
 
@@ -114,9 +165,8 @@ export default function GovernancePage() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
-                        }`}
+                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
+                            }`}
                     >
                         {tab.icon}
                         {tab.label}
@@ -128,7 +178,7 @@ export default function GovernancePage() {
             </div>
 
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                
+
                 {/* SYSTEM PARAMETERS */}
                 {activeTab === "parameters" && (
                     <div className="space-y-8">
@@ -140,11 +190,11 @@ export default function GovernancePage() {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-xs font-black uppercase text-slate-400 mb-2">Default Refund Window (Hours)</label>
-                                        <input type="number" defaultValue={48} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
+                                        <input type="number" value={parameters.refundWindow} onChange={e => setParameters({ ...parameters, refundWindow: Number(e.target.value) })} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-black uppercase text-slate-400 mb-2">Ticket Validity Post-Event (Days)</label>
-                                        <input type="number" defaultValue={30} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
+                                        <input type="number" value={parameters.ticketValidity} onChange={e => setParameters({ ...parameters, ticketValidity: Number(e.target.value) })} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
                                     </div>
                                 </div>
                             </div>
@@ -156,11 +206,11 @@ export default function GovernancePage() {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-xs font-black uppercase text-slate-400 mb-2">Points per £1 Spent</label>
-                                        <input type="number" defaultValue={10} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
+                                        <input type="number" value={parameters.pointsRatio} onChange={e => setParameters({ ...parameters, pointsRatio: Number(e.target.value) })} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-black uppercase text-slate-400 mb-2">Redemption Value (Points per £1)</label>
-                                        <input type="number" defaultValue={100} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
+                                        <input type="number" value={parameters.redemptionValue} onChange={e => setParameters({ ...parameters, redemptionValue: Number(e.target.value) })} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
                                     </div>
                                 </div>
                             </div>
@@ -175,8 +225,8 @@ export default function GovernancePage() {
                                             <p className="text-sm font-bold text-slate-900">Enforce MFA for Admins</p>
                                             <p className="text-xs text-slate-500">Require multi-factor for all roles</p>
                                         </div>
-                                        <div className="w-12 h-6 bg-orange-600 rounded-full relative cursor-pointer">
-                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                                        <div onClick={() => setParameters({ ...parameters, enforceMFA: !parameters.enforceMFA })} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${parameters.enforceMFA ? 'bg-orange-600' : 'bg-slate-200'}`}>
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${parameters.enforceMFA ? 'right-1' : 'left-1'}`} />
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -184,8 +234,8 @@ export default function GovernancePage() {
                                             <p className="text-sm font-bold text-slate-900">Geo-Fencing Validation</p>
                                             <p className="text-xs text-slate-500">Restrict verification by IP location</p>
                                         </div>
-                                        <div className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
-                                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                                        <div onClick={() => setParameters({ ...parameters, geoFencing: !parameters.geoFencing })} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${parameters.geoFencing ? 'bg-orange-600' : 'bg-slate-200'}`}>
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${parameters.geoFencing ? 'right-1' : 'left-1'}`} />
                                         </div>
                                     </div>
                                 </div>
@@ -221,7 +271,7 @@ export default function GovernancePage() {
                                 <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
                                     <Ticket className="w-5 h-5 text-orange-600" /> Global Ticket Templates
                                 </h3>
-                                <button 
+                                <button
                                     onClick={() => setIsModalOpen(true)}
                                     className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all text-sm"
                                 >
@@ -243,7 +293,7 @@ export default function GovernancePage() {
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{temp.priceRange}</span>
                                             <div className="flex gap-2">
                                                 <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><Settings className="w-4 h-4" /></button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleDeleteTemplate(i)}
                                                     className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                                                 >
@@ -269,26 +319,26 @@ export default function GovernancePage() {
                                 <div className="space-y-4">
                                     <label className="block text-xs font-black uppercase text-slate-400 tracking-widest">Platform Commission (%)</label>
                                     <div className="relative">
-                                        <input type="number" defaultValue={10} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
+                                        <input type="number" value={financial.platformCommission} onChange={e => setFinancial({ ...financial, platformCommission: Number(e.target.value) })} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
                                         <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     </div>
                                 </div>
                                 <div className="space-y-4">
                                     <label className="block text-xs font-black uppercase text-slate-400 tracking-widest">Partner/Affiliate Share (%)</label>
                                     <div className="relative">
-                                        <input type="number" defaultValue={5} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
+                                        <input type="number" value={financial.affiliateShare} onChange={e => setFinancial({ ...financial, affiliateShare: Number(e.target.value) })} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
                                         <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     </div>
                                 </div>
                                 <div className="space-y-4">
                                     <label className="block text-xs font-black uppercase text-slate-400 tracking-widest">Global VAT/Tax Rate (%)</label>
                                     <div className="relative">
-                                        <input type="number" defaultValue={7.5} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
+                                        <input type="number" value={financial.globalVAT} onChange={e => setFinancial({ ...financial, globalVAT: Number(e.target.value) })} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
                                         <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="p-6 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-4">
                                 <ShieldAlert className="w-6 h-6 text-orange-600 shrink-0 mt-1" />
                                 <div>
@@ -349,7 +399,7 @@ export default function GovernancePage() {
                             <div className="space-y-6">
                                 <div>
                                     <label className="block text-xs font-black uppercase text-slate-400 mb-2">Global Rate Limit (Req/Min)</label>
-                                    <input type="number" defaultValue={5000} className="w-full px-4 py-3 bg-white/10 border border-white/10 rounded-xl text-white font-mono focus:border-orange-500 outline-none" />
+                                    <input type="number" value={apiConfig.rateLimit} onChange={e => setApiConfig({ ...apiConfig, rateLimit: Number(e.target.value) })} className="w-full px-4 py-3 bg-white/10 border border-white/10 rounded-xl text-white font-mono focus:border-orange-500 outline-none" />
                                 </div>
                                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                                     <div className="flex justify-between items-center mb-4">
@@ -363,11 +413,11 @@ export default function GovernancePage() {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-slate-300">Allow External Webhooks</span>
-                                        <div className="w-10 h-5 bg-emerald-500 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
+                                        <div onClick={() => setApiConfig({ ...apiConfig, allowWebhooks: !apiConfig.allowWebhooks })} className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${apiConfig.allowWebhooks ? 'bg-emerald-500' : 'bg-slate-600'}`}><div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${apiConfig.allowWebhooks ? 'right-1' : 'left-1'}`} /></div>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-slate-300">Sandbox Mode</span>
-                                        <div className="w-10 h-5 bg-slate-600 rounded-full relative"><div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
+                                        <div onClick={() => setApiConfig({ ...apiConfig, sandboxMode: !apiConfig.sandboxMode })} className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${apiConfig.sandboxMode ? 'bg-emerald-500' : 'bg-slate-600'}`}><div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${apiConfig.sandboxMode ? 'right-1' : 'left-1'}`} /></div>
                                     </div>
                                 </div>
                             </div>
@@ -404,12 +454,12 @@ export default function GovernancePage() {
                                     <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                                 </Tooltip>
                             </div>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 placeholder="e.g. Early Bird Access"
                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
                                 value={newTemplate.name}
-                                onChange={(e) => setNewTemplate({...newTemplate, name: e.target.value})}
+                                onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
                             />
                             <p className="mt-1.5 text-[10px] text-slate-400 font-medium">Keep it short and descriptive for the marketplace.</p>
                         </div>
@@ -423,10 +473,10 @@ export default function GovernancePage() {
                                 </Tooltip>
                             </div>
                             <div className="relative">
-                                <select 
+                                <select
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900 appearance-none cursor-pointer"
                                     value={newTemplate.access}
-                                    onChange={(e) => setNewTemplate({...newTemplate, access: e.target.value})}
+                                    onChange={(e) => setNewTemplate({ ...newTemplate, access: e.target.value })}
                                 >
                                     {accessOptions.map(opt => (
                                         <option key={opt} value={opt}>{opt}</option>
@@ -447,23 +497,23 @@ export default function GovernancePage() {
                             <div className="flex gap-4 items-center">
                                 <div className="flex-1 relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">£</span>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         placeholder="Min"
                                         className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
                                         value={newTemplate.minPrice}
-                                        onChange={(e) => setNewTemplate({...newTemplate, minPrice: Number(e.target.value)})}
+                                        onChange={(e) => setNewTemplate({ ...newTemplate, minPrice: Number(e.target.value) })}
                                     />
                                 </div>
                                 <div className="text-slate-300 font-bold">—</div>
                                 <div className="flex-1 relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">£</span>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         placeholder="Max"
                                         className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
                                         value={newTemplate.maxPrice}
-                                        onChange={(e) => setNewTemplate({...newTemplate, maxPrice: Number(e.target.value)})}
+                                        onChange={(e) => setNewTemplate({ ...newTemplate, maxPrice: Number(e.target.value) })}
                                     />
                                 </div>
                             </div>
@@ -478,24 +528,24 @@ export default function GovernancePage() {
                                     <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
                                 </Tooltip>
                             </div>
-                            <textarea 
+                            <textarea
                                 placeholder="Purpose of this ticket tier..."
                                 rows={3}
                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900 resize-none"
                                 value={newTemplate.description}
-                                onChange={(e) => setNewTemplate({...newTemplate, description: e.target.value})}
+                                onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
                             />
                         </div>
                     </div>
 
                     <div className="flex gap-3 pt-4 border-t border-slate-100">
-                        <button 
+                        <button
                             onClick={() => setIsModalOpen(false)}
                             className="flex-1 py-3 px-6 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             onClick={handleCreateTemplate}
                             disabled={!newTemplate.name || !newTemplate.access || isSaving}
                             className="flex-1 py-3 px-6 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all flex justify-center items-center gap-2 disabled:opacity-50"
