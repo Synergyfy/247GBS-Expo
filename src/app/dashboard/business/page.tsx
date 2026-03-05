@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 // --- ICONS ---
 const StoreIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -102,8 +103,8 @@ export default function BusinessDashboardPage() {
                         <div className="space-y-4">
                             {data?.completion?.tasks.map((task: any, i: number) => (
                                 <div key={i} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${task.completed
-                                        ? 'bg-slate-50 border-slate-100 opacity-60'
-                                        : 'bg-white border-orange-200 shadow-sm ring-2 ring-orange-50'
+                                    ? 'bg-slate-50 border-slate-100 opacity-60'
+                                    : 'bg-white border-orange-200 shadow-sm ring-2 ring-orange-50'
                                     }`}>
                                     <div className="flex items-center gap-4">
                                         {task.completed ? (
@@ -139,9 +140,9 @@ export default function BusinessDashboardPage() {
                             </div>
                         ))}
                     </div>
-                    <button className="w-full mt-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors">
+                    <Link href="/dashboard/business/events" className="w-full mt-8 py-3 flex items-center justify-center rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors">
                         + Add New Session
-                    </button>
+                    </Link>
                 </div>
 
             </div>

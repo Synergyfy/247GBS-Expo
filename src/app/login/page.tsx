@@ -35,10 +35,14 @@ function LoginForm() {
             const response = await api.post('/auth/login', { email, password });
             localStorage.setItem('token', response.access_token);
 
-            if (role === 'customer') {
-                router.push('/dashboard/customer');
-            } else {
+            const userRole = response.user.role; // ADMIN, BUSINESS, CUSTOMER
+
+            if (userRole === 'ADMIN') {
+                router.push('/dashboard/admin');
+            } else if (userRole === 'BUSINESS') {
                 router.push('/dashboard/business');
+            } else {
+                router.push('/dashboard/customer');
             }
         } catch (err: any) {
             setError(err.message || "Failed to login");

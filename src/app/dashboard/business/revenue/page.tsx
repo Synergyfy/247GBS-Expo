@@ -1,38 +1,101 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Wallet, 
-    TrendingUp, 
-    ArrowUpRight, 
-    ArrowDownRight, 
-    Clock, 
-    CheckCircle2, 
+import { useState, useEffect } from "react";
+import {
+    Wallet,
+    TrendingUp,
+    ArrowUpRight,
+    CheckCircle2,
     Loader2,
     ShieldCheck,
-    ChevronRight, 
-    CreditCard, 
-    Landmark,
     Download,
-    BarChart3,
     AlertCircle
 } from "lucide-react";
-
+import { api } from "@/lib/api";
 import Modal from "@/app/component/Modal";
 
 export default function BusinessRevenuePage() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [settlementRule, setSettlementRule] = useState("T+3");
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleSaveSettings = (e: React.FormEvent) => {
+    const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+    const [ticketData, setTicketData] = useState({ subject: "", description: "", type: "GENERAL", priority: "NORMAL" });
+    const [isTicketSubmitting, setIsTicketSubmitting] = useState(false);
+    const [ticketError, setTicketError] = useState<string | null>(null);
+    const [ticketSuccess, setTicketSuccess] = useState(false);
+
+    const [wallet, setWallet] = useState<any>(null);
+    const [payouts, setPayouts] = useState<any>(null);
+    const [ledger, setLedger] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetchAllData();
+    }, []);
+
+    const fetchAllData = async () => {
+        setIsLoading(true);
+        try {
+            const [walletRes, payoutsRes, ledgerRes] = await Promise.all([
+                api.get("/dashboard/business/revenue/wallet"),
+                api.get("/dashboard/business/revenue/payouts"),
+                api.get("/dashboard/business/revenue/ledger")
+            ]);
+            setWallet(walletRes);
+            setPayouts(payoutsRes);
+            setLedger(ledgerRes);
+            if (payoutsRes.settlementRule) setSettlementRule(payoutsRes.settlementRule);
+        } catch (err) {
+            console.error("Failed to fetch revenue data", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSaveSettings = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
-        setTimeout(() => {
-            setIsSaving(false);
+        try {
+            await api.patch("/dashboard/business/revenue/settings", {
+                settlementRule
+            });
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
             setIsSettingsOpen(false);
-        }, 1500);
+            fetchAllData(); // Refresh to get new settlement date
+        } catch (err: any) {
+            alert(err.message || "Failed to update settings");
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    const handleTicketSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!ticketData.subject || !ticketData.description) {
+            setTicketError("Please fill in all required fields.");
+            return;
+        }
+
+        setIsTicketSubmitting(true);
+        setTicketError(null);
+        try {
+            await api.post("/dashboard/business/revenue/tickets", ticketData);
+            setTicketSuccess(true);
+            setTicketData({ subject: "", description: "", type: "GENERAL", priority: "NORMAL" });
+            setTimeout(() => {
+                setTicketSuccess(false);
+                setIsTicketModalOpen(false);
+            }, 2000);
+        } catch (err: any) {
+            setTicketError(err.message || "Failed to submit ticket. Please try again.");
+        } finally {
+            setIsTicketSubmitting(false);
+        }
+    };
+
+    const [showSuccess, setShowSuccess] = useState(false);
 
     return (
         <div className="space-y-8 pb-20">
@@ -54,13 +117,13 @@ export default function BusinessRevenuePage() {
 
             {/* Wallet Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* 1. Main Wallet Card */}
                 <div className="lg:col-span-2 bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <Wallet className="w-48 h-48" />
                     </div>
-                    
+
                     <div className="relative z-10 space-y-10">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center shadow-lg shadow-orange-600/20">
@@ -70,29 +133,31 @@ export default function BusinessRevenuePage() {
                         </div>
 
                         <div>
-                            <div className="text-6xl md:text-7xl font-black tracking-tighter">£42,850<span className="text-3xl font-bold text-slate-500">.00</span></div>
+                            <div className="text-6xl md:text-7xl font-black tracking-tighter">
+                                £{wallet?.balance || "0.00"}
+                            </div>
                             <div className="flex items-center gap-2 mt-4 text-emerald-400 font-bold">
                                 <TrendingUp className="w-5 h-5" />
-                                <span>+£12,400 this month</span>
+                                <span>{wallet?.monthlyGrowth || "+£0.00 this month"}</span>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-10 border-t border-white/10">
                             <div>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Available</p>
-                                <p className="text-xl font-bold text-white">£31,200.00</p>
+                                <p className="text-xl font-bold text-white">£{wallet?.available || "0.00"}</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Pending</p>
-                                <p className="text-xl font-bold text-white">£11,650.00</p>
+                                <p className="text-xl font-bold text-white">£{wallet?.pending || "0.00"}</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Dispute Holds</p>
-                                <p className="text-xl font-bold text-orange-500">£840.00</p>
+                                <p className="text-xl font-bold text-orange-500">£{wallet?.disputeHolds || "0.00"}</p>
                             </div>
                             <div className="hidden md:block">
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Refund Reserve</p>
-                                <p className="text-xl font-bold text-white">£2,000.00</p>
+                                <p className="text-xl font-bold text-white">£{wallet?.refundReserve || "0.00"}</p>
                             </div>
                         </div>
                     </div>
@@ -105,8 +170,8 @@ export default function BusinessRevenuePage() {
                         <div className="space-y-6">
                             <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100">
                                 <p className="text-xs text-orange-700 font-bold uppercase tracking-widest mb-1">Next Settlement</p>
-                                <p className="text-xl font-black text-orange-900">Friday, Feb 6</p>
-                                <p className="text-xs text-orange-600 mt-1 font-medium">Estimated: £8,450.00</p>
+                                <p className="text-xl font-black text-orange-900">{payouts?.nextSettlement || "Calculating..."}</p>
+                                <p className="text-xs text-orange-600 mt-1 font-medium">Estimated: £{payouts?.estimatedAmount || "0.00"}</p>
                             </div>
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between text-sm">
@@ -115,12 +180,14 @@ export default function BusinessRevenuePage() {
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-slate-500 font-medium">Auto-Payout:</span>
-                                    <span className="text-emerald-600 font-bold flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Enabled</span>
+                                    <span className={`${payouts?.autoPayout ? 'text-emerald-600' : 'text-slate-400'} font-bold flex items-center gap-1`}>
+                                        <CheckCircle2 className="w-4 h-4" /> {payouts?.autoPayout ? 'Enabled' : 'Disabled'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={() => setIsSettingsOpen(true)}
                         className="w-full mt-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                     >
@@ -131,7 +198,7 @@ export default function BusinessRevenuePage() {
 
             {/* Transactions & Analytics */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* Recent Transactions */}
                 <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                     <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
@@ -149,34 +216,42 @@ export default function BusinessRevenuePage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {[
-                                    { name: "Ticket Sale: VIP Access", type: "Sale", status: "Completed", amount: "+£19.00", date: "Today, 10:42 AM" },
-                                    { name: "Settlement Payout", type: "Withdrawal", status: "Processing", amount: "-£12,000.00", date: "Today, 09:00 AM" },
-                                    { name: "Customer Refund Request", type: "Refund", status: "Disputed", amount: "-£49.00", date: "Yesterday" },
-                                    { name: "Ticket Sale: Standard", type: "Sale", status: "Completed", amount: "+£0.00", date: "Yesterday" },
-                                ].map((tx, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
-                                        <td className="px-8 py-5">
-                                            <p className="text-sm font-bold text-slate-900">{tx.name}</p>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase">{tx.date}</p>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 rounded-md text-slate-600 uppercase tracking-wider">{tx.type}</span>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${
-                                                    tx.status === 'Completed' ? 'bg-emerald-500' : 
-                                                    tx.status === 'Disputed' ? 'bg-red-500' : 'bg-orange-500'
-                                                }`} />
-                                                <span className="text-xs font-bold text-slate-700">{tx.status}</span>
-                                            </div>
-                                        </td>
-                                        <td className={`px-8 py-5 text-sm font-black text-right ${tx.amount.startsWith('+') ? 'text-emerald-600' : 'text-slate-900'}`}>
-                                            {tx.amount}
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-8 py-10 text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-orange-600 mx-auto" />
                                         </td>
                                     </tr>
-                                ))}
+                                ) : ledger.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-8 py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">
+                                            No transactions found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    ledger.map((tx, i) => (
+                                        <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-8 py-5">
+                                                <p className="text-sm font-bold text-slate-900">{tx.name}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase">{tx.date}</p>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 rounded-md text-slate-600 uppercase tracking-wider">{tx.type}</span>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${tx.status === 'Completed' ? 'bg-emerald-500' :
+                                                        tx.status === 'Disputed' ? 'bg-red-500' : 'bg-orange-500'
+                                                        }`} />
+                                                    <span className="text-xs font-bold text-slate-700">{tx.status}</span>
+                                                </div>
+                                            </td>
+                                            <td className={`px-8 py-5 text-sm font-black text-right ${tx.amount.startsWith('+') ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                                {tx.amount}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -190,7 +265,7 @@ export default function BusinessRevenuePage() {
                             <h3 className="font-bold text-slate-900 uppercase tracking-tight">Refund Reserve</h3>
                         </div>
                         <p className="text-xs text-slate-500 leading-relaxed mb-6">
-                            A minimum balance of <span className="font-bold text-slate-900">£2,000.00</span> is held to cover immediate refund requests and chargebacks.
+                            A dynamic reserve of <span className="font-bold text-slate-900">5% of total earnings</span> (min £500, max £5,000) is held to cover absolute security for refunds and chargebacks.
                         </p>
                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                             <div className="flex justify-between text-xs font-bold mb-2">
@@ -209,12 +284,105 @@ export default function BusinessRevenuePage() {
                         <p className="text-xs text-orange-700 leading-relaxed mb-6 font-medium">
                             Request a limit increase for your early payouts or dispute a platform fee.
                         </p>
-                        <button className="w-full py-3 bg-white text-orange-600 rounded-xl font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-orange-600 hover:text-white transition-all">
+                        <button
+                            onClick={() => setIsTicketModalOpen(true)}
+                            className="w-full py-3 bg-white text-orange-600 rounded-xl font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-orange-600 hover:text-white transition-all"
+                        >
                             Open Finance Ticket
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* Finance Ticket Modal */}
+            <Modal isOpen={isTicketModalOpen} onClose={() => setIsTicketModalOpen(false)} title="Open Finance Ticket">
+                <form onSubmit={handleTicketSubmit} className="space-y-6">
+                    {ticketSuccess ? (
+                        <div className="py-8 text-center space-y-4">
+                            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                                <CheckCircle2 className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 uppercase">Ticket Submitted</h3>
+                            <p className="text-slate-500 text-sm">Our finance team will review your request and get back to you shortly.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Subject</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={ticketData.subject}
+                                        onChange={e => setTicketData({ ...ticketData, subject: e.target.value })}
+                                        placeholder="Briefly describe the issue..."
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none font-medium"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Category</label>
+                                        <select
+                                            value={ticketData.type}
+                                            onChange={e => setTicketData({ ...ticketData, type: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none font-medium appearance-none"
+                                        >
+                                            <option value="GENERAL">General Inquiry</option>
+                                            <option value="PAYOUT">Payout Issue</option>
+                                            <option value="LIMITS">Limit Increase</option>
+                                            <option value="DISPUTE">Dispute/Chargeback</option>
+                                            <option value="FEES">Billing/Fees</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Priority</label>
+                                        <select
+                                            value={ticketData.priority}
+                                            onChange={e => setTicketData({ ...ticketData, priority: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none font-medium appearance-none"
+                                        >
+                                            <option value="NORMAL">Normal</option>
+                                            <option value="URGENT">Urgent</option>
+                                            <option value="CRITICAL">Critical</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Detailed Description</label>
+                                    <textarea
+                                        required
+                                        rows={4}
+                                        value={ticketData.description}
+                                        onChange={e => setTicketData({ ...ticketData, description: e.target.value })}
+                                        placeholder="Please provide as much detail as possible..."
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none font-medium resize-none"
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            {ticketError && (
+                                <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-center gap-3">
+                                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                                    <p className="text-xs text-red-800 font-medium">{ticketError}</p>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3 pt-2">
+                                <button type="button" onClick={() => setIsTicketModalOpen(false)} className="flex-1 py-3 border border-slate-200 text-slate-500 font-bold rounded-xl uppercase tracking-widest text-xs hover:bg-slate-50 transition-all">Cancel</button>
+                                <button
+                                    type="submit"
+                                    disabled={isTicketSubmitting}
+                                    className="flex-[2] py-3 bg-slate-900 text-white font-bold rounded-xl uppercase tracking-widest text-xs hover:bg-orange-600 transition-all shadow-lg flex items-center justify-center gap-2"
+                                >
+                                    {isTicketSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit Ticket"}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </form>
+            </Modal>
 
             {/* Payout Settings Modal */}
             <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="Settlement Configuration">
@@ -227,12 +395,11 @@ export default function BusinessRevenuePage() {
                                 { id: "T+3", label: "Standard (T+3)", desc: "Default cycle for all verified exhibitors.", fee: "Free" },
                                 { id: "T+7", label: "Extended (T+7)", desc: "Higher security for high-ticket transactions.", fee: "Free" },
                             ].map(rule => (
-                                <div 
+                                <div
                                     key={rule.id}
                                     onClick={() => setSettlementRule(rule.id)}
-                                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                                        settlementRule === rule.id ? "border-orange-600 bg-orange-50 shadow-md" : "border-slate-100 hover:border-orange-200"
-                                    }`}
+                                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${settlementRule === rule.id ? "border-orange-600 bg-orange-50 shadow-md" : "border-slate-100 hover:border-orange-200"
+                                        }`}
                                 >
                                     <div>
                                         <p className="font-bold text-slate-900 text-sm">{rule.label}</p>
@@ -257,7 +424,7 @@ export default function BusinessRevenuePage() {
 
                     <div className="pt-4 flex gap-3">
                         <button type="button" onClick={() => setIsSettingsOpen(false)} className="flex-1 py-4 border border-slate-200 text-slate-500 font-bold rounded-2xl uppercase tracking-widest text-xs hover:bg-slate-50 transition-all">Cancel</button>
-                        <button 
+                        <button
                             type="submit"
                             disabled={isSaving}
                             className="flex-1 py-4 bg-orange-600 text-white font-bold rounded-2xl uppercase tracking-widest text-xs hover:bg-orange-700 transition-all shadow-lg flex items-center justify-center gap-2"

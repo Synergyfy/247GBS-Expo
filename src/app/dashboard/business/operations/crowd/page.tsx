@@ -1,45 +1,76 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-    Users, 
-    MapPin, 
-    AlertTriangle, 
-    TrendingUp, 
-    Clock, 
-    BarChart3, 
+import {
+    Users,
+    MapPin,
+    AlertTriangle,
+    TrendingUp,
+    Clock,
+    BarChart3,
     ArrowRight,
     Activity,
     Zap,
     ShieldAlert,
-    ChevronRight
+    ChevronRight,
+    Loader2,
+    ChevronDown
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { api } from "@/lib/api";
 
 export default function CrowdControlPage() {
-    const [occupancy, setOccupancy] = useState(42);
-    const [peakAlert, setPeakAlert] = useState(false);
+    const [events, setEvents] = useState<any[]>([]);
+    const [selectedEventId, setSelectedEventId] = useState("");
+    const [isEventsLoading, setIsEventsLoading] = useState(true);
 
-    // Simulation for live data
+    const [stats, setStats] = useState<any>(null);
+    const [zones, setZones] = useState<any[]>([]);
+    const [insights, setInsights] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
     useEffect(() => {
-        const interval = setInterval(() => {
-            setOccupancy(prev => {
-                const change = Math.floor(Math.random() * 5) - 2;
-                const next = Math.min(100, Math.max(0, prev + change));
-                if (next > 85) setPeakAlert(true);
-                else setPeakAlert(false);
-                return next;
-            });
-        }, 3000);
-        return () => clearInterval(interval);
+        fetchEvents();
     }, []);
 
-    const ZONES = [
-        { name: "Main Exhibition Hall", current: 842, capacity: 1000, trend: "up", color: "orange" },
-        { name: "Workshop Room A", current: 45, capacity: 50, trend: "stable", color: "blue" },
-        { name: "Networking Lounge", current: 120, capacity: 250, trend: "down", color: "emerald" },
-        { name: "VIP Platinum Zone", current: 28, capacity: 100, trend: "stable", color: "purple" },
-    ];
+    useEffect(() => {
+        if (selectedEventId) {
+            fetchCrowdData();
+        }
+    }, [selectedEventId]);
+
+    const fetchEvents = async () => {
+        setIsEventsLoading(true);
+        try {
+            const res = await api.get("/dashboard/business/events");
+            const list = res.events || [];
+            setEvents(list);
+            if (list.length > 0) setSelectedEventId(list[0].id);
+        } catch {
+            console.error("Failed to fetch events");
+        } finally {
+            setIsEventsLoading(false);
+        }
+    };
+
+    const fetchCrowdData = async () => {
+        if (!selectedEventId) return;
+        setIsLoading(true);
+        try {
+            const [statsRes, zonesRes, insightsRes] = await Promise.all([
+                api.get(`/dashboard/business/operations/crowd/stats?eventId=${selectedEventId}`),
+                api.get(`/dashboard/business/operations/crowd/zones?eventId=${selectedEventId}`),
+                api.get(`/dashboard/business/operations/crowd/insights?eventId=${selectedEventId}`)
+            ]);
+            setStats(statsRes);
+            setZones(zonesRes);
+            setInsights(insightsRes);
+        } catch (err) {
+            console.error("Failed to fetch crowd data", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
@@ -53,16 +84,40 @@ export default function CrowdControlPage() {
                     <button className="px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all shadow-sm">
                         Export Traffic Report
                     </button>
+                    <button onClick={fetchCrowdData} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg flex items-center gap-2">
+                        <Activity className="w-4 h-4" /> Refresh
+                    </button>
+                </div>
+            </div>
+
+            {/* Event Selector */}
+            <div className="relative inline-block w-full max-w-md">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Event Context</label>
+                <div className="relative">
+                    <select
+                        value={selectedEventId}
+                        onChange={e => setSelectedEventId(e.target.value)}
+                        className="w-full appearance-none bg-white border border-slate-200 px-6 py-4 rounded-2xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer shadow-sm pr-12"
+                    >
+                        {isEventsLoading ? (
+                            <option>Loading events...</option>
+                        ) : events.length > 0 ? (
+                            events.map(ev => <option key={ev.id} value={ev.id}>{ev.title || ev.name}</option>)
+                        ) : (
+                            <option value="">No events found</option>
+                        )}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                 </div>
             </div>
 
             {/* Live Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                    { label: "Total Attendance", val: "1,402", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-                    { label: "Real-time Occupancy", val: `${occupancy}%`, icon: Activity, color: "text-orange-600", bg: "bg-orange-50" },
-                    { label: "Avg. Dwell Time", val: "42 mins", icon: Clock, color: "text-purple-600", bg: "bg-purple-50" },
-                    { label: "Peak Forecast", val: "02:30 PM", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
+                    { label: "Total Attendance", val: stats?.totalAttendance || "0", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+                    { label: "Real-time Occupancy", val: `${stats?.occupancy || 0}%`, icon: Activity, color: "text-orange-600", bg: "bg-orange-50" },
+                    { label: "Avg. Dwell Time", val: stats?.avgDwellTime || "---", icon: Clock, color: "text-purple-600", bg: "bg-purple-50" },
+                    { label: "Peak Forecast", val: stats?.peakForecast || "---", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
                         <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center`}>
@@ -77,8 +132,8 @@ export default function CrowdControlPage() {
             </div>
 
             {/* Overcrowding Warning */}
-            {peakAlert && (
-                <motion.div 
+            {stats?.isPeakAlert && (
+                <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="bg-red-600 rounded-[2rem] p-8 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl shadow-red-600/30 ring-4 ring-red-100"
@@ -89,7 +144,7 @@ export default function CrowdControlPage() {
                         </div>
                         <div>
                             <h3 className="text-2xl font-black uppercase tracking-tight">Overcrowding Alert</h3>
-                            <p className="text-red-100 font-medium">Main Exhibition Hall is at 94% capacity. Diversify traffic to Hall B.</p>
+                            <p className="text-red-100 font-medium">Event space is at {stats.occupancy}% capacity. Monitoring entry points.</p>
                         </div>
                     </div>
                     <button className="px-8 py-4 bg-white text-red-600 font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-red-50 transition-all shadow-xl">
@@ -99,7 +154,7 @@ export default function CrowdControlPage() {
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* 9.3 Zone Occupancy List */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-8 md:p-12">
@@ -111,38 +166,47 @@ export default function CrowdControlPage() {
                         </div>
 
                         <div className="space-y-10">
-                            {ZONES.map((zone, i) => (
-                                <div key={i} className="space-y-4">
-                                    <div className="flex justify-between items-end">
-                                        <div>
-                                            <h4 className="font-bold text-lg text-slate-900">{zone.name}</h4>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Zone Status: Healthy</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="text-xl font-black text-slate-900">{zone.current}</span>
-                                            <span className="text-sm font-bold text-slate-400 ml-1">/ {zone.capacity}</span>
-                                        </div>
-                                    </div>
-                                    <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                        <motion.div 
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(zone.current / zone.capacity) * 100}%` }}
-                                            transition={{ duration: 1 }}
-                                            className={`h-full rounded-full transition-all ${
-                                                (zone.current / zone.capacity) > 0.9 ? 'bg-red-500' : 
-                                                (zone.current / zone.capacity) > 0.7 ? 'bg-orange-500' : 'bg-emerald-500'
-                                            }`}
-                                        />
-                                    </div>
-                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <div className="flex items-center gap-1">
-                                            <TrendingUp className={`w-3 h-3 ${zone.trend === 'up' ? 'text-orange-500' : 'text-emerald-500'}`} />
-                                            Trend: {zone.trend}
-                                        </div>
-                                        <span>Optimal Threshold: 850</span>
-                                    </div>
+                            {isLoading ? (
+                                <div className="py-20 text-center">
+                                    <Loader2 className="w-10 h-10 animate-spin text-orange-600 mx-auto" />
                                 </div>
-                            ))}
+                            ) : zones.length === 0 ? (
+                                <div className="py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">
+                                    No zone data available
+                                </div>
+                            ) : (
+                                zones.map((zone, i) => (
+                                    <div key={i} className="space-y-4">
+                                        <div className="flex justify-between items-end">
+                                            <div>
+                                                <h4 className="font-bold text-lg text-slate-900">{zone.name}</h4>
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Zone Status: {zone.status}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xl font-black text-slate-900">{zone.current}</span>
+                                                <span className="text-sm font-bold text-slate-400 ml-1">/ {zone.capacity}</span>
+                                            </div>
+                                        </div>
+                                        <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${(zone.current / zone.capacity) * 100}%` }}
+                                                transition={{ duration: 1 }}
+                                                className={`h-full rounded-full transition-all ${(zone.current / zone.capacity) > 0.9 ? 'bg-red-500' :
+                                                    (zone.current / zone.capacity) > 0.7 ? 'bg-orange-500' : 'bg-emerald-500'
+                                                    }`}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                            <div className="flex items-center gap-1">
+                                                <TrendingUp className={`w-3 h-3 ${zone.trend === 'up' ? 'text-orange-500' : 'text-emerald-500'}`} />
+                                                Trend: {zone.trend}
+                                            </div>
+                                            <span>Capacity: {zone.capacity}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -156,9 +220,9 @@ export default function CrowdControlPage() {
                         <h3 className="text-xl font-bold mb-8 relative z-10 uppercase tracking-widest">Entry Velocity</h3>
                         <div className="space-y-8 relative z-10">
                             {[
-                                { label: "Scan Speed", val: "4.2s / user", desc: "Average validation time" },
-                                { label: "Check-in Rate", val: "142 / hour", desc: "Current entry flow" },
-                                { label: "Reject Rate", val: "0.2%", desc: "Invalid ticket attempts" },
+                                { label: "Scan Speed", val: insights?.scanSpeed || "---", desc: "Average validation time" },
+                                { label: "Check-in Rate", val: insights?.checkInRate || "---", desc: "Current entry flow" },
+                                { label: "Reject Rate", val: insights?.rejectRate || "---", desc: "Invalid ticket attempts" },
                             ].map((insight, i) => (
                                 <div key={i} className="flex gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
@@ -171,13 +235,13 @@ export default function CrowdControlPage() {
                                     </div>
                                 </div>
                             ))}
-                            
+
                             <div className="pt-8 border-t border-white/10">
                                 <h4 className="text-sm font-bold mb-4 uppercase tracking-tighter text-slate-400">Heatmap Distribution</h4>
                                 <div className="grid grid-cols-3 gap-2 h-20">
-                                    {[40, 90, 30, 60, 20, 80].map((h, i) => (
+                                    {(insights?.heatmap || [10, 10, 10, 10, 10, 10]).map((h: number, i: number) => (
                                         <div key={i} className="bg-white/5 rounded-lg flex items-end overflow-hidden">
-                                            <div className="w-full bg-orange-600/40 border-t border-orange-500" style={{ height: `${h}%` }} />
+                                            <div className="w-full bg-orange-600/40 border-t border-orange-500 transition-all duration-1000" style={{ height: `${h}%` }} />
                                         </div>
                                     ))}
                                 </div>

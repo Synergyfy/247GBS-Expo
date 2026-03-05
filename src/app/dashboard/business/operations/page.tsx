@@ -31,6 +31,8 @@ export default function EventOperationsSetupPage() {
 
     const [staff, setStaff] = useState<any[]>([]);
     const [isStaffLoading, setIsStaffLoading] = useState(true);
+    const [scanners, setScanners] = useState<any[]>([]);
+    const [isScannersLoading, setIsScannersLoading] = useState(true);
     const [diagnostics, setDiagnostics] = useState<any[]>([]);
 
     useEffect(() => {
@@ -60,17 +62,21 @@ export default function EventOperationsSetupPage() {
     const fetchOperationsData = async () => {
         if (!selectedEventId) return;
         setIsStaffLoading(true);
+        setIsScannersLoading(true);
         try {
-            const [staffRes, diagRes] = await Promise.all([
+            const [staffRes, diagRes, scannerRes] = await Promise.all([
                 api.get(`/dashboard/business/operations/staff?eventId=${selectedEventId}`),
-                api.get(`/dashboard/business/operations/diagnostics?eventId=${selectedEventId}`)
+                api.get(`/dashboard/business/operations/diagnostics?eventId=${selectedEventId}`),
+                api.get(`/dashboard/business/operations/scanners?eventId=${selectedEventId}`)
             ]);
             setStaff(staffRes);
             setDiagnostics(diagRes);
+            setScanners(scannerRes);
         } catch (err) {
             console.error("Failed to fetch operations data", err);
         } finally {
             setIsStaffLoading(false);
+            setIsScannersLoading(false);
         }
     };
 
@@ -147,29 +153,36 @@ export default function EventOperationsSetupPage() {
                         </div>
                         <div className="p-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {[
-                                    { name: "Main Hall Scanner A", type: "Handheld POS", status: "Online", battery: "84%" },
-                                    { name: "VIP Lounge Phone", type: "iOS Device", status: "Online", battery: "92%" },
-                                    { name: "Staff Entry Tablet", type: "Android Tablet", status: "Offline", battery: "0%" },
-                                ].map((device, i) => (
-                                    <div key={i} className="p-6 rounded-3xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg transition-all group">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-orange-600 shadow-sm transition-colors border border-slate-100">
-                                                <Smartphone className="w-6 h-6" />
-                                            </div>
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${device.status === 'Online' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
-                                                }`}>
-                                                {device.status}
-                                            </span>
-                                        </div>
-                                        <h4 className="font-bold text-slate-900 mb-1">{device.name}</h4>
-                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">{device.type}</p>
-                                        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                                            <span className="text-xs font-bold text-slate-500">Battery: {device.battery}</span>
-                                            <button className="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:underline">Ping Device</button>
-                                        </div>
+                                {isScannersLoading ? (
+                                    <div className="col-span-2 py-10 text-center">
+                                        <Loader2 className="w-8 h-8 animate-spin text-orange-600 mx-auto" />
                                     </div>
-                                ))}
+                                ) : scanners.length === 0 ? (
+                                    <div className="col-span-2 py-10 text-center border-2 border-dashed border-slate-100 rounded-3xl">
+                                        <Smartphone className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No devices registered</p>
+                                    </div>
+                                ) : (
+                                    scanners.map((device, i) => (
+                                        <div key={device.id || i} className="p-6 rounded-3xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg transition-all group">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-orange-600 shadow-sm transition-colors border border-slate-100">
+                                                    <Smartphone className="w-6 h-6" />
+                                                </div>
+                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${device.status === 'ONLINE' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+                                                    }`}>
+                                                    {device.status}
+                                                </span>
+                                            </div>
+                                            <h4 className="font-bold text-slate-900 mb-1">{device.name}</h4>
+                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">{device.type || 'Standard Scanner'}</p>
+                                            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                                                <span className="text-xs font-bold text-slate-500">Battery: {device.battery || '100%'}</span>
+                                                <button className="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:underline">Ping Device</button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
@@ -185,7 +198,7 @@ export default function EventOperationsSetupPage() {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
-                                    <tr className="bg-slate-50/50">
+                                    <tr className="bg-slate-50/50 border-b border-slate-100">
                                         <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</th>
                                         <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Zone</th>
                                         <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
@@ -207,7 +220,7 @@ export default function EventOperationsSetupPage() {
                                         </tr>
                                     ) : (
                                         staff.map((s, i) => (
-                                            <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                            <tr key={s.id || i} className="hover:bg-slate-50 transition-colors">
                                                 <td className="px-8 py-5">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">
@@ -244,21 +257,28 @@ export default function EventOperationsSetupPage() {
                         <h3 className="text-xl font-bold mb-6 relative z-10">Scanner System Test</h3>
                         <div className="space-y-4 relative z-10">
                             {(diagnostics.length > 0 ? diagnostics : [
-                                { label: "Network Latency", val: "12ms", status: "OK" },
-                                { label: "QR API Status", val: "Operational", status: "OK" },
-                                { label: "DB Mirror Sync", val: "99.9%", status: "OK" },
+                                { label: "Network Latency", val: "Checking...", status: "PENDING" },
+                                { label: "QR API Status", val: "Checking...", status: "PENDING" },
+                                { label: "DB Mirror Sync", val: "Checking...", status: "PENDING" },
                             ]).map((test, i) => (
                                 <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex justify-between items-center">
                                     <div>
                                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{test.label}</p>
                                         <p className="text-sm font-bold text-slate-200">{test.val}</p>
                                     </div>
-                                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${test.status === 'OK' ? 'bg-emerald-500/20' : 'bg-orange-500/20'}`}>
+                                        {test.status === 'OK' ? (
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                        ) : (
+                                            <RefreshCw className="w-4 h-4 text-orange-500 animate-spin" />
+                                        )}
                                     </div>
                                 </div>
                             ))}
-                            <button className="w-full py-4 mt-4 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-orange-600 hover:text-white transition-all">
+                            <button
+                                onClick={fetchOperationsData}
+                                className="w-full py-4 mt-4 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-orange-600 hover:text-white transition-all"
+                            >
                                 Run Full Diagnostic
                             </button>
                         </div>

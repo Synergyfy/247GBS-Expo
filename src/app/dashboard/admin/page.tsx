@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Tooltip from "../../component/Tooltip";
+import { api } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 // --- ICONS ---
 const UsersIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -19,6 +21,31 @@ const CheckIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 export default function AdminOverview() {
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await api.get('/admin/dashboard/stats');
+                setData(res.data);
+            } catch (error) {
+                console.error("Failed to fetch admin stats", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    if (isLoading || !data) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
@@ -40,10 +67,10 @@ export default function AdminOverview() {
             {/* STATS MATRIX */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: "Total Platform Revenue", value: "£1.24M", icon: <ProfitIcon />, color: "orange", sub: "Overall fee collections" },
-                    { label: "Active Exhibitors", value: "842", icon: <UsersIcon />, color: "orange", sub: "Currently listed booths" },
-                    { label: "Pending Approvals", value: "48", icon: <AlertIcon />, color: "orange", sub: "Requires immediate review" },
-                    { label: "Global Traffic", value: "128K", icon: <ProfitIcon />, color: "orange", sub: "Avg. Daily unique visits" }
+                    { label: "Total Platform Revenue", value: data.stats.totalRevenue, icon: <ProfitIcon />, color: "orange", sub: "Overall fee collections" },
+                    { label: "Active Exhibitors", value: data.stats.activeExhibitors, icon: <UsersIcon />, color: "orange", sub: "Currently listed booths" },
+                    { label: "Pending Approvals", value: data.stats.pendingApprovals, icon: <AlertIcon />, color: "orange", sub: "Requires immediate review" },
+                    { label: "Global Traffic", value: data.stats.globalTraffic, icon: <ProfitIcon />, color: "orange", sub: "Avg. Daily unique visits" }
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group overflow-hidden relative">
                         <div className="relative z-10">
@@ -71,11 +98,7 @@ export default function AdminOverview() {
                     </div>
 
                     <div className="space-y-6">
-                        {[
-                            { name: "Urban Threads Co.", owner: "Mark Riley", time: "12m ago", status: "New" },
-                            { name: "EcoHome Solutions", owner: "Sarah Lane", time: "1h ago", status: "Reviewing" },
-                            { name: "GamerSpace Tech", owner: "Alex Chen", time: "3h ago", status: "New" }
-                        ].map((item, i) => (
+                        {data.approvalFeed.map((item: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-orange-200 hover:bg-white transition-all">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-700 font-black">
@@ -103,12 +126,7 @@ export default function AdminOverview() {
                         <h3 className="text-orange-100 text-sm font-black uppercase tracking-widest mb-6">Server Health</h3>
 
                         <div className="space-y-6 flex-1">
-                            {[
-                                { label: "Live Streams", val: "Operational", color: "white" },
-                                { label: "Payment Gateway", val: "Operational", color: "white" },
-                                { label: "Content CDN", val: "92% Load", color: "orange-100" },
-                                { label: "API Latency", val: "42ms", color: "white" }
-                            ].map((log, i) => (
+                            {data.serverHealth.map((log: any, i: number) => (
                                 <div key={i} className="flex justify-between items-center border-b border-orange-500 pb-3">
                                     <span className="text-orange-100 text-xs font-bold uppercase">{log.label}</span>
                                     <div className="flex items-center gap-2">
