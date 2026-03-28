@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 import { 
     QrCode, 
     CheckCircle2, 
@@ -11,7 +12,8 @@ import {
     RefreshCw, 
     AlertCircle,
     ArrowRight,
-    User
+    User,
+    Loader2
 } from "lucide-react";
 
 export default function VerificationTerminalPage() {
@@ -19,22 +21,69 @@ export default function VerificationTerminalPage() {
     const [ticketCode, setTicketCode] = useState("");
     const [verifying, setVerifying] = useState(false);
     const [lastScan, setLastScan] = useState<any>(null);
+    const [stats, setStats] = useState<any>(null);
+    const [eventId, setEventId] = useState<string>("");
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleVerify = () => {
+    useEffect(() => {
+        const initTerminal = async () => {
+            try {
+                // Fetch first active event for this business
+                const eventsData = await api.get('/dashboard/business/event/my-events');
+                const events = eventsData.events || [];
+                if (events.length > 0) {
+                    setEventId(events[0].id);
+                    fetchStats(events[0].id);
+                }
+            } catch (error) {
+                console.error("Failed to initialize verification terminal:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        initTerminal();
+    }, []);
+
+    const fetchStats = async (id: string = eventId) => {
+        if (!id) return;
+        try {
+            const data = await api.get(`/business/verification/stats?eventId=${id}`);
+            setStats(data);
+        } catch (error) {
+            console.error("Failed to fetch stats:", error);
+        }
+    };
+
+    const handleVerify = async () => {
+        if (!ticketCode || !eventId) return;
         setVerifying(true);
-        // Mock verification delay
-        setTimeout(() => {
-            setVerifying(false);
+        try {
+            const result = await api.post('/business/verification/verify', {
+                eventId,
+                ticketCode
+            });
+            setLastScan(result);
+            setTicketCode("");
+            fetchStats(); // Update occupancy and log
+        } catch (error: any) {
             setLastScan({
-                status: "Success",
-                user: "John Doe",
-                ticketType: "VIP NETWORKER",
-                id: ticketCode || "GBX-88219-X22",
+                status: "Error",
+                message: error.message || "Invalid Ticket",
+                id: ticketCode,
                 timestamp: new Date().toLocaleTimeString()
             });
-            setTicketCode("");
-        }, 1500);
+        } finally {
+            setVerifying(false);
+        }
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -46,7 +95,7 @@ export default function VerificationTerminalPage() {
                 </div>
                 <div className="flex items-center gap-4 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-sm font-bold uppercase tracking-wider">Systems Online: 4 Scanners Active</span>
+                    <span className="text-sm font-bold uppercase tracking-wider">Terminal Online • Event ID: {eventId.substring(0, 8)}...</span>
                 </div>
             </div>
 
@@ -114,8 +163,8 @@ export default function VerificationTerminalPage() {
                                     <div>
                                         <h3 className="text-2xl font-black text-slate-900">{lastScan.status === 'Success' ? 'Access Granted' : 'Invalid Ticket'}</h3>
                                         <div className="flex gap-4 mt-1">
-                                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">{lastScan.user}</span>
-                                            <span className="text-sm font-bold text-orange-600 uppercase tracking-wider">{lastScan.ticketType}</span>
+                                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">{lastScan.user || lastScan.message}</span>
+                                            {lastScan.ticketType && <span className="text-sm font-bold text-orange-600 uppercase tracking-wider">{lastScan.ticketType}</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -140,11 +189,14 @@ export default function VerificationTerminalPage() {
                         <div className="space-y-6">
                             <div>
                                 <div className="flex justify-between text-sm font-bold mb-2">
-                                    <span className="text-slate-500">Virtual Hall A</span>
-                                    <span className="text-slate-900">842 / 5,000</span>
+                                    <span className="text-slate-500">Live Occupancy</span>
+                                    <span className="text-slate-900">{stats?.occupancy.current || 0} / {stats?.occupancy.total || 0}</span>
                                 </div>
                                 <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-orange-500 rounded-full w-[16.8%]" />
+                                    <div 
+                                        className="h-full bg-orange-500 rounded-full transition-all duration-500" 
+                                        style={{ width: `${Math.min(((stats?.occupancy.current || 0) / (stats?.occupancy.total || 1)) * 100, 100)}%` }} 
+                                    />
                                 </div>
                             </div>
                             <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100">
@@ -163,18 +215,20 @@ export default function VerificationTerminalPage() {
                             <RefreshCw className="w-4 h-4 text-slate-300" />
                         </div>
                         <div className="space-y-4">
-                            {[1, 2, 3, 4, 5].map(i => (
+                            {stats?.liveLog.length > 0 ? stats.liveLog.map((log: any, i: number) => (
                                 <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0">
                                     <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
                                         <User className="w-4 h-4 text-slate-300" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-xs font-bold text-slate-900">Sarah Johnson Checked-in</p>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">VIP Pass • 10:42:0{i}</p>
+                                        <p className="text-xs font-bold text-slate-900">{log.user} Checked-in</p>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{log.ticketType} • {log.timestamp}</p>
                                     </div>
                                     <div className="w-2 h-2 rounded-full bg-emerald-500" />
                                 </div>
-                            ))}
+                            )) : (
+                                <p className="text-slate-400 text-xs text-center py-8">No check-ins yet...</p>
+                            )}
                         </div>
                     </div>
                 </div>

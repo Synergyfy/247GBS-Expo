@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
     ShieldCheck, 
     UserCheck, 
@@ -16,11 +16,100 @@ import {
     Eye,
     Database,
     FileText,
-    Gavel
+    Gavel,
+    Loader2
 } from "lucide-react";
+import { api } from "@/lib/api";
+
+interface ComplianceStats {
+    verifiedUsers: string;
+    pendingKYB: number;
+    flaggedAccounts: number;
+}
+
+interface KYCItem {
+    id: string;
+    name: string;
+    type: string;
+    date: string;
+    status: string;
+}
+
+interface ComplianceConfig {
+    gdprEnforced: boolean;
+    dataRetentionMonths: number;
+    sanctionScreeningEnabled: boolean;
+}
+
+interface DataRequest {
+    id: string;
+    type: string;
+    user: string;
+    due: string;
+}
+
+interface ConsentLog {
+    time: string;
+    ip: string;
+    action: string;
+    type: string;
+}
 
 export default function ComplianceHubPage() {
     const [activeTab, setActiveTab] = useState("kyc");
+    const [isLoading, setIsLoading] = useState(true);
+    const [stats, setStats] = useState<ComplianceStats | null>(null);
+    const [kycQueue, setKYCQueue] = useState<KYCItem[]>([]);
+    const [config, setConfig] = useState<ComplianceConfig | null>(null);
+    const [dataRequests, setDataRequests] = useState<DataRequest[]>([]);
+    const [consentLogs, setConsentLogs] = useState<ConsentLog[]>([]);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            const [statsRes, kycRes, configRes, requestsRes, consentRes] = await Promise.all([
+                api.get('/admin/compliance/stats'),
+                api.get('/admin/compliance/kyc'),
+                api.get('/admin/compliance/config'),
+                api.get('/admin/compliance/requests'),
+                api.get('/admin/compliance/consent')
+            ]);
+
+            if (statsRes.success) setStats(statsRes.data);
+            if (kycRes.success) setKYCQueue(kycRes.data);
+            if (configRes.success) setConfig(configRes.data);
+            if (requestsRes.success) setDataRequests(requestsRes.data);
+            if (consentRes.success) setConsentLogs(consentRes.data);
+        } catch (error) {
+            console.error('Failed to fetch compliance data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleConfigUpdate = async (updatedConfig: Partial<ComplianceConfig>) => {
+        if (!config) return;
+        try {
+            const newConfig = { ...config, ...updatedConfig };
+            const res = await api.post('/admin/compliance/config', newConfig);
+            if (res.success) setConfig(res.data);
+        } catch (error) {
+            console.error('Failed to update compliance config:', error);
+        }
+    };
+
+    if (isLoading && !stats) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-sm text-center">Initialising Compliance Monitor...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -70,9 +159,9 @@ export default function ComplianceHubPage() {
                     <div className="space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {[
-                                { label: "Verified Users", val: "124.2K", icon: <UserCheck />, color: "emerald" },
-                                { label: "Pending KYB", val: "42", icon: <FileCheck />, color: "orange" },
-                                { label: "Flagged Accounts", val: "12", icon: <AlertTriangle />, color: "red" },
+                                { label: "Verified Users", val: stats?.verifiedUsers || "0", icon: <UserCheck />, color: "emerald" },
+                                { label: "Pending KYB", val: stats?.pendingKYB.toString() || "0", icon: <FileCheck />, color: "orange" },
+                                { label: "Flagged Accounts", val: stats?.flaggedAccounts.toString() || "0", icon: <AlertTriangle />, color: "red" },
                             ].map((stat, i) => (
                                 <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                                     <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center mb-4`}>
@@ -104,11 +193,7 @@ export default function ComplianceHubPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {[
-                                            { name: "John Doe", type: "Gov ID", date: "12m ago", status: "In Progress" },
-                                            { name: "Acme Corp Ltd", type: "Business License", date: "2h ago", status: "Reviewing" },
-                                            { name: "Sarah Lane", type: "Passport", date: "5h ago", status: "New" },
-                                        ].map((item, i) => (
+                                        {kycQueue.map((item, i) => (
                                             <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
                                                 <td className="px-8 py-5">
                                                     <p className="text-sm font-bold text-slate-900">{item.name}</p>
@@ -116,13 +201,26 @@ export default function ComplianceHubPage() {
                                                 <td className="px-8 py-5 text-sm text-slate-600 font-medium">{item.type}</td>
                                                 <td className="px-8 py-5 text-xs text-slate-400 font-bold uppercase">{item.date}</td>
                                                 <td className="px-8 py-5">
-                                                    <span className="text-[10px] font-bold px-2 py-1 bg-orange-100 text-orange-700 rounded-md uppercase tracking-wider">{item.status}</span>
+                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${
+                                                        item.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 
+                                                        item.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 
+                                                        'bg-orange-100 text-orange-700'
+                                                    }`}>
+                                                        {item.status}
+                                                    </span>
                                                 </td>
                                                 <td className="px-8 py-5 text-right">
                                                     <button className="text-orange-600 font-black text-[10px] uppercase tracking-widest hover:underline">Verify Docs</button>
                                                 </td>
                                             </tr>
                                         ))}
+                                        {kycQueue.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="p-12 text-center">
+                                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No pending identities in queue</p>
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
@@ -145,16 +243,26 @@ export default function ComplianceHubPage() {
                                             <p className="text-sm font-bold text-slate-900">Enforce GDPR Compliance</p>
                                             <p className="text-xs text-slate-500">Auto-anonymize data for EU users</p>
                                         </div>
-                                        <div className="w-12 h-6 bg-emerald-500 rounded-full relative cursor-pointer">
-                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                                        <div 
+                                            onClick={() => handleConfigUpdate({ gdprEnforced: !config?.gdprEnforced })}
+                                            className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${config?.gdprEnforced ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${config?.gdprEnforced ? 'right-1' : 'left-1'}`} />
                                         </div>
                                     </div>
                                     
                                     <div>
                                         <label className="block text-xs font-black uppercase text-slate-400 mb-2">Data Retention Period (Months)</label>
                                         <div className="flex items-center gap-4">
-                                            <input type="range" min="6" max="60" defaultValue="24" className="w-full accent-orange-600" />
-                                            <span className="font-bold text-slate-900 text-sm w-12 text-center">24m</span>
+                                            <input 
+                                                type="range" 
+                                                min="6" 
+                                                max="60" 
+                                                value={config?.dataRetentionMonths || 24} 
+                                                onChange={(e) => handleConfigUpdate({ dataRetentionMonths: parseInt(e.target.value) })}
+                                                className="w-full accent-orange-600" 
+                                            />
+                                            <span className="font-bold text-slate-900 text-sm w-12 text-center">{config?.dataRetentionMonths}m</span>
                                         </div>
                                     </div>
 
@@ -175,25 +283,29 @@ export default function ComplianceHubPage() {
                                     <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
                                         <FileText className="w-5 h-5 text-orange-600" /> Data Requests (DSAR)
                                     </h3>
-                                    <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-md text-[10px] font-black uppercase">3 Pending</span>
+                                    <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-md text-[10px] font-black uppercase">{dataRequests.length} Pending</span>
                                 </div>
                                 <div className="flex-1 space-y-4">
-                                    {[
-                                        { id: "REQ-001", type: "Export", user: "user@example.com", due: "2 days" },
-                                        { id: "REQ-002", type: "Deletion", user: "test@domain.com", due: "5 days" },
-                                        { id: "REQ-003", type: "Export", user: "john.doe@web.com", due: "1 week" }
-                                    ].map((req, i) => (
+                                    {dataRequests.map((req, i) => (
                                         <div key={i} className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="text-xs font-black text-slate-900">{req.id}</span>
-                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${req.type === 'Deletion' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>{req.type}</span>
+                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${req.type === 'DELETION' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>{req.type}</span>
                                                 </div>
                                                 <p className="text-xs text-slate-400">{req.user}</p>
                                             </div>
-                                            <button className="text-slate-400 hover:text-orange-600"><Eye className="w-4 h-4" /></button>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase">{req.due}</span>
+                                                <button className="text-slate-400 hover:text-orange-600"><Eye className="w-4 h-4" /></button>
+                                            </div>
                                         </div>
                                     ))}
+                                    {dataRequests.length === 0 && (
+                                        <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No pending requests</p>
+                                        </div>
+                                    )}
                                 </div>
                                 <button className="w-full mt-6 py-3 border border-slate-200 rounded-xl text-slate-500 font-bold text-sm hover:bg-slate-50">
                                     View All Requests
@@ -207,18 +319,19 @@ export default function ComplianceHubPage() {
                                 <Database className="w-5 h-5 text-orange-400" /> Real-time Consent Log
                             </h3>
                             <div className="space-y-3 font-mono text-xs text-slate-400">
-                                {[
-                                    { time: "10:42:01", ip: "192.168.1.1", action: "CONSENT_GRANTED", type: "Cookies" },
-                                    { time: "10:41:55", ip: "10.0.0.55", action: "CONSENT_REVOKED", type: "Marketing" },
-                                    { time: "10:40:12", ip: "172.16.0.2", action: "CONSENT_GRANTED", type: "Terms" },
-                                ].map((log, i) => (
-                                    <div key={i} className="flex gap-4 border-b border-white/5 pb-2 last:border-0">
-                                        <span className="text-slate-600">{log.time}</span>
-                                        <span className="text-orange-400">{log.ip}</span>
-                                        <span className={log.action.includes("GRANTED") ? "text-emerald-400" : "text-red-400"}>{log.action}</span>
+                                {consentLogs.map((log, i) => (
+                                    <div key={i} className="flex gap-4 border-b border-white/5 pb-2 last:border-0 hover:bg-white/5 transition-colors cursor-default">
+                                        <span className="text-slate-600 w-24">{log.time}</span>
+                                        <span className="text-orange-400 w-32">{log.ip}</span>
+                                        <span className={`w-36 ${log.action.includes("GRANTED") ? "text-emerald-400" : "text-red-400"}`}>{log.action}</span>
                                         <span className="text-slate-500">{log.type}</span>
                                     </div>
                                 ))}
+                                {consentLogs.length === 0 && (
+                                    <div className="p-12 text-center">
+                                        <p className="text-slate-600 font-bold uppercase tracking-widest text-[10px]">No consent logs recorded</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -238,4 +351,4 @@ export default function ComplianceHubPage() {
             </div>
         </div>
     );
-}
+}

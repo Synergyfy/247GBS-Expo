@@ -35,7 +35,7 @@ export default function SettingsPage() {
                     email: profile.user.email
                 },
                 booth: {
-                    name: profile.booth.name
+                    name: profile?.booth?.name || ""
                 }
             });
             setMessage({ type: 'success', text: 'Settings saved successfully' });

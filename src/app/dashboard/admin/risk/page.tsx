@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
     AlertTriangle, 
     ShieldAlert, 
@@ -15,11 +15,97 @@ import {
     MapPin,
     Smartphone,
     BarChart2,
-    Target
+    Target,
+    Loader2,
+    AlertCircle,
+    RefreshCw
 } from "lucide-react";
+import { api } from "@/lib/api";
+
+interface RiskStats {
+    highRiskEvents: number;
+    velocityTriggers: number;
+    blockedAttempts: number;
+    fraudSavings: number;
+    threatLevel: string;
+}
+
+interface Anomaly {
+    id: string;
+    title: string;
+    desc: string;
+    priority: string;
+    time: string;
+    type: string;
+}
+
+interface Rule {
+    id: string;
+    name: string;
+    enabled: boolean;
+    threshold?: string;
+    totalBlocked?: number;
+}
+
+interface ScoringFactor {
+    category: string;
+    factors: string[];
+    score: number;
+}
+
+interface ModelHealth {
+    falsePositives: string;
+    fraudCaptureRate: string;
+    lastRetrained: string;
+    status: string;
+}
 
 export default function RiskFraudPage() {
     const [activeTab, setActiveTab] = useState("monitor");
+    const [stats, setStats] = useState<RiskStats | null>(null);
+    const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
+    const [rules, setRules] = useState<Rule[]>([]);
+    const [scoring, setScoring] = useState<ScoringFactor[]>([]);
+    const [health, setHealth] = useState<ModelHealth | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        setError("");
+        try {
+            const [statsRes, anomaliesRes, rulesRes, scoringRes, healthRes] = await Promise.all([
+                api.get("/admin/risk/stats"),
+                api.get("/admin/risk/anomalies"),
+                api.get("/admin/risk/rules"),
+                api.get("/admin/risk/scoring"),
+                api.get("/admin/risk/health")
+            ]);
+
+            if (statsRes.success) setStats(statsRes.data);
+            if (anomaliesRes.success) setAnomalies(anomaliesRes.data);
+            if (rulesRes.success) setRules(rulesRes.data);
+            if (scoringRes.success) setScoring(scoringRes.data);
+            if (healthRes.success) setHealth(healthRes.data);
+        } catch (e: any) {
+            setError(e.message || "Failed to load risk data");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    if (isLoading && !stats) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-sm text-center">Initialising Risk Monitor...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -29,9 +115,18 @@ export default function RiskFraudPage() {
                     <h1 className="text-2xl font-bold text-slate-900">Risk & Fraud Monitor</h1>
                     <p className="text-slate-500">Real-time threat detection, transaction velocity checks, and anomaly monitoring.</p>
                 </div>
-                <div className="flex gap-4 bg-orange-50 text-orange-700 px-4 py-2 rounded-xl border border-orange-100 items-center">
-                    <ShieldAlert className="w-5 h-5" />
-                    <span className="text-sm font-bold uppercase tracking-wider">Threat Level: Low</span>
+                <div className="flex items-center gap-4">
+                    <button onClick={fetchData} className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all" title="Refresh">
+                        <RefreshCw className={`w-4 h-4 text-slate-500 ${isLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <div className={`flex gap-4 px-4 py-2 rounded-xl border items-center ${
+                        stats?.threatLevel === 'HIGH' ? 'bg-red-50 text-red-700 border-red-100' : 
+                        stats?.threatLevel === 'MEDIUM' ? 'bg-orange-50 text-orange-700 border-orange-100' : 
+                        'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    }`}>
+                        <ShieldAlert className="w-5 h-5" />
+                        <span className="text-sm font-bold uppercase tracking-wider">Threat Level: {stats?.threatLevel || 'Unknown'}</span>
+                    </div>
                 </div>
             </div>
 
@@ -57,22 +152,29 @@ export default function RiskFraudPage() {
                 ))}
             </div>
 
+            {error && (
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-700">
+                    <AlertCircle className="w-5 h-5" />
+                    <p className="text-sm font-bold">{error}</p>
+                </div>
+            )}
+
             {/* LIVE MONITOR TAB */}
             {activeTab === "monitor" && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-8">
                     {/* Risk stats */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         {[
-                            { label: "High Risk Events", val: "2", icon: <AlertTriangle />, color: "red" },
-                            { label: "Velocity Triggers", val: "14", icon: <Activity />, color: "orange" },
-                            { label: "Blocked Attempts", val: "128", icon: <UserX />, color: "slate" },
-                            { label: "Fraud Savings", val: "£12.4K", icon: <TrendingDown />, color: "emerald" },
+                            { label: "High Risk Events", val: stats?.highRiskEvents, icon: <AlertTriangle />, color: "red" },
+                            { label: "Velocity Triggers", val: stats?.velocityTriggers, icon: <Activity />, color: "orange" },
+                            { label: "Blocked Attempts", val: stats?.blockedAttempts, icon: <UserX />, color: "slate" },
+                            { label: "Fraud Savings", val: `£${(stats?.fraudSavings || 0) / 1000}K`, icon: <TrendingDown />, color: "emerald" },
                         ].map((stat, i) => (
                             <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                                 <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center mb-4`}>
                                     {stat.icon}
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900">{stat.val}</h3>
+                                <h3 className="text-2xl font-black text-slate-900">{stat.val ?? '—'}</h3>
                                 <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mt-1">{stat.label}</p>
                             </div>
                         ))}
@@ -87,11 +189,7 @@ export default function RiskFraudPage() {
                                 <button className="text-orange-600 text-sm font-bold uppercase tracking-widest hover:text-orange-700">View All Logs</button>
                             </div>
                             <div className="divide-y divide-slate-50">
-                                {[
-                                    { title: "Geo-Anomaly Detection", desc: "User verified in London, then 5m later in Tokyo.", priority: "Critical", time: "12m ago" },
-                                    { title: "Velocity Check Trigger", desc: "10 ticket attempts from same IP in < 1s.", priority: "High", time: "1h ago" },
-                                    { title: "Multiple Device Login", desc: "Account JD-221 accessed from 4 distinct mobile OS.", priority: "Medium", time: "2h ago" },
-                                ].map((a, i) => (
+                                {anomalies.map((a, i) => (
                                     <div key={i} className="p-6 flex items-start justify-between hover:bg-slate-50 transition-colors group">
                                         <div className="flex gap-6">
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
@@ -111,6 +209,11 @@ export default function RiskFraudPage() {
                                         </button>
                                     </div>
                                 ))}
+                                {anomalies.length === 0 && (
+                                    <div className="p-12 text-center">
+                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No active anomalies detected</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -119,18 +222,18 @@ export default function RiskFraudPage() {
                             <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl">
                                 <h3 className="text-xl font-bold mb-6">Detection Rules</h3>
                                 <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
-                                        <span className="text-sm font-bold">Velocity Limits</span>
-                                        <div className="w-10 h-5 bg-orange-600 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
-                                        <span className="text-sm font-bold">IP Blacklisting</span>
-                                        <div className="w-10 h-5 bg-orange-600 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
-                                        <span className="text-sm font-bold">Device Fingerprinting</span>
-                                        <div className="w-10 h-5 bg-orange-600 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                                    </div>
+                                    {rules.map((rule) => (
+                                        <div key={rule.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                            <div>
+                                                <p className="text-sm font-bold">{rule.name}</p>
+                                                {rule.threshold && <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">Limit: {rule.threshold}</p>}
+                                                {rule.totalBlocked !== undefined && <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">Total Blocked: {rule.totalBlocked}</p>}
+                                            </div>
+                                            <div className={`w-10 h-5 rounded-full relative transition-colors ${rule.enabled ? 'bg-orange-600' : 'bg-slate-700'}`}>
+                                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${rule.enabled ? 'right-1' : 'left-1'}`} />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                                 <button className="w-full mt-8 py-4 bg-white text-slate-900 rounded-2xl font-bold text-sm hover:bg-orange-50 transition-all">
                                     Adjust Thresholds
@@ -166,11 +269,7 @@ export default function RiskFraudPage() {
                             </h3>
                             
                             <div className="space-y-8">
-                                {[
-                                    { category: "Business Entity", factors: ["Credit Score", "Years in Operation", "Complaint Ratio"], score: 85 },
-                                    { category: "Event Listing", factors: ["Content Clarity", "Ticket Price Variance", "Refund Policy"], score: 92 },
-                                    { category: "User / Transaction", factors: ["Device Trust", "IP Geolocation", "Purchase Velocity"], score: 64 },
-                                ].map((item, i) => (
+                                {scoring.map((item, i) => (
                                     <div key={i} className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
                                         <div className="flex justify-between items-start mb-4">
                                             <div>
@@ -206,24 +305,27 @@ export default function RiskFraudPage() {
                                 <div>
                                     <div className="flex justify-between text-sm mb-2">
                                         <span className="text-slate-400">False Positives</span>
-                                        <span className="font-bold text-emerald-400">0.4%</span>
+                                        <span className="font-bold text-emerald-400">{health?.falsePositives || '—'}</span>
                                     </div>
                                     <div className="w-full bg-white/10 rounded-full h-2">
-                                        <div className="bg-emerald-500 h-2 rounded-full w-[0.4%]"></div>
+                                        <div className="bg-emerald-500 h-2 rounded-full" style={{ width: health?.falsePositives || '0%' }}></div>
                                     </div>
                                 </div>
                                 <div>
                                     <div className="flex justify-between text-sm mb-2">
                                         <span className="text-slate-400">Fraud Capture Rate</span>
-                                        <span className="font-bold text-orange-400">98.2%</span>
+                                        <span className="font-bold text-orange-400">{health?.fraudCaptureRate || '—'}</span>
                                     </div>
                                     <div className="w-full bg-white/10 rounded-full h-2">
-                                        <div className="bg-orange-500 h-2 rounded-full w-[98.2%]"></div>
+                                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: health?.fraudCaptureRate || '0%' }}></div>
                                     </div>
                                 </div>
                                 <div className="pt-6 border-t border-white/10">
-                                    <p className="text-xs text-slate-500 leading-relaxed">
-                                        Risk engine was last retrained 24h ago using the latest settlement datasets.
+                                    <p className="text-xs text-slate-500 leading-relaxed font-bold uppercase tracking-[0.1em]">
+                                        Model Status: <span className={health?.status === 'HEALTHY' ? 'text-emerald-400' : 'text-red-400'}>{health?.status || 'UNKNOWN'}</span>
+                                    </p>
+                                    <p className="text-xs text-slate-500 leading-relaxed mt-2">
+                                        Risk engine was last retrained {health?.lastRetrained || '—'} using the latest settlement datasets.
                                     </p>
                                     <button className="w-full mt-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold text-sm transition-all">
                                         Force Retrain
