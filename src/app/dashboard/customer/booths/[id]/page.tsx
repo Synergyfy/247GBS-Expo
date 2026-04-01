@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
 
 // --- ICONS ---
 const ArrowLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -32,28 +34,47 @@ const PlayIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
 
 export default function VirtualBoothPage() {
     const params = useParams();
-    const boothId = params.id;
+    const boothId = params.id as string;
     const [activeTab, setActiveTab] = useState("products");
+    const [booth, setBooth] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Mock Booth Data
-    const booth = {
-        name: "FutureTech Systems",
-        id: boothId,
-        location: "Booth A-102",
-        tagline: "Building the next generation of enterprise cloud infrastructure.",
-        description: "FutureTech Systems is a leader in scalable cloud solutions. Founded in 2018, we have helped over 500 startups migrate their infrastructure to the cloud with zero downtime and maximum efficiency.",
-        banner: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop",
-        logo: "/main_stage_banner.png", // Reusing for mock
-        manager: "Jane Smith",
-        email: "contact@futuretech.com",
-        live: true,
-    };
+    useEffect(() => {
+        const loadBooth = async () => {
+            setIsLoading(true);
+            try {
+                const res = await api.get(`/customer/booths/${boothId}`);
+                if (res.success) {
+                    setBooth(res.data);
+                }
+            } catch (error) {
+                console.error("Failed to load booth", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        if (boothId) loadBooth();
+    }, [boothId]);
 
-    const products = [
-        { name: "Cloud Core Hub", price: "499.00", image: "https://images.unsplash.com/photo-1558223123-6447849e771c?q=80&w=300&auto=format&fit=crop" },
-        { name: "Edge Guard Pro", price: "199.00", image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=300&auto=format&fit=crop" },
-        { name: "Global Sync Node", price: "899.00", image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=300&auto=format&fit=crop" },
-    ];
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Loading Booth...</p>
+            </div>
+        );
+    }
+
+    if (!booth) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Booth Not Found</p>
+                <Link href="/dashboard/customer/booths" className="text-orange-600 hover:underline">Return to Expo Hall</Link>
+            </div>
+        );
+    }
+
+    const products = booth.products || [];
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -202,11 +223,11 @@ export default function VirtualBoothPage() {
                     <div className="bg-orange-600 rounded-[2rem] p-8 text-white shadow-2xl shadow-orange-200">
                         <h4 className="font-bold mb-6 text-lg font-display uppercase tracking-wider text-orange-100">Booth Schedule</h4>
                         <div className="space-y-6">
-                            {[
+                            {(booth.schedule && booth.schedule.length > 0 ? booth.schedule : [
                                 { time: "10:00 AM", event: "Live Q&A" },
-                                { time: "02:00 PM", title: "Product Demo" },
-                                { time: "04:30 PM", title: "Keynote" },
-                            ].map((item, i) => (
+                                { time: "02:00 PM", title: "Product Demo", event: "Product Demo" },
+                                { time: "04:30 PM", title: "Keynote", event: "Keynote" },
+                            ]).map((item: any, i: number) => (
                                 <div key={i} className="flex gap-4 border-l-2 border-orange-400/30 pl-4 py-1">
                                     <div>
                                         <div className="text-xs font-bold text-orange-200 uppercase">{item.time || "TBD"}</div>

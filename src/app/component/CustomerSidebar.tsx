@@ -55,9 +55,15 @@ const SidebarItem = ({ icon: Icon, label, href, isOpen, isActive }: SidebarItemP
 interface SidebarProps {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
+    user?: {
+        name: string;
+        role: string;
+        email: string;
+        initials: string;
+    } | null;
 }
 
-export default function CustomerSidebar({ isOpen, setIsOpen }: SidebarProps) {
+export default function CustomerSidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -121,12 +127,12 @@ export default function CustomerSidebar({ isOpen, setIsOpen }: SidebarProps) {
 
                 <div className={`flex items-center ${isOpen ? "gap-3" : "justify-center"} mb-4`}>
                     <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-black border-2 border-white shadow-sm shrink-0">
-                        JD
+                        {user?.initials || "JD"}
                     </div>
                     {isOpen && (
                         <div className="flex flex-col min-w-0 overflow-hidden">
-                            <span className="font-bold text-slate-900 text-sm truncate">John Doe</span>
-                            <span className="text-[10px] text-slate-500 font-bold uppercase truncate">VIP Pass Holder</span>
+                            <span className="font-bold text-slate-900 text-sm truncate">{user?.name || "Visitor"}</span>
+                            <span className="text-[10px] text-slate-500 font-bold uppercase truncate">{user?.role || "Global Explorer"}</span>
                         </div>
                     )}
                 </div>

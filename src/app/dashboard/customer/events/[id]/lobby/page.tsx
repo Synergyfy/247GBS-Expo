@@ -48,17 +48,33 @@ export default function EventLobbyPage() {
     const [message, setMessage] = useState("");
     const [chat, setChat] = useState(CHAT_MESSAGES);
     const [activeTab, setActiveTab] = useState("chat"); // chat, participants, schedule
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await api.get('/customer/profile');
+                setUser(res.data);
+            } catch (error) {
+                console.error("Failed to fetch profile in lobby:", error);
+            }
+        };
+        fetchProfile();
+    }, []);
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim()) return;
         
+        const userName = user?.name || "Visitor";
+        const userInitials = (userName || "VI").substring(0, 2).toUpperCase();
+
         const newMessage = {
             id: Date.now(),
-            user: "John Doe (You)",
+            user: `${userName} (You)`,
             message: message,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            avatar: "JD"
+            avatar: userInitials
         };
         
         setChat([...chat, newMessage]);

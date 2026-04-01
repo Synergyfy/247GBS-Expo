@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Plus,
     Search,
@@ -17,18 +17,49 @@ import {
     Info,
     ChevronRight,
     Sparkles,
-    ShieldCheck
+    ShieldCheck,
+    Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PASS_PLANS, PassPlan } from "@/data/passes";
+import { api } from "@/lib/api";
+
+export interface PassPlan {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    description: string;
+    features: string[];
+    isPopular: boolean;
+    type: "visitor" | "business";
+}
 
 export default function AdminPassesPage() {
-    const [plans, setPlans] = useState<PassPlan[]>(PASS_PLANS);
+    const [plans, setPlans] = useState<PassPlan[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState<"all" | "visitor" | "business">("all");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentPlan, setCurrentPlan] = useState<PassPlan | null>(null);
     const [newFeature, setNewFeature] = useState("");
+
+    useEffect(() => {
+        fetchPlans();
+    }, []);
+
+    const fetchPlans = async () => {
+        setIsLoading(true);
+        try {
+            const res = await api.get("/admin/passes");
+            if (res.success) {
+                setPlans(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch passes", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const filteredPlans = plans.filter(plan => {
         const matchesSearch = plan.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -46,30 +77,62 @@ export default function AdminPassesPage() {
             id: `plan_${Date.now()}`,
             name: "",
             price: 0,
+            quantity: 100, // Default quantity
             description: "",
             features: [],
-            popular: false,
+            isPopular: false,
             type: "visitor"
         });
         setIsEditModalOpen(true);
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (confirm("Are you sure you want to delete this pass plan?")) {
-            setPlans(plans.filter(p => p.id !== id));
+            try {
+                await api.delete(`/admin/passes/${id}`);
+                setPlans(plans.filter(p => p.id !== id));
+            } catch (error) {
+                console.error("Failed to delete pass", error);
+                alert("Failed to delete pass");
+            }
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!currentPlan) return;
 
-        if (plans.find(p => p.id === currentPlan.id)) {
-            setPlans(plans.map(p => p.id === currentPlan.id ? currentPlan : p));
-        } else {
-            setPlans([...plans, currentPlan]);
+        try {
+            const isUpdate = plans.find(p => p.id === currentPlan.id);
+            let res;
+
+            const { id, name, price, quantity, description, features, isPopular, type } = currentPlan;
+            const payload = {
+                id,
+                name,
+                price: Number(price),
+                quantity,
+                description,
+                features,
+                isPopular: isPopular || false,
+                type,
+                eventId: "default-event-id", // In a real app, this would be selected or come from context
+            };
+
+            if (isUpdate) {
+                res = await api.put(`/admin/passes/${currentPlan.id}`, payload);
+            } else {
+                res = await api.post("/admin/passes", payload);
+            }
+
+            if (res.success) {
+                fetchPlans();
+                setIsEditModalOpen(false);
+                setCurrentPlan(null);
+            }
+        } catch (error) {
+            console.error("Failed to save pass", error);
+            alert("Failed to save pass");
         }
-        setIsEditModalOpen(false);
-        setCurrentPlan(null);
     };
 
     const addFeature = () => {
@@ -190,7 +253,7 @@ export default function AdminPassesPage() {
                                         }`}>
                                         {plan.type} Pass
                                     </div>
-                                    {plan.popular && (
+                                    {plan.isPopular && (
                                         <div className="bg-orange-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tighter flex items-center gap-1">
                                             <Sparkles className="w-3 h-3" /> Popular Choice
                                         </div>
@@ -320,6 +383,16 @@ export default function AdminPassesPage() {
                                         </select>
                                     </div>
                                     <div className="col-span-2 space-y-2">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Total Quantity Available</label>
+                                        <input
+                                            type="number"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all font-bold"
+                                            value={currentPlan.quantity}
+                                            onChange={(e) => setCurrentPlan({ ...currentPlan, quantity: parseInt(e.target.value) || 0 })}
+                                            placeholder="e.g. 500"
+                                        />
+                                    </div>
+                                    <div className="col-span-2 space-y-2">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Short Description</label>
                                         <textarea
                                             rows={3}
@@ -364,10 +437,10 @@ export default function AdminPassesPage() {
                                     <div className="col-span-2 py-6 border-t border-slate-100 mt-4">
                                         <label className="flex items-center gap-4 cursor-pointer group">
                                             <div
-                                                onClick={() => setCurrentPlan({ ...currentPlan, popular: !currentPlan.popular })}
-                                                className={`w-14 h-8 rounded-full transition-all flex items-center px-1 ${currentPlan.popular ? 'bg-orange-600' : 'bg-slate-200'}`}
+                                                onClick={() => setCurrentPlan({ ...currentPlan, isPopular: !currentPlan.isPopular })}
+                                                className={`w-14 h-8 rounded-full transition-all flex items-center px-1 ${currentPlan.isPopular ? 'bg-orange-600' : 'bg-slate-200'}`}
                                             >
-                                                <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-all transform ${currentPlan.popular ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-all transform ${currentPlan.isPopular ? 'translate-x-6' : 'translate-x-0'}`} />
                                             </div>
                                             <div>
                                                 <p className="font-bold text-slate-900">Mark as Popular</p>

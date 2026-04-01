@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function CreateNewsPage() {
     const [title, setTitle] = useState("");
@@ -30,7 +32,11 @@ export default function CreateNewsPage() {
     const [excerpt, setExcerpt] = useState("");
     const [thumbnail, setThumbnail] = useState<string | null>(null);
     const [isPreview, setIsPreview] = useState(false);
+    const [isFeatured, setIsFeatured] = useState(false);
+    const [isTrending, setIsTrending] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const editorRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     // Rich Text Editor Commands
     const execCommand = (command: string, value: string = "") => {
@@ -46,6 +52,38 @@ export default function CreateNewsPage() {
                 setThumbnail(reader.result as string);
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const handlePublish = async () => {
+        if (!title || !editorRef.current?.innerHTML) {
+            alert("Title and content are required!");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const payload = {
+                title,
+                category,
+                excerpt,
+                content: editorRef.current.innerHTML,
+                image: thumbnail,
+                featured: isFeatured,
+                trending: isTrending,
+                published: true
+            };
+
+            const res = await api.post("/admin/news", payload);
+            if (res.success) {
+                alert("Story published successfully!");
+                router.push("/dashboard/admin/news");
+            }
+        } catch (error) {
+            console.error("Failed to publish", error);
+            alert("Failed to publish story");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -65,9 +103,17 @@ export default function CreateNewsPage() {
                         {isPreview ? <Layout className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         {isPreview ? "Edit Editor" : "Live Preview"}
                     </button>
-                    <button className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">
-                        <Save className="w-5 h-5" />
-                        Publish Story
+                    <button
+                        onClick={handlePublish}
+                        disabled={isSubmitting}
+                        className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 disabled:bg-slate-400"
+                    >
+                        {isSubmitting ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <Save className="w-5 h-5" />
+                        )}
+                        {isSubmitting ? "Publishing..." : "Publish Story"}
                     </button>
                 </div>
             </div>
@@ -110,11 +156,21 @@ export default function CreateNewsPage() {
                                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Engagement</label>
                                 <div className="flex items-center gap-4 py-2">
                                     <label className="flex items-center gap-2 cursor-pointer group">
-                                        <input type="checkbox" defaultChecked className="w-5 h-5 rounded-md border-slate-200 text-orange-600 focus:ring-orange-500" />
+                                        <input
+                                            type="checkbox"
+                                            checked={isTrending}
+                                            onChange={(e) => setIsTrending(e.target.checked)}
+                                            className="w-5 h-5 rounded-md border-slate-200 text-orange-600 focus:ring-orange-500"
+                                        />
                                         <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Trending Tag</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer group">
-                                        <input type="checkbox" className="w-5 h-5 rounded-md border-slate-200 text-orange-600 focus:ring-orange-500" />
+                                        <input
+                                            type="checkbox"
+                                            checked={isFeatured}
+                                            onChange={(e) => setIsFeatured(e.target.checked)}
+                                            className="w-5 h-5 rounded-md border-slate-200 text-orange-600 focus:ring-orange-500"
+                                        />
                                         <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Featured</span>
                                     </label>
                                 </div>
