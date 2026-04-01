@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { QrCode, Ticket, Calendar, Wallet, Zap, ShieldCheck } from "lucide-react";
+import { QrCode, Ticket, Calendar, Wallet, Zap, ShieldCheck, Loader2 } from "lucide-react";
 import Modal from "@/app/component/Modal";
+import { api } from "@/lib/api";
 
 // --- ICONS ---
 const PlayIcon = ({ className = "w-10 h-10" }: { className?: string }) => (
@@ -13,6 +14,45 @@ const PlayIcon = ({ className = "w-10 h-10" }: { className?: string }) => (
 
 export default function CustomerDashboard() {
     const [showPassport, setShowPassport] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [summary, setSummary] = useState<any>(null);
+    const [featuredBooths, setFeaturedBooths] = useState<any[]>([]);
+
+    useEffect(() => {
+        const loadDashboardData = async () => {
+            setIsLoading(true);
+            try {
+                const [summaryRes, boothsRes] = await Promise.all([
+                    api.get("/customer/summary"),
+                    api.get("/customer/featured-booths")
+                ]);
+
+                if (summaryRes.success) {
+                    setSummary(summaryRes.data);
+                }
+                if (boothsRes.success) {
+                    setFeaturedBooths(boothsRes.data);
+                }
+            } catch (error) {
+                console.error("Failed to load dashboard data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadDashboardData();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Loading your experience...</p>
+            </div>
+        );
+    }
+
+    const { activePass, wallet, upcomingSessions } = summary || {};
 
     return (
         <>
@@ -34,9 +74,9 @@ export default function CustomerDashboard() {
                         <button className="bg-white text-slate-900 px-6 py-3 rounded-full font-bold hover:bg-slate-100 transition-colors flex items-center gap-2">
                             <PlayIcon className="w-5 h-5" /> Watch Stream
                         </button>
-                        <button className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 py-3 rounded-full font-semibold hover:bg-white/20 transition-colors">
+                        <Link href="/dashboard/customer/schedule" className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 py-3 rounded-full font-semibold hover:bg-white/20 transition-colors flex items-center justify-center">
                             View Schedule
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -54,19 +94,21 @@ export default function CustomerDashboard() {
                     </div>
                     <div>
                         <div className="flex justify-between items-start mb-4">
-                            <div className="bg-orange-600 text-[10px] font-black tracking-[0.2em] px-2 py-0.5 rounded uppercase inline-block">
-                                Active Pass
+                            <div className={`bg-orange-600 text-[10px] font-black tracking-[0.2em] px-2 py-0.5 rounded uppercase inline-block ${!activePass ? 'grayscale opacity-50' : ''}`}>
+                                {activePass ? 'Active Pass' : 'No Active Pass'}
                             </div>
                             <Ticket className="w-6 h-6 text-orange-500" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-1">John Doe</h3>
-                        <p className="text-slate-400 text-sm font-mono tracking-wider">VIP ACCESS • GBX-88219</p>
+                        <h3 className="text-2xl font-bold mb-1">{summary?.user?.name || 'User'}</h3>
+                        <p className="text-slate-400 text-sm font-mono tracking-wider">
+                            {activePass ? `${activePass.tierName} • ${activePass.accessCode}` : 'PURCHASE A TICKET TO START'}
+                        </p>
                     </div>
                     <div className="mt-8">
                         <button 
                             className="w-full bg-white text-slate-900 py-3 rounded-xl font-bold hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-2"
                         >
-                            <QrCode className="w-4 h-4" /> View Entry QR
+                            <QrCode className="w-4 h-4" /> {activePass ? 'View Entry QR' : 'Buy Ticket'}
                         </button>
                     </div>
                 </div>
@@ -79,11 +121,11 @@ export default function CustomerDashboard() {
                             <Wallet className="w-5 h-5" />
                             <span className="font-bold text-sm uppercase tracking-wider">Expo Wallet</span>
                         </div>
-                        <div className="text-4xl font-bold mb-1">£1,250.00</div>
-                        <div className="text-orange-100 text-xs">+£500.00 this week</div>
+                        <div className="text-4xl font-bold mb-1">£{(wallet?.balance || 0).toFixed(2)}</div>
+                        <div className="text-orange-100 text-xs">{wallet?.points || 0} Reward Points</div>
                     </div>
                     <div className="flex gap-3 mt-6 relative z-10">
-                        <button className="flex-1 bg-white/20 hover:bg-white/30 py-3 rounded-xl font-medium transition-colors text-sm backdrop-blur-sm">History</button>
+                        <Link href="/dashboard/customer/rewards" className="flex-1 bg-white/20 hover:bg-white/30 py-3 rounded-xl font-medium transition-colors text-sm backdrop-blur-sm text-center">History</Link>
                         <button className="flex-1 bg-white text-orange-600 py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-sm">Top Up</button>
                     </div>
                 </div>
@@ -98,20 +140,23 @@ export default function CustomerDashboard() {
                         <Link href="/dashboard/customer/schedule" className="text-xs font-bold text-orange-600 hover:underline">View Full</Link>
                     </div>
                     <div className="space-y-4 flex-1">
-                        {[
-                            { time: "11:30 AM", title: "Networking: Tech Founders", status: "Starting in 10m" },
-                            { time: "02:00 PM", title: "Design Systems Workshop", status: "Registered" },
-                        ].map((event, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <div className="bg-white text-slate-900 font-bold px-3 py-2 rounded-lg text-xs text-center border border-slate-200 shadow-sm min-w-[70px]">
-                                    {event.time}
+                        {upcomingSessions && upcomingSessions.length > 0 ? (
+                            upcomingSessions.map((event: any, i: number) => (
+                                <div key={i} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div className="bg-white text-slate-900 font-bold px-3 py-2 rounded-lg text-xs text-center border border-slate-200 shadow-sm min-w-[70px]">
+                                        {event.time}
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-sm text-slate-900 line-clamp-1">{event.title}</div>
+                                        <div className={`text-xs font-medium ${i === 0 ? 'text-orange-600 animate-pulse' : 'text-slate-500'}`}>{event.status}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="font-bold text-sm text-slate-900 line-clamp-1">{event.title}</div>
-                                    <div className={`text-xs font-medium ${i === 0 ? 'text-orange-600 animate-pulse' : 'text-slate-500'}`}>{event.status}</div>
-                                </div>
+                            ))
+                        ) : (
+                            <div className="bg-slate-50 rounded-xl p-6 text-center border border-dashed border-slate-200">
+                                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">No Sessions Found</p>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             </div>
@@ -123,31 +168,31 @@ export default function CustomerDashboard() {
                         <h2 className="text-2xl font-bold text-slate-900">Featured Booths</h2>
                         <p className="text-slate-500">Top exhibitors chosen for you</p>
                     </div>
-                    <a href="/dashboard/customer/booths" className="text-orange-600 font-semibold hover:underline">View All</a>
+                    <Link href="/dashboard/customer/booths" className="text-orange-600 font-semibold hover:underline">View All</Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
+                    {featuredBooths.map((booth) => (
+                        <div key={booth.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
                             <div className="h-48 rounded-xl bg-slate-200 relative mb-4 overflow-hidden">
                                 <Image
-                                    src={`https://images.unsplash.com/photo-15567407${i}-e83484fce328?q=80&w=400&auto=format&fit=crop`}
-                                    alt="Booth"
+                                    src={booth.image}
+                                    alt={booth.name}
                                     fill
                                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
                                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md text-slate-900">
-                                    BOOTH A-{100 + i}
+                                    BOOTH {booth.boothNumber}
                                 </div>
                             </div>
-                            <h3 className="font-bold text-lg text-slate-900 mb-1">TechFlow Solutions</h3>
-                            <p className="text-slate-500 text-sm mb-4 line-clamp-2">Providing enterprise-grade cloud architecture for modern startups.</p>
+                            <h3 className="font-bold text-lg text-slate-900 mb-1">{booth.name}</h3>
+                            <p className="text-slate-500 text-sm mb-4 line-clamp-2">{booth.description}</p>
                             <div className="flex items-center justify-between border-t border-slate-50 pt-4">
                                 <div className="flex gap-2 text-xs font-medium text-slate-600">
-                                    <span className="bg-slate-100 px-2 py-1 rounded">SaaS</span>
-                                    <span className="bg-slate-100 px-2 py-1 rounded">Cloud</span>
+                                    <span className="bg-slate-100 px-2 py-1 rounded text-uppercase tracking-tighter">{booth.category}</span>
+                                    <span className="bg-slate-100 px-2 py-1 rounded text-uppercase tracking-tighter">{booth.location}</span>
                                 </div>
-                                <Link href="/dashboard/customer/booths/101" className="text-orange-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
+                                <Link href={`/dashboard/customer/booths/${booth.id}`} className="text-orange-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
                             </div>
                         </div>
                     ))}
@@ -182,36 +227,44 @@ export default function CustomerDashboard() {
 
                         <div className="mb-8">
                             <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Pass Holder</p>
-                            <p className="text-xl font-bold tracking-tight">John Doe</p>
+                            <p className="text-xl font-bold tracking-tight">{summary?.user?.name || 'Loading...'}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-8 mb-8">
                             <div>
                                 <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Access Tier</p>
-                                <p className="font-bold text-orange-500">VIP ACCESS</p>
+                                <p className="font-bold text-orange-500">{activePass?.tierName || 'NO ACCESS'}</p>
                             </div>
                             <div>
                                 <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Event</p>
-                                <p className="font-bold uppercase tracking-tighter text-xs mt-0.5">Global Innovation Fair</p>
+                                <p className="font-bold uppercase tracking-tighter text-xs mt-0.5">{activePass?.eventName || 'ALL EVENTS'}</p>
                             </div>
                         </div>
 
                         <div className="flex flex-col items-center justify-center pt-8 border-t border-white/10">
                             <div className="bg-white p-3 rounded-2xl mb-4">
-                                {/* Fake QR Code */}
-                                <div className="grid grid-cols-6 gap-0.5 w-32 h-32">
-                                    {[...Array(36)].map((_, i) => (
-                                        <div key={i} className={`w-full h-full ${Math.random() > 0.5 ? 'bg-black' : 'bg-transparent'}`} />
-                                    ))}
-                                </div>
+                                {activePass ? (
+                                    <div className="grid grid-cols-6 gap-0.5 w-32 h-32">
+                                        {[...Array(36)].map((_, i) => (
+                                            <div key={i} className={`w-full h-full ${Math.random() > 0.5 ? 'bg-black' : 'bg-transparent'}`} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="w-32 h-32 flex items-center justify-center text-slate-300">
+                                        <QrCode className="w-full h-full" />
+                                    </div>
+                                )}
                             </div>
                             <p className="text-[10px] text-slate-500 font-bold tracking-widest mb-1 uppercase">Scan at entry</p>
-                            <p className="text-sm font-mono font-bold tracking-tighter">GBX-88219-X22</p>
+                            <p className="text-sm font-mono font-bold tracking-tighter">{activePass?.qrCode || '0000-00000-000'}</p>
                         </div>
                     </div>
                 </div>
                 <p className="text-center text-xs text-slate-400 mt-4 max-w-xs mx-auto">
-                    This QR code is unique to your identity. Do not share it. Valid for one entry per day.
+                    {activePass 
+                        ? "This QR code is unique to your identity. Do not share it. Valid for one entry per day."
+                        : "You need an active ticket to generate a valid passport QR code."
+                    }
                 </p>
             </Modal>
         </>

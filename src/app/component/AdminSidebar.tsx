@@ -26,9 +26,15 @@ import {
 interface AdminSidebarProps {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
+    user?: {
+        name: string;
+        role: string;
+        email: string;
+        initials: string;
+    } | null;
 }
 
-export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
+export default function AdminSidebar({ isOpen, setIsOpen, user }: AdminSidebarProps) {
     const pathname = usePathname();
 
     interface MenuItem {
@@ -104,11 +110,13 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
 
             <div className="p-4 w-full border-t border-orange-500">
                 <div className="flex items-center gap-3 px-3">
-                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-900 font-bold shrink-0">SA</div>
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-900 font-bold shrink-0">
+                        {user?.initials || "AD"}
+                    </div>
                     {isOpen && (
                         <div className="text-left overflow-hidden">
-                            <div className="text-xs font-bold truncate">Super Admin</div>
-                            <div className="text-[10px] text-orange-200 font-medium tracking-wide">Main Platform</div>
+                            <div className="text-xs font-bold truncate">{user?.name || "Admin"}</div>
+                            <div className="text-[10px] text-orange-200 font-medium tracking-wide">{user?.role || "Platform Authority"}</div>
                         </div>
                     )}
                 </div>

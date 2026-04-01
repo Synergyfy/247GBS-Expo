@@ -13,77 +13,11 @@ import {
     Timer,
     ChevronRight,
     Star,
-    Video
+    Video,
+    Loader2
 } from "lucide-react";
-import { useState } from "react";
-
-const scheduleData = [
-    {
-        id: 1,
-        time: "09:00 AM",
-        duration: "45 MIN",
-        title: "Opening Keynote: The Future of Retail",
-        speaker: "Sarah Johnson",
-        role: "CEO at NextGen Commerce",
-        track: "Main Stage",
-        type: "Keynote",
-        status: "Completed",
-        isLive: false,
-        tags: ["Strategy", "Future"]
-    },
-    {
-        id: 2,
-        time: "10:30 AM",
-        duration: "60 MIN",
-        title: "Panel: AI in Customer Support",
-        speaker: "Tech Leaders Panel",
-        role: "Multi-Brand Discussion",
-        track: "Workshop A",
-        type: "Panel",
-        status: "Live",
-        isLive: true,
-        tags: ["AI", "Support"]
-    },
-    {
-        id: 3,
-        time: "01:00 PM",
-        duration: "90 MIN",
-        title: "Product Demo: NextGen CRM",
-        speaker: "Salesforce Team",
-        role: "Lead Engineers",
-        track: "Demo Hall B",
-        type: "Demo",
-        status: "Upcoming",
-        isLive: false,
-        tags: ["CRM", "Hands-on"]
-    },
-    {
-        id: 4,
-        time: "02:30 PM",
-        duration: "60 MIN",
-        title: "Workshop: Building Digital Brands",
-        speaker: "Emily Chen",
-        role: "Growth Marketer",
-        track: "Workshop A",
-        type: "Workshop",
-        status: "Upcoming",
-        isLive: false,
-        tags: ["Marketing", "Branding"]
-    },
-    {
-        id: 5,
-        time: "04:00 PM",
-        duration: "45 MIN",
-        title: "Closing Remarks & Digital Networking",
-        speaker: "The Expo Team",
-        role: "Host",
-        track: "Main Stage",
-        type: "Social",
-        status: "Upcoming",
-        isLive: false,
-        tags: ["Networking"]
-    },
-];
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -109,10 +43,40 @@ const itemVariants = {
 
 export default function SchedulePage() {
     const [activeTab, setActiveTab] = useState("All");
+    const [isLoading, setIsLoading] = useState(true);
+    const [scheduleData, setScheduleData] = useState<any[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+        loadSchedule();
+    }, []);
+
+    const loadSchedule = async () => {
+        setIsLoading(true);
+        try {
+            const res = await api.get("/customer/events/schedule");
+            if (res.success) {
+                setScheduleData(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to load schedule", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs text-center">Syncing chronometers...</p>
+            </div>
+        );
+    }
 
     const filteredEvents = activeTab === "All"
-        ? scheduleData
-        : scheduleData.filter(e => e.type === activeTab || e.track === activeTab);
+        ? scheduleData.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase()))
+        : scheduleData.filter(e => (e.type === activeTab || e.track === activeTab) && e.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
@@ -154,9 +118,9 @@ export default function SchedulePage() {
             {/* Quick Actions / Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                    { label: "Current Session", val: "AI in Customer Support", icon: Play, color: "bg-orange-50 text-orange-600" },
-                    { label: "Up Next", val: "NextGen CRM Demo", icon: Timer, color: "bg-orange-50 text-orange-600" },
-                    { label: "My Sessions", val: "3 Booked", icon: Star, color: "bg-orange-50 text-orange-600" },
+                    { label: "Current Session", val: scheduleData.find(e => e.isLive)?.title || "No Live Session", icon: Play, color: "bg-orange-50 text-orange-600" },
+                    { label: "Up Next", val: scheduleData.find(e => e.status === 'Upcoming')?.title || "Check back soon", icon: Timer, color: "bg-orange-50 text-orange-600" },
+                    { label: "My Sessions", val: "Sessions Catalog", icon: Star, color: "bg-orange-50 text-orange-600" },
                 ].map((stat, i) => (
                     <motion.div
                         key={i}
@@ -170,7 +134,7 @@ export default function SchedulePage() {
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                            <p className="font-bold text-slate-800">{stat.val}</p>
+                            <p className="font-bold text-slate-800 line-clamp-1">{stat.val}</p>
                         </div>
                     </motion.div>
                 ))}
@@ -200,12 +164,14 @@ export default function SchedulePage() {
                 className="space-y-4"
             >
                 <div className="flex items-center justify-between px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <span className="font-bold text-slate-900">Today, January 26</span>
+                    <span className="font-bold text-slate-900">Event Timeline</span>
                     <div className="relative">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
                             placeholder="Search sessions..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9 pr-4 py-1.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 w-64 transition-all"
                         />
                     </div>
@@ -213,7 +179,7 @@ export default function SchedulePage() {
 
                 <div className="grid gap-4">
                     <AnimatePresence mode="popLayout">
-                        {filteredEvents.map((event) => (
+                        {filteredEvents.length > 0 ? filteredEvents.map((event) => (
                             <motion.div
                                 key={event.id}
                                 variants={itemVariants}
@@ -227,12 +193,12 @@ export default function SchedulePage() {
 
                                 <div className="p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
                                     {/* Time Card */}
-                                    <div className="flex flex-row md:flex-col items-center md:items-start justify-between w-full md:w-32 shrink-0 gap-2">
+                                    <div className="flex flex-row md:flex-col items-center md:items-start justify-between w-full md:w-32 shrink-0 gap-2 text-center md:text-left">
                                         <div className="flex flex-col">
                                             <span className={`text-xl font-black ${event.isLive ? 'text-orange-600' : 'text-slate-900'}`}>
                                                 {event.time}
                                             </span>
-                                            <span className="text-[10px] font-bold text-slate-400 tracking-tighter uppercase flex items-center gap-1">
+                                            <span className="text-[10px] font-bold text-slate-400 tracking-tighter uppercase flex items-center gap-1 justify-center md:justify-start">
                                                 <Clock className="w-3 h-3" />
                                                 {event.duration}
                                             </span>
@@ -277,7 +243,7 @@ export default function SchedulePage() {
                                         </div>
 
                                         <div className="flex flex-wrap gap-2 pt-1">
-                                            {event.tags.map(tag => (
+                                            {event.tags.map((tag: any) => (
                                                 <span key={tag} className="text-[10px] font-medium text-slate-400 px-2 py-0.5 border border-slate-100 rounded-md bg-slate-50">
                                                     #{tag}
                                                 </span>
@@ -308,7 +274,11 @@ export default function SchedulePage() {
                                     </div>
                                 </div>
                             </motion.div>
-                        ))}
+                        )) : (
+                            <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                                <p className="text-slate-500 font-bold">No sessions found for this category.</p>
+                            </div>
+                        )}
                     </AnimatePresence>
                 </div>
             </motion.div>
@@ -319,8 +289,8 @@ export default function SchedulePage() {
                 whileInView={{ opacity: 1 }}
                 className="text-center p-8 border-2 border-dashed border-slate-200 rounded-3xl"
             >
-                <p className="text-slate-400 text-sm">
-                    Can't find a session? <button className="text-orange-600 font-bold hover:underline">Contact the Help Desk</button> or check out <button className="text-orange-600 font-bold hover:underline">On-Demand Recordings</button>.
+                <p className="text-slate-400 text-sm italic">
+                    All times are in GMT+1. Schedule is subject to change.
                 </p>
             </motion.div>
         </div>

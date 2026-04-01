@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { Award, Zap, Gift, CreditCard, TrendingUp, Star, ArrowRight, Clock } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Award, Zap, Gift, CreditCard, TrendingUp, Star, ArrowRight, Clock, Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
 
 // --- ICONS ---
 const DownloadIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -17,37 +18,59 @@ const WalletIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
 );
 
 export default function RewardsPage() {
-    const orders = [
-        { id: "EXP-4001", title: "Premium Tech Bundle", price: "299.00", date: "Jan 24, 2026", type: "DIGITAL ITEM" },
-        { id: "EXP-4002", title: "Business Strategy Consultation", price: "150.00", date: "Jan 25, 2026", type: "SERVICE" },
-    ];
+    const [isLoading, setIsLoading] = useState(true);
+    const [walletData, setWalletData] = useState<any>(null);
+    const [rewardsInfo, setRewardsInfo] = useState<any>(null);
+    const [isRedeeming, setIsRedeeming] = useState<string | null>(null);
 
-    const transactions = [
-        { date: "Jan 24, 2026", desc: "Wallet Top-up", status: "Completed", amount: "+£500.00", isCredit: true },
-        { date: "Jan 23, 2026", desc: "Booth Purchase: TechFlow", status: "Completed", amount: "-£299.00", isCredit: false },
-        { date: "Jan 22, 2026", desc: "Service Booking: Emily Chen", status: "Completed", amount: "-£150.00", isCredit: false },
-        { date: "Jan 20, 2026", desc: "Cashback Reward: Early Bird", status: "Completed", amount: "+£15.00", isCredit: true },
-        { date: "Jan 18, 2026", desc: "Referral Bonus", status: "Completed", amount: "+£25.00", isCredit: true },
-    ];
+    const handleRedeem = async (reward: any) => {
+        setIsRedeeming(reward.id);
+        try {
+            const res = await api.post(`/customer/rewards/redeem`, { rewardId: reward.id });
+            if (res.success) {
+                alert(`Successfully redeemed: ${reward.title}!`);
+                const walletRes = await api.get("/customer/wallet");
+                if (walletRes.success) setWalletData(walletRes.data);
+            } else {
+                alert(`Failed to redeem: ${res.message || "Insufficient points."}`);
+            }
+        } catch (err) {
+            alert("Error redeeming reward.");
+        } finally {
+            setIsRedeeming(null);
+        }
+    };
 
-    const rewardTiers = [
-        { name: "Silver", points: 0, color: "bg-slate-200 text-slate-700" },
-        { name: "Gold", points: 1000, color: "bg-yellow-100 text-yellow-700" },
-        { name: "Platinum", points: 5000, color: "bg-purple-100 text-purple-700" },
-    ];
+    useEffect(() => {
+        const loadRewardsData = async () => {
+            setIsLoading(true);
+            try {
+                const [walletRes, rewardsRes] = await Promise.all([
+                    api.get("/customer/wallet"),
+                    api.get("/customer/rewards")
+                ]);
+                if (walletRes.success) setWalletData(walletRes.data);
+                if (rewardsRes.success) setRewardsInfo(rewardsRes.data);
+            } catch (error) {
+                console.error("Failed to load rewards data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadRewardsData();
+    }, []);
 
-    const availableRewards = [
-        { id: 1, title: "£10 Discount Voucher", cost: 500, type: "VOUCHER", icon: <Gift className="w-5 h-5" /> },
-        { id: 2, title: "VIP Lounge Access", cost: 1200, type: "UPGRADE", icon: <Zap className="w-5 h-5" /> },
-        { id: 3, title: "£50 Cashback Credit", cost: 2500, type: "CASHBACK", icon: <CreditCard className="w-5 h-5" /> },
-    ];
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Accessing vault...</p>
+            </div>
+        );
+    }
 
-    const waysToEarn = [
-        { action: "Attend an Event", points: "+50 pts" },
-        { action: "Submit Feedback", points: "+20 pts" },
-        { action: "Refer a Friend", points: "+100 pts" },
-        { action: "Complete Profile", points: "+30 pts" },
-    ];
+    const transactions = walletData?.transactions || [];
+    const { availableRewards, waysToEarn, tiers: rewardTiers } = rewardsInfo || {};
 
     return (
         <div className="max-w-6xl mx-auto space-y-10">
@@ -65,7 +88,7 @@ export default function RewardsPage() {
                         <span className="font-bold text-sm uppercase tracking-wider">Wallet Balance</span>
                     </div>
                     <div>
-                        <span className="text-3xl font-black text-slate-900">£1,250.00</span>
+                        <span className="text-3xl font-black text-slate-900">£{(walletData?.cash || 0).toFixed(2)}</span>
                         <p className="text-xs text-slate-500 mt-1">Available for purchases</p>
                     </div>
                     <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
@@ -81,7 +104,7 @@ export default function RewardsPage() {
                         <span className="font-bold text-sm uppercase tracking-wider">Loyalty Points</span>
                     </div>
                     <div>
-                        <span className="text-3xl font-black text-slate-900">850</span>
+                        <span className="text-3xl font-black text-slate-900">{walletData?.points || 0}</span>
                         <p className="text-xs text-slate-500 mt-1">PTS Earned Lifetime</p>
                     </div>
                     <div className="mt-4 pt-4 border-t border-slate-100">
@@ -96,11 +119,11 @@ export default function RewardsPage() {
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between h-full">
                     <div className="flex items-center gap-3 mb-4 text-green-600">
                         <TrendingUp className="w-6 h-6" />
-                        <span className="font-bold text-sm uppercase tracking-wider">Cashback Earned</span>
+                        <span className="font-bold text-sm uppercase tracking-wider">Vouchers</span>
                     </div>
                     <div>
-                        <span className="text-3xl font-black text-slate-900">£40.00</span>
-                        <p className="text-xs text-slate-500 mt-1">Lifetime Savings</p>
+                        <span className="text-3xl font-black text-slate-900">£{(walletData?.vouchers || 0).toFixed(2)}</span>
+                        <p className="text-xs text-slate-500 mt-1">Available Vouchers</p>
                     </div>
                      <div className="mt-4 pt-4 border-t border-slate-100">
                         <p className="text-xs text-slate-500">Next payout on <span className="font-bold text-slate-700">Feb 01</span></p>
@@ -114,7 +137,7 @@ export default function RewardsPage() {
                         <span className="font-bold text-sm uppercase tracking-wider">Upgrade Credits</span>
                     </div>
                     <div>
-                        <span className="text-3xl font-black text-slate-900">2</span>
+                        <span className="text-3xl font-black text-slate-900">{walletData?.credits || 0}</span>
                         <p className="text-xs text-slate-500 mt-1">Available Credits</p>
                     </div>
                     <div className="mt-4 pt-4 border-t border-slate-100">
@@ -131,17 +154,22 @@ export default function RewardsPage() {
                             <h3 className="font-bold text-xl text-slate-900 flex items-center gap-2"><Star className="w-5 h-5 text-yellow-500 fill-yellow-500"/> Rewards Center</h3>
                             <p className="text-slate-500 text-sm">Redeem your points for exclusive benefits.</p>
                          </div>
-                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">Balance: 850 PTS</span>
+                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">Balance: {walletData?.points || 0} PTS</span>
                     </div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {availableRewards.map((reward) => (
+                        {availableRewards?.map((reward: any) => (
                             <div key={reward.id} className="border border-slate-100 rounded-2xl p-5 hover:border-orange-200 hover:shadow-md transition-all group">
                                 <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 mb-4 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
-                                    {reward.icon}
+                                    {reward.type === 'VOUCHER' ? <Gift className="w-5 h-5" /> : reward.type === 'UPGRADE' ? <Zap className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
                                 </div>
                                 <h4 className="font-bold text-slate-900 text-sm mb-1">{reward.title}</h4>
                                 <p className="text-xs text-slate-500 font-medium mb-4">{reward.cost} PTS</p>
-                                <button className="w-full py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors">Redeem</button>
+                                <button 
+                                    onClick={() => handleRedeem(reward)}
+                                    disabled={isRedeeming === reward.id}
+                                    className="w-full py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    {isRedeeming === reward.id ? "Processing..." : "Redeem"}
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -149,7 +177,7 @@ export default function RewardsPage() {
                     <div className="mt-8 pt-6 border-t border-slate-100">
                         <h4 className="font-bold text-slate-900 text-sm mb-4">Ways to Earn Points</h4>
                         <div className="flex flex-wrap gap-3">
-                            {waysToEarn.map((way, idx) => (
+                            {waysToEarn?.map((way: any, idx: number) => (
                                 <div key={idx} className="bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl flex items-center gap-3">
                                     <div className="w-2 h-2 bg-green-500 rounded-full" />
                                     <span className="text-sm font-medium text-slate-700">{way.action}</span>
@@ -171,9 +199,9 @@ export default function RewardsPage() {
                      </div>
                      
                      <div className="flex-1 space-y-6">
-                        {rewardTiers.map((tier, idx) => (
-                            <div key={idx} className={`relative pl-8 ${tier.name === 'Silver' ? 'opacity-100' : 'opacity-50'}`}>
-                                <div className={`absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white/20 ${tier.name === 'Silver' ? 'bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'bg-slate-700'}`} />
+                        {rewardTiers?.map((tier: any, idx: number) => (
+                            <div key={idx} className={`relative pl-8 ${idx === 0 ? 'opacity-100' : 'opacity-50'}`}>
+                                <div className={`absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white/20 ${idx === 0 ? 'bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'bg-slate-700'}`} />
                                 {idx !== rewardTiers.length - 1 && <div className="absolute left-[7px] top-6 w-0.5 h-12 bg-white/10" />}
                                 <h4 className="font-bold text-white text-sm">{tier.name}</h4>
                                 <p className="text-xs text-slate-400">{tier.points} PTS Required</p>
@@ -211,15 +239,15 @@ export default function RewardsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {transactions.map((tx, idx) => (
+                            {transactions.map((tx: any, idx: number) => (
                                 <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="py-5 text-sm text-slate-600">{tx.date}</td>
                                     <td className="py-5">
                                         <div className="text-sm font-bold text-slate-900">{tx.desc}</div>
-                                        <div className="text-[10px] text-slate-400 font-medium tracking-tight">REF: {Math.random().toString(36).substring(7).toUpperCase()}</div>
+                                        <div className="text-[10px] text-slate-400 font-medium tracking-tight">REF: {tx.ref}</div>
                                     </td>
                                     <td className="py-5">
-                                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${tx.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${tx.status === 'Completed' || tx.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                                             {tx.status}
                                         </span>
                                     </td>

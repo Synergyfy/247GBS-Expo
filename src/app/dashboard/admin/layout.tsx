@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <div className="min-h-screen bg-slate-100 flex font-sans relative overflow-x-hidden">
-            <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+            <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} user={user} />
 
             {/* MAIN CONTENT WRAPPER */}
             <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} relative`}>

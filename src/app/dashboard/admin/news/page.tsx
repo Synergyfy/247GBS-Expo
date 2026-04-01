@@ -16,8 +16,59 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { NEWS_ITEMS } from "@/data/news";
+import { api } from "@/lib/api";
 
 export default function NewsManagementPage() {
+    const [news, setNews] = React.useState<any[]>([]);
+    const [stats, setStats] = React.useState<any>({
+        total: 0,
+        published: 0,
+        drafts: 0,
+        views: '0'
+    });
+    const [isLoading, setIsLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const loadData = async () => {
+            setIsLoading(true);
+            try {
+                const [storiesRes, statsRes] = await Promise.all([
+                    api.get("/admin/news"),
+                    api.get("/admin/news/stats")
+                ]);
+
+                if (storiesRes.success) {
+                    setNews(storiesRes.data);
+                }
+                if (statsRes.success) {
+                    setStats(statsRes.data);
+                }
+            } catch (error) {
+                console.error("Failed to load news", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const handleDelete = async (id: string) => {
+        if (confirm("Are you sure you want to delete this news item?")) {
+            try {
+                const res = await api.delete(`/admin/news/${id}`);
+                if (res.success) {
+                    setNews(news.filter(n => n.id !== id));
+                    // Refresh stats
+                    const statsRes = await api.get("/admin/news/stats");
+                    if (statsRes.success) setStats(statsRes.data);
+                }
+            } catch (err) {
+                console.error("Failed to delete", err);
+                alert("Failed to delete");
+            }
+        }
+    };
     return (
         <div className="max-w-7xl mx-auto pb-20">
             {/* Header Area */}
@@ -38,10 +89,10 @@ export default function NewsManagementPage() {
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
                 {[
-                    { label: "Total Stories", value: "24", icon: Newspaper, color: "bg-blue-500" },
-                    { label: "Live Articles", value: "18", icon: Eye, color: "bg-green-500" },
-                    { label: "Drafts", value: "6", icon: Edit3, color: "bg-orange-500" },
-                    { label: "Total Views", value: "128K", icon: TrendingUp, color: "bg-purple-500" },
+                    { label: "Total Stories", value: stats.total.toString(), icon: Newspaper, color: "bg-blue-500" },
+                    { label: "Live Articles", value: stats.published.toString(), icon: Eye, color: "bg-green-500" },
+                    { label: "Drafts", value: stats.drafts.toString(), icon: Edit3, color: "bg-orange-500" },
+                    { label: "Total Views", value: stats.views, icon: TrendingUp, color: "bg-purple-500" },
                 ].map((stat, i) => (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -86,7 +137,25 @@ export default function NewsManagementPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {NEWS_ITEMS.map((item, i) => (
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={5} className="px-8 py-20 text-center">
+                                        <div className="flex flex-col items-center gap-4 text-slate-400">
+                                            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                                            <p className="font-bold text-sm">Syncing with pulse newsroom...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : news.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-8 py-20 text-center">
+                                        <div className="flex flex-col items-center gap-4 text-slate-400">
+                                            <Newspaper className="w-12 h-12 opacity-20" />
+                                            <p className="font-bold text-sm">No stories published yet.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : news.map((item, i) => (
                                 <motion.tr
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -96,13 +165,13 @@ export default function NewsManagementPage() {
                                 >
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-16 h-12 relative rounded-xl overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-500">
-                                                <Image src={item.image} alt={item.title} fill className="object-cover" />
+                                            <div className="w-16 h-12 relative rounded-xl overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-500 bg-slate-100">
+                                                {item.image && <Image src={item.image} alt={item.title} fill className="object-cover" />}
                                             </div>
                                             <div className="max-w-xs">
                                                 <p className="font-bold text-slate-900 line-clamp-1">{item.title}</p>
-                                                <p className="text-[10px] text-slate-500 flex items-center gap-1 font-bold mt-1">
-                                                    <Calendar className="w-3 h-3 text-orange-600" /> Published {item.date}
+                                                <p className="text-[10px] text-slate-500 flex items-center gap-1 font-bold mt-1 uppercase tracking-tighter">
+                                                    <Calendar className="w-3 h-3 text-orange-600" /> Published {new Date(item.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
@@ -114,21 +183,27 @@ export default function NewsManagementPage() {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-black text-slate-900">4.2K</span>
+                                            <span className="text-sm font-black text-slate-900">{item.views}</span>
                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Impressions</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse" />
-                                            <span className="text-xs font-black text-slate-700 uppercase tracking-widest">Active</span>
+                                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)] ${item.published ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
+                                            <span className="text-xs font-black text-slate-700 uppercase tracking-widest">{item.published ? 'Active' : 'Draft'}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all" title="View"><Eye className="w-5 h-5" /></button>
                                             <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Edit"><Edit3 className="w-5 h-5" /></button>
-                                            <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Delete"><Trash2 className="w-5 h-5" /></button>
+                                            <button
+                                                onClick={() => handleDelete(item.id)}
+                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
                                         </div>
                                     </td>
                                 </motion.tr>

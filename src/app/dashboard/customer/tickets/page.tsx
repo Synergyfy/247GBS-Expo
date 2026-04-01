@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Ticket, Calendar, Clock, MapPin, QrCode, Plus, History, Gift, Download, ShieldCheck, Check } from "lucide-react";
+import { Ticket, Calendar, Clock, MapPin, QrCode, Plus, History, Gift, Download, ShieldCheck, Check, Loader2 } from "lucide-react";
 import Modal from "@/app/component/Modal";
+import { api } from "@/lib/api";
 
 interface TicketData {
     id: string;
@@ -17,53 +18,63 @@ interface TicketData {
     qrCode: string;
 }
 
-// Mock Data
-const activeTickets: TicketData[] = [
-    {
-        id: "T-88219",
-        event: "Global Innovation Fair (Spring 2026)",
-        type: "VIP Networker",
-        date: "April 10-19, 2026",
-        location: "Virtual Main Hall",
-        status: "Active",
-        bundle: ["Digital Goodie Bag", "100 Credits"],
-        qrCode: "GBX-88219-X22"
-    },
-    {
-        id: "T-99402",
-        event: "AI Workshop: Future of Retail",
-        type: "Workshop Pass",
-        date: "April 12, 2026",
-        time: "02:00 PM",
-        location: "Workshop Room A",
-        status: "Confirmed",
-        bundle: [],
-        qrCode: "WRK-99402-A12"
-    }
-];
-
-const pastTickets: TicketData[] = [
-    {
-        id: "T-10023",
-        event: "Winter Tech Expo 2025",
-        type: "Standard Visitor",
-        date: "Dec 05-14, 2025",
-        location: "Virtual Main Hall",
-        status: "Used",
-        bundle: [],
-        qrCode: "OLD-10023"
-    }
-];
-
 export default function MyTicketsPage() {
     const [activeTab, setActiveTab] = useState("active");
+    const [isLoading, setIsLoading] = useState(true);
+    const [allTickets, setAllTickets] = useState<TicketData[]>([]);
     const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null);
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState("");
 
-    const tickets = activeTab === "active" ? activeTickets : pastTickets;
+    useEffect(() => {
+        fetchTickets();
+    }, []);
+
+    const fetchTickets = async () => {
+        setIsLoading(true);
+        try {
+            const res = await api.get("/customer/tickets");
+            if (res.success) {
+                setAllTickets(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch tickets", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRatingSubmit = async () => {
+        if (!selectedTicket || rating === 0) return;
+        try {
+            const res = await api.post(`/customer/rate-event/${selectedTicket.id}`, {
+                rating,
+                review: reviewText
+            });
+            if (res.success) {
+                setIsSubmitted(true);
+            }
+        } catch (error) {
+            console.error("Failed to submit rating", error);
+        }
+    };
+
+    const tickets = allTickets.filter(t => 
+        activeTab === "active" ? t.status === "Active" || t.status === "Confirmed" : t.status === "Used"
+    );
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs text-center">Opening your ticket wallet...</p>
+            </div>
+        );
+    }
+
+    const activeTickets = allTickets.filter(t => t.status === "Active" || t.status === "Confirmed");
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
@@ -281,10 +292,7 @@ export default function MyTicketsPage() {
                                 />
 
                                 <button 
-                                    onClick={() => {
-                                        setIsSubmitted(true);
-                                        // Here we would normally call an API
-                                    }}
+                                    onClick={handleRatingSubmit}
                                     disabled={rating === 0}
                                     className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >

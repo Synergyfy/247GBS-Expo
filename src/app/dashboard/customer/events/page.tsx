@@ -1,86 +1,50 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
     Calendar, MapPin, Search, Filter, Play, Star, 
-    ArrowRight, Info, Check, Clock, Globe, Shield 
+    ArrowRight, Info, Check, Clock, Globe, Shield, Loader2
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Modal from "@/app/component/Modal";
-
-// Mock Data for Events
-const EVENTS = [
-    {
-        id: "spring2026",
-        title: "Global Innovation Fair 2026",
-        date: "April 10-19, 2026",
-        location: "Virtual Main Hall",
-        price: "From £19",
-        category: "Technology",
-        isLive: true,
-        image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1000",
-        description: "The world's premier digital innovation showcase. Experience cutting-edge tech, AI demonstrations, and keynote speeches from industry leaders.",
-        benefits: ["Access to 500+ Booths", "Live Keynotes", "Networking Lounge"],
-        rating: 4.8,
-        reviews: 124,
-        videoUrl: "#",
-        organizer: "TechGlobal Inc."
-    },
-    {
-        id: "summer2026",
-        title: "Summer Trade Carnival",
-        date: "July 15-24, 2026",
-        location: "Expo Center Alpha",
-        price: "Free Entry",
-        category: "Trade",
-        image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1000",
-        description: "A vibrant marketplace for global traders. Source products, meet suppliers, and explore new market trends in a festive digital environment.",
-        benefits: ["Direct Supplier Chat", "Wholesale Deals", "Export Workshops"],
-        rating: 4.5,
-        reviews: 89,
-        videoUrl: "#",
-        organizer: "World Trade Org"
-    },
-    {
-        id: "techsummit",
-        title: "Future Tech Summit",
-        date: "Aug 05-08, 2026",
-        location: "Innovation Hub",
-        price: "From £49",
-        category: "Technology",
-        image: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=1000",
-        description: "Deep dive into the future of humanity and technology. Workshops on quantum computing, biotech, and space exploration.",
-        benefits: ["Certified Workshops", "Expert Q&A", "Digital Courseware"],
-        rating: 4.9,
-        reviews: 210,
-        videoUrl: "#",
-        organizer: "Future Minds"
-    },
-     {
-        id: "creative",
-        title: "Digital Arts Expo",
-        date: "Sep 12-14, 2026",
-        location: "Creative Quarter",
-        price: "From £15",
-        category: "Art & Design",
-        image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1000",
-        description: "Celebrating digital creativity. NFT galleries, 3D art showcases, and live digital painting sessions.",
-        benefits: ["NFT Drops", "Artist Meetups", "Creative Tools Demo"],
-        rating: 4.7,
-        reviews: 56,
-        videoUrl: "#",
-        organizer: "ArtBlock"
-    }
-];
+import { api } from "@/lib/api";
 
 export default function DiscoverEventsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [activeTab, setActiveTab] = useState("overview"); // overview, schedule, reviews
-    
-    // Mock state for joined events
-    const [joinedEvents, setJoinedEvents] = useState<string[]>(["spring2026"]); 
+    const [isLoading, setIsLoading] = useState(true);
+    const [events, setEvents] = useState<any[]>([]);
+
+    useEffect(() => {
+        loadEvents();
+    }, []);
+
+    const loadEvents = async () => {
+        setIsLoading(true);
+        try {
+            const res = await api.get("/customer/events/discover");
+            if (res.success) {
+                setEvents(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to load events", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs text-center">Scouting the expo floor...</p>
+            </div>
+        );
+    }
+
+    const filteredEvents = events.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -111,7 +75,7 @@ export default function DiscoverEventsPage() {
 
             {/* Event Grid (Interest Stage) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {EVENTS.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase())).map((event) => (
+                {filteredEvents.map((event) => (
                     <div 
                         key={event.id}
                         className="group bg-white rounded-[2rem] border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col"
@@ -119,24 +83,24 @@ export default function DiscoverEventsPage() {
                         {/* Event Image */}
                         <div className="h-56 relative overflow-hidden bg-slate-200">
                              <Image 
-                                src={event.image} 
-                                alt={event.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-700"
+                                 src={event.image} 
+                                 alt={event.title}
+                                 fill
+                                 className="object-cover group-hover:scale-105 transition-transform duration-700"
                              />
                              <div className="absolute top-4 left-4 flex gap-2">
-                                <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-slate-900">
-                                    {event.category}
-                                </div>
-                                {event.isLive && (
-                                    <div className="bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black animate-pulse flex items-center gap-1">
-                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                        LIVE
-                                    </div>
-                                )}
+                                 <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-slate-900 text-center">
+                                     {event.category}
+                                 </div>
+                                 {event.isLive && (
+                                     <div className="bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black animate-pulse flex items-center gap-1">
+                                         <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                         LIVE
+                                     </div>
+                                 )}
                              </div>
                              <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1">
-                                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {event.rating} ({event.reviews})
+                                 <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {event.rating} ({event.reviews})
                              </div>
                         </div>
 
@@ -155,7 +119,7 @@ export default function DiscoverEventsPage() {
 
                             <p className="text-slate-600 mb-6 line-clamp-2 text-sm">
                                 {event.description}
-                            </p>
+                             </p>
 
                             <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
                                 <div>
@@ -230,11 +194,13 @@ export default function DiscoverEventsPage() {
                                                 <Star className="w-4 h-4 text-orange-500" /> Key Benefits
                                             </h5>
                                             <ul className="space-y-2">
-                                                {selectedEvent.benefits.map((benefit: string, i: number) => (
+                                                {selectedEvent.benefits ? selectedEvent.benefits.map((benefit: string, i: number) => (
                                                     <li key={i} className="text-sm text-slate-600 flex items-center gap-2">
                                                         <Check className="w-3 h-3 text-green-500" /> {benefit}
                                                     </li>
-                                                ))}
+                                                )) : (
+                                                    <li className="text-sm text-slate-400 italic">No benefits listed.</li>
+                                                )}
                                             </ul>
                                         </div>
                                         <div className="bg-slate-50 p-4 rounded-xl">
@@ -254,7 +220,7 @@ export default function DiscoverEventsPage() {
                             {activeTab === 'schedule' && (
                                 <div className="space-y-4 animate-in fade-in">
                                     <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
-                                        <div className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-lg text-xs text-center w-16">
+                                        <div className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-lg text-xs text-center w-16 text-center">
                                             10:00 AM
                                         </div>
                                         <div>
@@ -263,7 +229,7 @@ export default function DiscoverEventsPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
-                                        <div className="bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-lg text-xs text-center w-16">
+                                        <div className="bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-lg text-xs text-center w-16 text-center">
                                             11:30 AM
                                         </div>
                                         <div>
@@ -271,7 +237,7 @@ export default function DiscoverEventsPage() {
                                             <div className="text-xs text-slate-500">Exhibition Hall A</div>
                                         </div>
                                     </div>
-                                    <div className="p-4 bg-blue-50 text-blue-800 text-center rounded-xl text-sm font-bold">
+                                    <div className="p-4 bg-blue-50 text-blue-800 text-center rounded-xl text-sm font-bold text-center">
                                         <Link href="#" className="underline">View Full Agenda</Link>
                                     </div>
                                 </div>
@@ -286,22 +252,14 @@ export default function DiscoverEventsPage() {
                                             <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">{selectedEvent.reviews} Verified Reviews</div>
                                         </div>
                                     </div>
-                                    {[1, 2].map((i) => (
-                                        <div key={i} className="p-4 bg-slate-50 rounded-xl">
-                                            <div className="flex justify-between mb-2">
-                                                <span className="font-bold text-slate-900 text-sm">Alex M.</span>
-                                                <span className="text-xs text-slate-400">2 days ago</span>
-                                            </div>
-                                            <p className="text-sm text-slate-600">"Incredible experience! The virtual booths were super interactive."</p>
-                                        </div>
-                                    ))}
+                                    <p className="text-sm text-slate-500 italic">User reviews are currently being aggregated.</p>
                                 </div>
                             )}
                         </div>
 
                         {/* Footer / CTA (Purchase Flow Entry) */}
                         <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-                            {joinedEvents.includes(selectedEvent.id) ? (
+                            {selectedEvent.hasJoined ? (
                                 <>
                                     <div>
                                         <p className="text-xs text-green-600 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
