@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MapPin, Clock, ArrowRight, Play, Users, Briefcase, Activity } from "lucide-react";
+import { ArrowRight, Users, Briefcase, Activity, Calendar } from "lucide-react";
 import { motion, AnimatePresence, animate } from "framer-motion";
 
 function Counter({ value }: { value: number }) {
@@ -109,33 +109,24 @@ export default function Hero() {
     return () => clearInterval(interval);
   }, []);
 
-  // Determine current season based on user's date
   const getCurrentSeasonIndex = () => {
     const now = new Date();
     const month = now.getMonth();
     const day = now.getDate();
 
-    // SPRING: April 10 - July 14
     if ((month === 3 && day >= 10) || (month > 3 && month < 6) || (month === 6 && day <= 14)) {
       return 0;
-    }
-    // SUMMER: July 15 - October 9
-    else if ((month === 6 && day >= 15) || (month > 6 && month < 9) || (month === 9 && day <= 9)) {
+    } else if ((month === 6 && day >= 15) || (month > 6 && month < 9) || (month === 9 && day <= 9)) {
       return 1;
-    }
-    // AUTUMN: October 10 - December 4
-    else if ((month === 9 && day >= 10) || (month > 9 && month < 11) || (month === 11 && day <= 4)) {
+    } else if ((month === 9 && day >= 10) || (month > 9 && month < 11) || (month === 11 && day <= 4)) {
       return 2;
-    }
-    // WINTER: December 5 - April 9
-    else {
+    } else {
       return 3;
     }
   };
 
   useEffect(() => {
     const currentSeasonIndex = getCurrentSeasonIndex();
-    // Current season stays 15sec, others stay 10sec
     const delay = currentSeason === currentSeasonIndex ? 15000 : 10000;
 
     const timer = setInterval(() => {
@@ -148,7 +139,7 @@ export default function Hero() {
   const currentData = SEASONAL_DATA[currentSeason];
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-slate-950 text-white">
+    <section className="relative min-h-[82dvh] sm:min-h-screen flex flex-col justify-center items-center overflow-hidden bg-slate-950 text-white">
       {/* Seasonal Background Image Slideshow */}
       <div className="absolute inset-0 z-0">
         <AnimatePresence initial={false}>
@@ -163,7 +154,6 @@ export default function Hero() {
             className="absolute inset-0 w-full h-full object-cover"
           />
         </AnimatePresence>
-        {/* Balanced Dark Overlay - Enhanced for readability with seasonal gradient */}
         <motion.div
           key={`overlay-${currentSeason}`}
           initial={{ opacity: 0 }}
@@ -173,126 +163,130 @@ export default function Hero() {
         />
       </div>
 
-      <div className="container relative z-10 px-4 md:px-6 pt-32 pb-20 flex justify-center">
-        <div className="max-w-4xl w-full bg-slate-900/60 p-6 md:p-10 rounded-[48px] shadow-2xl text-center">
+      {/* Main Content Card - Scaled tightly for Mobile Above-The-Fold Visibility */}
+      <div className="container relative z-10 px-3 sm:px-6 pt-20 sm:pt-28 md:pt-36 pb-4 sm:pb-12 md:pb-20 flex justify-center">
+        <div className="max-w-4xl w-full bg-slate-950/70 backdrop-blur-md p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-3xl md:rounded-[40px] shadow-2xl border border-white/10 text-center">
+          
           {/* Season Badge */}
           <motion.div
             key={`badge-${currentSeason}`}
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.6 }}
-            className={`inline-block px-4 py-2 border rounded-full text-sm font-bold tracking-wider mb-4 ${currentData.colors.badge}`}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.5 }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1.5 border rounded-full text-[11px] sm:text-xs md:text-sm font-bold tracking-wider mb-2 sm:mb-3 ${currentData.colors.badge}`}
           >
-            {currentData.season} 2026 — {currentData.dates.replace(", 2026", "")}
+            <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span>{currentData.season} 2026 — {currentData.dates.replace(", 2026", "")}</span>
           </motion.div>
 
-          {/* Main Heading - Seasonal */}
+          {/* Main Headline */}
           <motion.h1
             key={`headline-${currentSeason}`}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className={`text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-4 ${currentData.colors.headline}`}
+            exit={{ opacity: 0, y: 15 }}
+            transition={{ duration: 0.6, delay: 0.05 }}
+            className={`text-3xl sm:text-5xl md:text-7xl font-black tracking-tight leading-[1.1] mb-1 sm:mb-3 ${currentData.colors.headline}`}
           >
             {currentData.headline}
           </motion.h1>
 
-          {/* Storyline - Tells the seasonal story */}
+          {/* Storyline */}
           <motion.p
             key={`story-${currentSeason}`}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className={`text-2xl md:text-3xl font-bold mb-6 max-w-3xl mx-auto ${currentData.colors.storyline}`}
+            exit={{ opacity: 0, y: 15 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className={`text-sm sm:text-lg md:text-2xl font-bold mb-2 sm:mb-4 max-w-2xl mx-auto leading-snug ${currentData.colors.storyline}`}
           >
             {currentData.storyline}
           </motion.p>
 
-          {/* Subheading */}
+          {/* Subheading - Shown on tablets and desktop, compact on mobile */}
           <motion.p
             key={`subheading-${currentSeason}`}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed"
+            exit={{ opacity: 0, y: 15 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-xs sm:text-sm md:text-base text-slate-300 mb-3 sm:mb-6 max-w-xl mx-auto leading-relaxed hidden sm:block"
           >
             Experience the world's first living business ecosystem that never closes. Exhibit your brand, earn rewards, and connect 24/7.
           </motion.p>
 
-          {/* Activity Stat - Shows platform vibrancy per season */}
+          {/* Live Activity Stats - Compact Horizontal 3-Column on Mobile */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="grid grid-cols-3 gap-1.5 sm:gap-4 mb-4 sm:mb-6 md:mb-8 p-2 sm:p-4 bg-slate-900/60 rounded-xl sm:rounded-2xl border border-white/5"
           >
-            <div className="flex items-center justify-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentData.colors.accentIcon}`}>
-                <Users className="w-5 h-5" />
+            <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 text-center sm:text-left">
+              <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${currentData.colors.accentIcon}`}>
+                <Users className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
               </div>
-              <div className="text-left">
-                <p className="font-bold text-white">
+              <div>
+                <p className="font-extrabold text-white text-xs sm:text-base leading-tight">
                   <Counter value={stats.users} />+
                 </p>
-                <p className="text-xs text-slate-400 tracking-wider">REGISTERED USERS</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Users</p>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500">
-                <Briefcase className="w-5 h-5" />
+
+            <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 text-center sm:text-left border-x border-white/10 px-1">
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-400 shrink-0">
+                <Briefcase className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
               </div>
-              <div className="text-left">
-                <p className="font-bold text-white">
+              <div>
+                <p className="font-extrabold text-white text-xs sm:text-base leading-tight">
                   <Counter value={stats.businesses} />+
                 </p>
-                <p className="text-xs text-slate-400 tracking-wider">REGISTERED BUSINESSES</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Brands</p>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <div className={`w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center text-green-500`}>
-                <Activity className="w-5 h-5" />
+
+            <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 text-center sm:text-left">
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-green-600/20 flex items-center justify-center text-green-400 shrink-0">
+                <Activity className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
               </div>
-              <div className="text-left">
-                <p className="font-bold text-white">
+              <div>
+                <p className="font-extrabold text-white text-xs sm:text-base leading-tight">
                   <Counter value={stats.attendees} />+
                 </p>
-                <p className="text-xs text-slate-400 tracking-wider">TOTAL ATTENDEES</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Attendees</p>
               </div>
             </div>
           </motion.div>
 
-          {/* CTAs */}
+          {/* Primary Action Buttons - Side-by-Side on Mobile */}
           <motion.div
             key={`cta-${currentSeason}`}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            exit={{ opacity: 0, y: 15 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="grid grid-cols-2 sm:flex sm:flex-row items-center justify-center gap-2 sm:gap-4"
           >
             <Link
               href={`/tickets?season=${['spring2026', 'summer2026', 'health', 'fintech'][currentSeason]}`}
-              className={`w-full sm:w-auto px-10 py-5 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 ${currentData.colors.cta}`}
+              className={`w-full sm:w-auto px-3 sm:px-8 py-2.5 sm:py-3.5 text-white rounded-xl sm:rounded-full font-bold text-xs sm:text-base transition-all flex items-center justify-center gap-1.5 shadow-lg active:scale-95 ${currentData.colors.cta}`}
             >
-              Get Visitor Tickets <ArrowRight className="w-5 h-5" />
+              <span>Get Tickets</span> <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Link>
             <Link
               href="/exhibit"
-              className="w-full sm:w-auto px-10 py-5 bg-white/20 border-2 border-white/30 hover:bg-white hover:text-slate-900 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto px-3 sm:px-8 py-2.5 sm:py-3.5 bg-white/10 hover:bg-white hover:text-slate-900 border border-white/20 text-white rounded-xl sm:rounded-full font-bold text-xs sm:text-base transition-all flex items-center justify-center gap-1.5 active:scale-95"
             >
-              Become an Exhibitor
+              <span>Exhibit</span>
             </Link>
           </motion.div>
         </div>
       </div>
 
       {/* Modern Gradient Transition to next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/50 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 sm:h-36 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent pointer-events-none" />
     </section>
   );
 }
-

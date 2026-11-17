@@ -2,125 +2,74 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
-import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
-
-function AnimatedNumber({ value, start }: { value: number; start: boolean }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const motionValue = useMotionValue(0);
-  const springValue = useSpring(motionValue, {
-    damping: 30,
-    stiffness: 100,
-  });
-
-  useEffect(() => {
-    if (start) {
-      motionValue.set(value);
-    }
-  }, [start, value, motionValue]);
-
-  useEffect(() => {
-    const unsubscribe = springValue.on("change", (latest) => {
-      if (ref.current) {
-        ref.current.textContent = Intl.NumberFormat("en-US").format(
-          Math.floor(latest)
-        );
-      }
-    });
-
-    if (ref.current) {
-      ref.current.textContent = "0";
-    }
-
-    return () => unsubscribe();
-  }, [springValue]);
-
-  return <span ref={ref} />;
-}
+import { ArrowRight } from "lucide-react";
 
 export default function StatsSection() {
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
-
   return (
-    <section ref={sectionRef} className="relative py-20 md:py-24 overflow-visible bg-white">
-      {/* Slanted Background Container */}
-      <div 
-        className="absolute inset-0 bg-orange-600 z-0 transform -skew-y-2 origin-center scale-x-110 md:scale-x-105"
-        style={{ width: '100vw', left: '50%', marginLeft: '-50vw' }}
-      />
-
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <section className="relative w-full bg-orange-600 text-white py-10 sm:py-16 md:py-20 overflow-hidden">
+      {/* Centered Content Container with constrained text width */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          
           {/* Left Content */}
-          <div className="text-white space-y-6 lg:pr-12">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6 }}
-              className="space-y-4"
-            >
-              <h2 className="text-3xl md:text-5xl font-extrabold leading-tight">
-                Experience the UK's Premier Digital Expo, <br />
-                connecting businesses 24/7.
+          <div className="space-y-4 sm:space-y-5 lg:pr-8">
+            <div className="space-y-2 sm:space-y-3">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold leading-snug tracking-tight">
+                Experience the UK's Premier Digital Expo, connecting businesses 24/7.
               </h2>
-              <p className="text-lg md:text-xl text-orange-50 max-w-xl font-medium">
+              <p className="text-xs sm:text-sm md:text-base text-orange-100 max-w-xl leading-relaxed">
                 Discover the latest trends in technology, trade, and lifestyle with expert insights and innovative products to grow your business.
               </p>
-            </motion.div>
+            </div>
 
-            {/* Stats Row */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-wrap items-start gap-8 md:gap-12 py-2"
-            >
-              <div className="relative">
-                <div className="text-4xl md:text-6xl font-black flex items-baseline">
-                  <AnimatedNumber value={2500} start={isInView} /><span className="text-lime-400 text-2xl md:text-3xl ml-1">+</span>
+            {/* Compact Responsive Stats Row */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 py-2.5 border-y border-white/20 my-3">
+              {/* Stat 1 */}
+              <div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black flex items-baseline tracking-tight">
+                  2,500<span className="text-amber-300 text-base sm:text-xl md:text-2xl ml-0.5">+</span>
                 </div>
-                <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-orange-100 mt-1">Brands Exhibiting</p>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100 mt-0.5">Brands</p>
               </div>
               
-              <div className="relative pl-6 border-l border-white/20">
-                <div className="text-4xl md:text-6xl font-black flex items-baseline">
-                  <AnimatedNumber value={50} start={isInView} /><span className="text-lime-400 text-2xl md:text-3xl ml-1">k+</span>
+              {/* Stat 2 */}
+              <div className="border-l border-white/20 pl-2.5 sm:pl-4">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black flex items-baseline tracking-tight">
+                  50<span className="text-amber-300 text-base sm:text-xl md:text-2xl ml-0.5">k+</span>
                 </div>
-                <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-orange-100 mt-1">Seasonal Visitors</p>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100 mt-0.5">Visitors</p>
               </div>
 
-              <div className="relative pl-6 border-l border-white/20">
-                <div className="text-4xl md:text-6xl font-black flex items-baseline">
-                  <AnimatedNumber value={365} start={isInView} />
+              {/* Stat 3 */}
+              <div className="border-l border-white/20 pl-2.5 sm:pl-4">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black flex items-baseline tracking-tight">
+                  365
                 </div>
-                <div className="flex flex-col mt-1">
-                  <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-lime-400">Days</span>
-                  <span className="text-[10px] md:text-xs font-bold text-orange-100 uppercase">Of Innovation</span>
-                </div>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 mt-0.5">Days Innovation</p>
               </div>
-            </motion.div>
+            </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 pt-4">
+            <div className="flex items-center gap-2.5 pt-1">
               <Link 
                 href="/tickets" 
-                className="px-8 py-3 bg-[#d81b60] hover:bg-[#ad1457] text-white font-black rounded-lg transition-all shadow-xl text-base md:text-lg uppercase tracking-tight"
+                className="px-5 py-2.5 sm:px-6 sm:py-3 bg-white hover:bg-orange-50 text-orange-600 font-bold rounded-xl transition-all shadow-md text-xs sm:text-sm flex items-center gap-1.5 active:scale-95"
               >
-                Get your tickets
+                <span>Get your tickets</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link 
                 href="/get-started" 
-                className="px-8 py-3 bg-[#1a237e] hover:bg-[#0d47a1] text-white font-black rounded-lg transition-all shadow-xl text-base md:text-lg uppercase tracking-tight"
+                className="px-5 py-2.5 sm:px-6 sm:py-3 bg-slate-950 hover:bg-slate-900 border border-white/20 text-white font-bold rounded-xl transition-all shadow-md text-xs sm:text-sm active:scale-95"
               >
                 Find out more
               </Link>
             </div>
           </div>
 
-          {/* Right Content - Couple Image */}
-          <div className="relative flex justify-center lg:justify-end mt-8 lg:mt-0">
-             <div className="relative w-full max-w-[450px] h-[400px] md:h-[500px] lg:h-[550px] -mb-28 md:-mb-32 lg:-mb-36 z-20">
+          {/* Right Content - Couple Illustration returned & properly scaled */}
+          <div className="relative flex justify-center lg:justify-end mt-4 lg:mt-0">
+             <div className="relative w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[480px] h-[280px] sm:h-[380px] lg:h-[500px] -mb-10 sm:-mb-16 lg:-mb-24 z-20">
                 <Image 
                   src="/Creative-Couple-with-IHS-totes.webp"
                   alt="Couple experiencing the expo"
@@ -130,6 +79,7 @@ export default function StatsSection() {
                 />
              </div>
           </div>
+
         </div>
       </div>
     </section>
