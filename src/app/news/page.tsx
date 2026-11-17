@@ -2,15 +2,13 @@
 
 import { motion } from "framer-motion";
 import { 
-  Calendar, 
-  Tag, 
   ArrowRight, 
   Newspaper, 
   TrendingUp, 
   Search,
-  Filter
+  Calendar,
+  Tag
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
@@ -29,104 +27,90 @@ export default function NewsPage() {
     <main className="min-h-screen bg-white font-sans text-slate-900">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="pt-40 pb-20 bg-slate-50 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(234,88,12,0.05)_0,transparent_70%)]" />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-orange-600 text-xs font-black uppercase tracking-widest mb-6 border border-orange-200"
-          >
-            <Newspaper className="w-4 h-4" />
-            Platform Pulse
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl lg:text-7xl font-black tracking-tight mb-8"
-          >
-            Stay Ahead of the <span className="text-orange-600">Curve</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed"
-          >
-            Your daily dose of digital innovation, market trends, and community highlights from across the 247GBS ecosystem.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* Search and Filters */}
-      <section className="py-8 sticky top-[80px] z-40 bg-white/80 backdrop-blur-md border-y border-slate-100">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input 
-                type="text" 
-                placeholder="Search news, trends, or categories..." 
-                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm text-lg"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      {/* Compact Hero Section + Inline Search */}
+      <section className="pt-24 pb-6 sm:pt-32 sm:pb-12 bg-slate-50/70 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100/80 text-orange-700 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider mb-1.5">
+                <Newspaper className="w-3.5 h-3.5" />
+                Platform Pulse
+              </div>
+              <h1 className="text-xl sm:text-4xl font-extrabold tracking-tight mb-1 text-slate-900 leading-tight">
+                Stay Ahead of the <span className="text-orange-600">Curve</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                Daily digital innovation, market trends, and community highlights across the 247GBS ecosystem.
+              </p>
             </div>
-            <button className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all">
-              <Filter className="w-5 h-5" /> Filters
-            </button>
+
+            {/* Compact Search Input */}
+            <div className="w-full md:w-80">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <input 
+                  type="text" 
+                  placeholder="Search articles or topics..." 
+                  className="w-full pl-9 pr-4 py-2 sm:py-2.5 bg-white rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 text-xs sm:text-sm shadow-xs"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* News Grid */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+      {/* High-Density News Grid */}
+      <section className="py-6 sm:py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredNews.map((item, i) => (
               <motion.div
                 key={item.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="group flex flex-col"
+                transition={{ delay: i * 0.06 }}
+                className="group"
               >
-                <Link href={`/news/${item.id}`} className="block">
-                  <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-8 shadow-lg">
-                    <Image
+                <Link
+                  href={`/news/${item.id}`}
+                  className="flex flex-col h-full bg-slate-50/60 hover:bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200/70 hover:border-orange-300 transition-all shadow-xs"
+                >
+                  <div className="relative h-32 sm:h-44 rounded-xl overflow-hidden mb-3 bg-slate-900">
+                    <img
                       src={item.image}
                       alt={item.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
                     />
                     {item.trending && (
-                      <div className="absolute top-6 left-6 bg-orange-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl">
-                        <TrendingUp className="w-3.5 h-3.5" /> Trending
+                      <div className="absolute top-2.5 left-2.5 bg-orange-600 text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-md">
+                        <TrendingUp className="w-2.5 h-2.5" /> Trending
                       </div>
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em]">{item.category}</span>
-                    <div className="h-1 w-1 bg-slate-200 rounded-full" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{item.date}</span>
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-600 uppercase tracking-wider">
+                      <Tag className="w-2.5 h-2.5" /> {item.category}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                      <Calendar className="w-2.5 h-2.5" /> {item.date}
+                    </span>
                   </div>
                   
-                  <h2 className="text-2xl font-black text-slate-900 mb-4 group-hover:text-orange-600 transition-colors leading-tight">
+                  <h2 className="text-sm sm:text-lg font-extrabold text-slate-900 mb-1 group-hover:text-orange-600 transition-colors leading-snug line-clamp-2">
                     {item.title}
                   </h2>
                   
-                  <p className="text-slate-500 leading-relaxed line-clamp-3 mb-6 font-medium">
+                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 mb-3">
                     {item.excerpt}
                   </p>
                   
-                  <div className="flex items-center gap-2 text-orange-600 font-bold group-hover:gap-4 transition-all uppercase tracking-widest text-xs">
-                    Read Story <ArrowRight className="w-4 h-4" />
+                  <div className="mt-auto pt-2 border-t border-slate-100 flex items-center gap-1 text-orange-600 font-bold text-xs">
+                    <span>Read Story</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </Link>
               </motion.div>
@@ -134,39 +118,31 @@ export default function NewsPage() {
           </div>
 
           {filteredNews.length === 0 && (
-            <div className="text-center py-20 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-                <Search className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">No articles found</h3>
-              <p className="text-slate-500">Try adjusting your search terms or filters.</p>
+            <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <h3 className="text-base font-bold text-slate-900 mb-1">No articles found</h3>
+              <p className="text-xs text-slate-500">Try adjusting your search query.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* Featured Newsletter CTA */}
-      <section className="py-24 bg-slate-900 text-white rounded-[4rem] mx-4 lg:mx-8 mb-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-600 rounded-full blur-[120px]" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl lg:text-6xl font-black mb-8 tracking-tight">Never miss a beat</h2>
-            <p className="text-xl text-slate-400 mb-12">Get the latest platform updates, trend reports, and exclusive exhibitor deals delivered straight to your inbox.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="px-8 py-5 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 flex-1 max-w-md backdrop-blur-md"
-              />
-              <button className="px-10 py-5 bg-orange-600 text-white rounded-full font-bold hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/20">
-                Subscribe to Pulse
-              </button>
-            </div>
-            <p className="mt-6 text-xs text-slate-500 font-medium">Join 25,000+ business leaders already subscribed.</p>
-          </div>
+      {/* Full-Bleed Dark Newsletter CTA (No Double Container) */}
+      <section className="w-full py-8 sm:py-16 bg-slate-950 text-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-lg sm:text-3xl font-extrabold mb-1.5 sm:mb-3 tracking-tight">Never Miss a Platform Update</h2>
+          <p className="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-6 max-w-xl mx-auto">
+            Get seasonal trend reports, keynote announcements, and exclusive exhibitor deals delivered to your inbox.
+          </p>
+          <form onSubmit={(e) => e.preventDefault()} className="flex flex-row gap-2 max-w-md mx-auto">
+            <input 
+              type="email" 
+              placeholder="Enter your business email" 
+              className="px-4 py-2.5 rounded-full bg-white/10 border border-white/15 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 flex-1 text-xs sm:text-sm"
+            />
+            <button className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md shrink-0">
+              Subscribe
+            </button>
+          </form>
         </div>
       </section>
 
