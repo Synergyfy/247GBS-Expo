@@ -2,6 +2,7 @@
 
 import Navbar from "@/app/component/landing/Navbar";
 import Hero from "@/app/component/landing/Hero";
+import VideoShowcase from "@/app/component/landing/VideoShowcase";
 import EventTypes from "@/app/component/landing/EventTypes";
 import StatsSection from "@/app/component/landing/StatsSection";
 import Gallery from "@/app/component/landing/Gallery";
@@ -16,6 +17,7 @@ export default function Home() {
     <main className="min-h-screen bg-white font-sans selection:bg-orange-100 selection:text-orange-900">
       <Navbar />
       <Hero />
+      <VideoShowcase />
       <EventTypes />
       <StatsSection />
       <Gallery />
@@ -25,19 +27,27 @@ export default function Home() {
       <UserJourney />
       
       {/* CTA Section */}
-      <section className="py-24 bg-orange-600 text-white text-center">
+      <section className="py-8 sm:py-16 md:py-20 bg-orange-600 text-white text-center">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Join the Revolution?</h2>
-          <p className="text-xl text-orange-100 mb-10 max-w-2xl mx-auto">
-            Whether you are a global brand or a smart shopper, there is a place for you in our digital economy.
+          <h2 className="text-lg sm:text-2xl md:text-4xl font-extrabold mb-1.5 sm:mb-4 tracking-tight">
+            Ready to Join the Digital Expo?
+          </h2>
+          <p className="text-[11px] sm:text-sm md:text-base text-orange-100 mb-4 sm:mb-8 max-w-xl mx-auto leading-relaxed">
+            Whether exhibiting your brand to thousands of global buyers or exploring as a visitor, join our living ecosystem 24/7.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-white text-orange-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-100 transition-colors shadow-xl">
-              Get Started for Free
-            </button>
-            <button className="bg-slate-900 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl border border-slate-700">
-              Schedule a Demo
-            </button>
+          <div className="flex flex-row justify-center gap-2 sm:gap-3 max-w-md mx-auto">
+            <a 
+              href="/get-started" 
+              className="bg-white text-orange-600 px-4 py-2 sm:px-7 sm:py-3 rounded-full font-bold text-xs sm:text-sm hover:bg-orange-50 transition-all shadow-md active:scale-95 text-center"
+            >
+              Get Started Free
+            </a>
+            <a 
+              href="/partnership" 
+              className="bg-slate-950 text-white px-4 py-2 sm:px-7 sm:py-3 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-900 transition-all shadow-md border border-slate-800 active:scale-95 text-center"
+            >
+              Partner With Us
+            </a>
           </div>
         </div>
       </section>

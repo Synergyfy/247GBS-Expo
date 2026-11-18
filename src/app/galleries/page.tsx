@@ -4,20 +4,17 @@ import { motion } from "framer-motion";
 import { 
   Camera, 
   Play, 
-  Maximize2, 
-  ExternalLink, 
   Sparkles,
-  Calendar,
-  Users,
-  Image as ImageIcon,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Search,
+  X
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
-import { useState } from "react";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 const CATEGORIES = ["All", "Past Expos", "Innovation Demos", "Networking", "Community"];
 
@@ -26,247 +23,268 @@ const GALLERY_ITEMS = [
     title: "Main Stage Keynote 2025",
     category: "Past Expos",
     image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop",
-    size: "large",
     type: "video"
   },
   {
     title: "Tech Innovation Hub",
     category: "Innovation Demos",
     image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=800&auto=format&fit=crop",
-    size: "small",
     type: "image"
   },
   {
     title: "Global Networking Lounge",
     category: "Networking",
     image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop",
-    size: "small",
     type: "image"
   },
   {
     title: "Business Matching Session",
     category: "Networking",
     image: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=1200&auto=format&fit=crop",
-    size: "medium",
     type: "image"
   },
   {
     title: "AI Product Showcase",
     category: "Innovation Demos",
     image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop",
-    size: "medium",
     type: "video"
   },
   {
     title: "Summer Expo Highlights",
     category: "Past Expos",
-    image: "https://images.unsplash.com/photo-1531050171651-a3a4ca216bb7?q=80&w=800&auto=format&fit=crop",
-    size: "small",
+    image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800&auto=format&fit=crop",
     type: "image"
   },
   {
     title: "Customer Engagement Awards",
     category: "Community",
     image: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=800&auto=format&fit=crop",
-    size: "medium",
     type: "image"
   },
   {
     title: "Sustainability Workshop",
     category: "Innovation Demos",
     image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800&auto=format&fit=crop",
-    size: "small",
     type: "image"
   }
 ];
 
-export default function GalleryPage() {
-  const [activeCategory, setActiveCategory] = useState("All");
+function GalleryContent() {
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get("category") || "All";
+  const initialSearch = searchParams.get("q") || searchParams.get("search") || "";
 
-  const filteredItems = activeCategory === "All" 
-    ? GALLERY_ITEMS 
-    : GALLERY_ITEMS.filter(item => item.category === activeCategory);
+  const [activeCategory, setActiveCategory] = useState(initialCategory);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    const q = searchParams.get("q") || searchParams.get("search");
+    if (cat) setActiveCategory(cat);
+    if (q !== null && q !== undefined) setSearchQuery(q);
+  }, [searchParams]);
+
+  const filteredItems = GALLERY_ITEMS.filter((item) => {
+    const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+    const matchesSearch = !searchQuery.trim() || 
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      item.category.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-slate-50 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-100/50 rounded-full blur-3xl opacity-50" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl opacity-50" />
+      {/* Compact Hero Section */}
+      <section className="pt-24 pb-6 sm:pt-32 sm:pb-12 bg-slate-50/70 border-b border-slate-100 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100/80 text-orange-700 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider mb-2">
+            <Camera className="w-3.5 h-3.5" />
+            The Digital Expo Gallery
+          </div>
+          <h1 className="text-xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-1.5 sm:mb-3 text-slate-900 leading-tight">
+            Visualizing the <span className="text-orange-600">Future of Trade</span>
+          </h1>
+          <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed max-w-xl mx-auto">
+            Explore the moments that define 247GBS Digital Expo—from live product demos to global business connections.
+          </p>
         </div>
+      </section>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-orange-600 text-xs font-black uppercase tracking-widest mb-6 border border-orange-200"
-            >
-              <Camera className="w-4 h-4" />
-              The Digital Expo Gallery
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-5xl lg:text-7xl font-black tracking-tight mb-8 text-slate-900"
-            >
-              Visualizing the <span className="text-orange-600">Future of Trade</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-xl text-slate-500 leading-relaxed mb-12 max-w-2xl mx-auto"
-            >
-              Explore the moments that define 247GBS Digital Expo. From groundbreaking innovations to global community connections.
-            </motion.p>
+      {/* Single-Row Scrollable Category Filters & Search */}
+      <section className="py-2.5 sm:py-4 sticky top-[82px] sm:top-[88px] z-30 bg-white/95 backdrop-blur-md border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            {/* Scrollable Categories */}
+            <div className="flex items-center sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
+              {CATEGORIES.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-bold transition-all shrink-0 ${
+                    activeCategory === category
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+
+            {/* Compact Search Bar */}
+            <div className="relative w-full sm:w-64 shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
+              <input
+                type="text"
+                placeholder="Search showcases..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-8 py-1.5 bg-slate-100 focus:bg-white border border-transparent focus:border-slate-300 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Filters */}
-      <section className="py-8 sticky top-[80px] z-40 bg-white/80 backdrop-blur-md border-y border-slate-100">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center gap-4">
-            {CATEGORIES.map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${
-                  activeCategory === category
-                    ? "bg-slate-900 text-white shadow-xl scale-105"
-                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery Grid */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-            {filteredItems.map((item, i) => (
-              <motion.div
-                layout
-                key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="relative group rounded-[32px] overflow-hidden break-inside-avoid shadow-sm hover:shadow-2xl transition-all duration-500"
-              >
-                <div className="relative overflow-hidden">
+      {/* Full-Width 100% Mobile Gallery Cards */}
+      <section className="py-5 sm:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {filteredItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
+              {filteredItems.map((item, i) => (
+                <motion.div
+                  layout
+                  key={item.title}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="w-full relative group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-slate-900 h-48 sm:h-56 md:h-64"
+                >
                   <img
                     src={item.image}
                     alt={item.title}
-                    className="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90"
+                    loading="lazy"
                   />
                   
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  {/* Permanent Gradient Overlay for Mobile Readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent" />
                   
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-8 translate-y-10 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
-                        {item.category}
-                      </span>
-                      {item.type === "video" && (
-                        <div className="w-6 h-6 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white">
-                          <Play className="w-3 h-3 fill-current" />
-                        </div>
-                      )}
+                  {item.type === "video" && (
+                    <div className="absolute top-3 right-3 w-8 h-8 sm:w-9 sm:h-9 bg-orange-600/95 backdrop-blur-xs rounded-full flex items-center justify-center text-white shadow-md">
+                      <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current ml-0.5" />
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-4">{item.title}</h3>
-                    <div className="flex gap-4">
-                      <button className="p-3 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white hover:text-slate-900 transition-all">
-                        <Maximize2 className="w-5 h-5" />
-                      </button>
-                      <button className="p-3 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white hover:text-slate-900 transition-all">
-                        <ExternalLink className="w-5 h-5" />
-                      </button>
-                    </div>
+                  )}
+
+                  <div className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-5">
+                    <span className="inline-block bg-orange-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1.5 shadow-xs">
+                      {item.category}
+                    </span>
+                    <h3 className="text-sm sm:text-base font-extrabold text-white leading-snug">
+                      {item.title}
+                    </h3>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 px-4 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 max-w-md mx-auto my-4">
+              <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Camera className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1">No Showcases Found</h3>
+              <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                No moments match {searchQuery ? `"${searchQuery}"` : `the "${activeCategory}" filter`}. Try searching another keyword or reset your filters.
+              </p>
+              <button
+                onClick={() => {
+                  setActiveCategory("All");
+                  setSearchQuery("");
+                }}
+                className="px-5 py-2 bg-orange-600 text-white rounded-full text-xs font-bold hover:bg-orange-700 transition-all shadow-xs active:scale-95"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Stats / Highlight Section */}
-      <section className="py-24 bg-slate-900 text-white rounded-[4rem] mx-4 lg:mx-8 mb-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-600 rounded-full blur-[120px]" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
+      {/* Full-Bleed Dark Impact Section (No Double Container) */}
+      <section className="w-full py-8 sm:py-16 bg-slate-950 text-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 text-orange-500 font-black text-xs uppercase tracking-[0.3em] mb-6">
-                <Sparkles className="w-4 h-4" /> Global Impact
+              <div className="inline-flex items-center gap-1.5 text-orange-500 font-extrabold text-[10px] sm:text-xs uppercase tracking-wider mb-1">
+                <Sparkles className="w-3.5 h-3.5" /> Global Impact
               </div>
-              <h2 className="text-4xl lg:text-6xl font-black mb-8 tracking-tight leading-tight">
-                Our Gallery Tells the <span className="text-orange-500">Story</span> of Growth
+              <h2 className="text-lg sm:text-3xl md:text-4xl font-extrabold mb-2 sm:mb-4 tracking-tight leading-snug">
+                Our Gallery Tells the <span className="text-orange-500">Story of Growth</span>
               </h2>
-              <p className="text-lg text-slate-400 mb-12 leading-relaxed">
-                Behind every image is a connection made, a business scaled, and a customer rewarded. 247GBS is more than a platform—it's a vibrant ecosystem.
+              <p className="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-8 leading-relaxed max-w-xl">
+                Behind every showcase is a connection made, a business scaled, and a visitor rewarded. 247GBS is a living, year-round trade ecosystem.
               </p>
               
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-white/10">
                 <div>
-                  <div className="text-4xl lg:text-5xl font-black text-white mb-2">50k+</div>
-                  <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Exhibition Assets</p>
+                  <div className="text-lg sm:text-3xl font-black text-white">50k+</div>
+                  <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-xs">Booth Assets</p>
+                </div>
+                <div className="border-x border-white/10 px-3">
+                  <div className="text-lg sm:text-3xl font-black text-orange-500">1.2M</div>
+                  <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-xs">Interactions</p>
                 </div>
                 <div>
-                  <div className="text-4xl lg:text-5xl font-black text-white mb-2">1.2M</div>
-                  <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Moments Captured</p>
+                  <div className="text-lg sm:text-3xl font-black text-white">24/7</div>
+                  <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-xs">Live Access</p>
                 </div>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="aspect-[3/4] rounded-3xl overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1591115765373-520b7a217286?q=80&w=400" alt="Exhibition" fill className="object-cover" />
-                </div>
-                <div className="aspect-square rounded-3xl overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=400" alt="Exhibition" fill className="object-cover" />
-                </div>
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+              <div className="h-32 sm:h-48 rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900">
+                <img src="https://images.unsplash.com/photo-1591115765373-520b7a217286?q=80&w=600&auto=format&fit=crop" alt="Exhibition" className="w-full h-full object-cover" loading="lazy" />
               </div>
-              <div className="space-y-4 pt-8">
-                <div className="aspect-square rounded-3xl overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=400" alt="Exhibition" fill className="object-cover" />
-                </div>
-                <div className="aspect-[3/4] rounded-3xl overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=400" alt="Exhibition" fill className="object-cover" />
-                </div>
+              <div className="h-32 sm:h-48 rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900">
+                <img src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=600&auto=format&fit=crop" alt="Exhibition" className="w-full h-full object-cover" loading="lazy" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 text-center">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mb-8 tracking-tight">Be part of the next chapter</h2>
-          <p className="text-lg text-slate-500 mb-12 max-w-2xl mx-auto italic">
-            "The best way to predict the future is to create it. Join our next seasonal expo and let's build something extraordinary together."
+      {/* Compact CTA */}
+      <section className="py-8 sm:py-16 text-center bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <h2 className="text-lg sm:text-3xl font-extrabold text-slate-900 mb-1.5 sm:mb-3 tracking-tight">Be Part of the Next Chapter</h2>
+          <p className="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-6 max-w-xl mx-auto">
+            Join our upcoming seasonal expo and connect with hundreds of innovative brands and buyers.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link href="/tickets" className="px-12 py-5 bg-orange-600 text-white rounded-full font-bold text-xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex items-center gap-2">
-              Attend Next Expo <ChevronRight className="w-6 h-6" />
+          <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-4">
+            <Link
+              href="/tickets"
+              className="px-5 py-2.5 sm:px-7 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1"
+            >
+              <span>Attend Next Expo</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
-            <Link href="/partnership" className="px-12 py-5 bg-slate-900 text-white rounded-full font-bold text-xl hover:bg-slate-800 transition-all flex items-center gap-2">
-              Exhibit With Us <ArrowRight className="w-6 h-6" />
+            <Link
+              href="/partnership"
+              className="px-5 py-2.5 sm:px-7 sm:py-3 bg-slate-950 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-slate-800 transition-all shadow-md inline-flex items-center gap-1"
+            >
+              <span>Exhibit With Us</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -274,5 +292,13 @@ export default function GalleryPage() {
 
       <Footer />
     </main>
+  );
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <GalleryContent />
+    </Suspense>
   );
 }

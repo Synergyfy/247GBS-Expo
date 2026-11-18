@@ -4,223 +4,355 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-
-// --- ICONS ---
-const ArrowLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-    </svg>
-);
-
-const ChatIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-    </svg>
-);
-
-const CartIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
-);
-
-const PlayIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-        <path d="M8 5v14l11-7z" />
-    </svg>
-);
+import {
+  ArrowLeft,
+  MessageSquare,
+  ExternalLink,
+  Play,
+  Mail,
+  MapPin,
+  Calendar,
+  ChevronDown
+} from "lucide-react";
 
 export default function VirtualBoothPage() {
-    const params = useParams();
-    const boothId = params.id;
-    const [activeTab, setActiveTab] = useState("products");
+  const params = useParams();
+  const boothId = params.id;
+  const [activeTab, setActiveTab] = useState("products");
+  const [scheduleExpanded, setScheduleExpanded] = useState(false);
 
-    // Mock Booth Data
-    const booth = {
-        name: "FutureTech Systems",
-        id: boothId,
-        location: "Booth A-102",
-        tagline: "Building the next generation of enterprise cloud infrastructure.",
-        description: "FutureTech Systems is a leader in scalable cloud solutions. Founded in 2018, we have helped over 500 startups migrate their infrastructure to the cloud with zero downtime and maximum efficiency.",
-        banner: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop",
-        logo: "/main_stage_banner.png", // Reusing for mock
-        manager: "Jane Smith",
-        email: "contact@futuretech.com",
-        live: true,
-    };
+  const booth = {
+    name: "FutureTech Systems",
+    id: boothId,
+    location: "Booth A-102 • San Francisco, CA",
+    tagline: "Building the next generation of enterprise cloud infrastructure.",
+    description:
+      "FutureTech Systems is a leader in scalable cloud solutions. Founded in 2018, we have helped over 500 enterprises migrate their infrastructure to the cloud with zero downtime and maximum efficiency.",
+    banner: "/hero.webp",
+    manager: "Jane Smith",
+    email: "contact@futuretech.com",
+    live: true
+  };
 
-    const products = [
-        { name: "Cloud Core Hub", price: "499.00", image: "https://images.unsplash.com/photo-1558223123-6447849e771c?q=80&w=300&auto=format&fit=crop" },
-        { name: "Edge Guard Pro", price: "199.00", image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=300&auto=format&fit=crop" },
-        { name: "Global Sync Node", price: "899.00", image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=300&auto=format&fit=crop" },
-    ];
+  // Per meeting directive: Product Name, Description, Price, Image, and Buy Now button linking to MCOM Mall
+  const products = [
+    {
+      name: "Cloud Core Hub X1",
+      description:
+        "High-availability enterprise cloud router with automated failover and hardware encryption.",
+      price: "499.00",
+      image: "/ideal.png",
+      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1"
+    },
+    {
+      name: "Edge Guard Pro Appliance",
+      description:
+        "Real-time zero-trust firewall and DDoS mitigation node for distributed retail branches.",
+      price: "199.00",
+      image: "/main_stage_banner.png",
+      mcomUrl: "https://mcommall.com/products/edge-guard-pro"
+    },
+    {
+      name: "Global Sync Node S4",
+      description:
+        "Multi-region storage replication server with plug-and-play MCOM inventory synchronization.",
+      price: "899.00",
+      image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
+      mcomUrl: "https://mcommall.com/products/global-sync-node"
+    }
+  ];
 
-    return (
-        <div className="max-w-7xl mx-auto pb-20">
-            {/* Back Button */}
-            <Link href="/dashboard/customer/booths" className="inline-flex items-center gap-2 text-slate-500 hover:text-orange-600 font-medium mb-6 transition-colors">
-                <ArrowLeftIcon className="w-4 h-4" />
-                Back to Expo Hall
-            </Link>
+  return (
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5">
+      {/* Compact Back Link */}
+      <Link
+        href="/dashboard/customer/booths"
+        className="inline-flex items-center gap-1.5 text-slate-500 hover:text-orange-600 text-xs font-bold transition-colors"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Back to Expo Hall</span>
+      </Link>
 
-            {/* Hero / Banner */}
-            <div className="relative h-[300px] md:h-[400px] rounded-[2rem] overflow-hidden shadow-2xl mb-12">
-                <Image src={booth.banner} alt={booth.name} fill className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-
-                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 flex flex-col md:flex-row items-end md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center border-4 border-white overflow-hidden p-2">
-                            <div className="w-full h-full bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl">FT</div>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-3xl md:text-5xl font-bold text-white font-display uppercase tracking-tight">{booth.name}</h1>
-                                {booth.live && (
-                                    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse shadow-lg shadow-red-600/40">LIVE</span>
-                                )}
-                            </div>
-                            <p className="text-orange-400 font-medium text-lg mt-1">{booth.location} • San Francisco, CA</p>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-orange-50 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98]">
-                            <ChatIcon className="w-5 h-5 text-orange-600" /> Chat with Us
-                        </button>
-                        <button className="bg-orange-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-700 transition-all shadow-lg active:scale-[0.98] shadow-orange-600/40">
-                            Follow Booth
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {/* Left Column: Content */}
-                <div className="lg:col-span-2 space-y-12">
-                    {/* Main Stage / Video Area */}
-                    <div className="bg-orange-600 rounded-[2rem] aspect-video relative overflow-hidden shadow-2xl group cursor-pointer">
-                        <Image src="/main_stage_banner.png" alt="Live Demo" fill className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-8 text-center bg-black/30 backdrop-blur-[2px]">
-                            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6 ring-4 ring-white/10 group-hover:scale-110 transition-transform">
-                                <PlayIcon className="w-10 h-10" />
-                            </div>
-                            <h3 className="text-2xl font-bold mb-2 font-display uppercase">Booth Live Demo</h3>
-                            <p className="text-slate-300 max-w-sm">Scheduled to start in 2 hours. Click to get notified.</p>
-                        </div>
-                    </div>
-
-                    {/* Navigation Tabs */}
-                    <div className="flex gap-8 border-b border-slate-200">
-                        {["Products", "About", "Services", "Updates"].map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab.toLowerCase())}
-                                className={`pb-6 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === tab.toLowerCase() ? 'text-orange-600' : 'text-slate-400 hover:text-slate-900'}`}
-                            >
-                                {tab}
-                                {activeTab === tab.toLowerCase() && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-600 rounded-t-full shadow-[0_-2px_8px_rgba(234,88,12,0.3)]"></div>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Tab Content */}
-                    <div className="min-h-[400px]">
-                        {activeTab === "products" && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {products.map((product, i) => (
-                                    <div key={i} className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                                        <div className="h-48 rounded-2xl bg-slate-50 relative mb-6 overflow-hidden border border-slate-50">
-                                            <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        </div>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <h4 className="font-bold text-xl text-slate-900 mb-1">{product.name}</h4>
-                                                <p className="text-slate-500 text-sm">Enterprise Cloud</p>
-                                            </div>
-                                            <span className="text-xl font-bold text-orange-600">£{product.price}</span>
-                                        </div>
-                                        <button className="w-full bg-orange-600 text-white py-4 rounded-xl font-bold hover:bg-orange-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-600/20 active:scale-[0.98]">
-                                            <CartIcon className="w-5 h-5" /> Add to Cart
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {activeTab === "about" && (
-                            <div className="bg-white rounded-[2rem] p-10 border border-slate-100 space-y-6">
-                                <h3 className="text-2xl font-bold text-slate-900 font-display uppercase tracking-tight">Our Mission</h3>
-                                <p className="text-slate-600 leading-relaxed text-lg">
-                                    {booth.description}
-                                </p>
-                                <div className="grid grid-cols-2 gap-6 pt-6">
-                                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <h5 className="font-bold text-slate-900 mb-1">Company Culture</h5>
-                                        <p className="text-sm text-slate-500">Innovation first, customer always.</p>
-                                    </div>
-                                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <h5 className="font-bold text-slate-900 mb-1">Expert Support</h5>
-                                        <p className="text-sm text-slate-500">24/7 management for all nodes.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Right Column: Sidebar */}
-                <div className="space-y-8">
-                    {/* Quick Contact Card */}
-                    <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
-                        <h4 className="font-bold text-slate-900 mb-6 text-lg relative font-display uppercase">Booth Staff</h4>
-                        <div className="flex items-center gap-4 mb-8 relative">
-                            <div className="w-16 h-16 rounded-full bg-orange-100 border-2 border-white shadow-md overflow-hidden relative">
-                                <Image src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop" alt={booth.manager} fill className="object-cover" />
-                            </div>
-                            <div>
-                                <div className="font-bold text-slate-900">{booth.manager}</div>
-                                <div className="text-xs text-orange-600 font-bold uppercase tracking-tighter">Booth Manager</div>
-                            </div>
-                        </div>
-                        <div className="space-y-4 relative">
-                            <div className="flex items-center gap-3 text-slate-500 text-sm">
-                                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                {booth.email}
-                            </div>
-                            <div className="flex items-center gap-3 text-slate-500 text-sm">
-                                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                MCOM Mall Hub, Floor 2
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Schedule Mini List */}
-                    <div className="bg-orange-600 rounded-[2rem] p-8 text-white shadow-2xl shadow-orange-200">
-                        <h4 className="font-bold mb-6 text-lg font-display uppercase tracking-wider text-orange-100">Booth Schedule</h4>
-                        <div className="space-y-6">
-                            {[
-                                { time: "10:00 AM", event: "Live Q&A" },
-                                { time: "02:00 PM", title: "Product Demo" },
-                                { time: "04:30 PM", title: "Keynote" },
-                            ].map((item, i) => (
-                                <div key={i} className="flex gap-4 border-l-2 border-orange-400/30 pl-4 py-1">
-                                    <div>
-                                        <div className="text-xs font-bold text-orange-200 uppercase">{item.time || "TBD"}</div>
-                                        <div className="font-medium text-white">{item.event || item.title}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <button className="w-full mt-8 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-bold text-sm backdrop-blur-sm">
-                            Book Consultation
-                        </button>
-                    </div>
-                </div>
-            </div>
+      {/* Compact Booth Banner (CHS Synced Branding) */}
+      <div className="relative rounded-2xl overflow-hidden bg-slate-900 shadow-md">
+        <div className="h-36 sm:h-48 relative">
+          <Image src={booth.banner} alt={booth.name} fill className="object-cover opacity-55" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
         </div>
-    );
+
+        <div className="p-4 sm:p-5 -mt-12 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 sm:w-14 sm:h-14 bg-orange-600 rounded-xl shadow-md flex items-center justify-center border-2 border-white text-white font-extrabold text-sm sm:text-base shrink-0">
+              FT
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                <span className="text-orange-400">{booth.location}</span>
+                {booth.live && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-red-400 font-extrabold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      LIVE
+                    </span>
+                  </>
+                )}
+              </div>
+              <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-white uppercase tracking-tight truncate">
+                {booth.name}
+              </h1>
+              <p className="text-[11px] text-slate-300 truncate">{booth.tagline}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              className="bg-white text-slate-900 px-3 py-1.5 rounded-xl font-bold text-[11px] hover:bg-orange-50 transition-all inline-flex items-center gap-1.5 shadow-xs"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-orange-600" />
+              <span>Live Chat</span>
+            </button>
+            <button
+              type="button"
+              className="bg-orange-600 text-white px-3.5 py-1.5 rounded-xl font-bold text-[11px] hover:bg-orange-700 transition-all shadow-xs"
+            >
+              Follow Booth
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Left Column: Main Booth Content */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Compact Live Demo Video Stream */}
+          <div className="bg-slate-900 rounded-2xl aspect-video relative overflow-hidden shadow-sm group cursor-pointer border border-slate-200/80">
+            <Image
+              src="/main_stage_banner.png"
+              alt="Live Demo"
+              fill
+              className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center bg-black/30">
+              <div className="w-11 h-11 bg-white/20 backdrop-blur-xs rounded-full flex items-center justify-center mb-2 border border-white/30 group-hover:scale-110 transition-transform">
+                <Play className="w-4 h-4 fill-white" />
+              </div>
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-tight">
+                Booth Live Product Demo
+              </h3>
+              <p className="text-slate-300 text-[11px] max-w-xs mt-0.5">
+                Watch live demonstration or browse MCOM Mall products below.
+              </p>
+            </div>
+          </div>
+
+          {/* Horizontal Scrollable Tabs */}
+          <div className="flex gap-5 sm:gap-7 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+            {[
+              { id: "products", label: "MCOM Mall Products" },
+              { id: "about", label: "About Exhibitor" },
+              { id: "services", label: "B2B Services" }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-2.5 text-xs font-bold uppercase tracking-wider transition-all relative whitespace-nowrap shrink-0 ${
+                  activeTab === tab.id
+                    ? "text-orange-600"
+                    : "text-slate-400 hover:text-slate-900"
+                }`}
+              >
+                {tab.label}
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600 rounded-t-full" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div>
+            {activeTab === "products" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                {products.map((product, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
+                  >
+                    <div>
+                      <div className="h-36 rounded-xl bg-slate-100 relative mb-3 overflow-hidden">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="flex justify-between items-start gap-2 mb-1">
+                        <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                          {product.name}
+                        </h4>
+                        <span className="text-xs sm:text-sm font-extrabold text-orange-600 shrink-0">
+                          £{product.price}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-[11px] leading-relaxed mb-3 line-clamp-2">
+                        {product.description}
+                      </p>
+                    </div>
+
+                    <a
+                      href={product.mcomUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-orange-600 text-white py-2 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                    >
+                      <span>Buy Now on MCOM Mall</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === "about" && (
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-3">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-tight">
+                  Exhibitor Profile (CHS Verified)
+                </h3>
+                <p className="text-slate-600 leading-relaxed text-xs">{booth.description}</p>
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
+                  <div>
+                    <h5 className="font-bold text-slate-900 text-xs">Company Culture</h5>
+                    <p className="text-[11px] text-slate-500">Innovation first, customer always.</p>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900 text-xs">Enterprise SLA</h5>
+                    <p className="text-[11px] text-slate-500">24/7 management for all nodes.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "services" && (
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 divide-y divide-slate-100 text-xs">
+                <div className="py-2.5 flex items-center justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-slate-900">Custom Cloud Migration</h4>
+                    <p className="text-[11px] text-slate-500">
+                      End-to-end architecture audit and zero-downtime deployment.
+                    </p>
+                  </div>
+                  <span className="font-bold text-orange-600 shrink-0">From £1,500</span>
+                </div>
+                <div className="py-2.5 flex items-center justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-slate-900">Dedicated DevOps Retainer</h4>
+                    <p className="text-[11px] text-slate-500">
+                      24/7 SLA monitoring and automated cluster scaling.
+                    </p>
+                  </div>
+                  <span className="font-bold text-orange-600 shrink-0">£450/mo</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Compact Booth Staff & Collapsible Schedule */}
+        <div className="space-y-4">
+          {/* Booth Staff Card */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs space-y-3">
+            <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-tight">
+              Booth Representative
+            </h4>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-orange-100 text-orange-700 font-extrabold text-xs flex items-center justify-center shrink-0">
+                JS
+              </div>
+              <div className="min-w-0">
+                <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                  {booth.manager}
+                </div>
+                <div className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
+                  Booth Manager
+                </div>
+              </div>
+            </div>
+            <div className="space-y-1.5 pt-2 border-t border-slate-100 text-[11px] text-slate-600">
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="truncate">{booth.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>MCOM Mall Hub, Virtual Floor 2</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Collapsible Booth Schedule Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setScheduleExpanded((prev) => !prev)}
+              className="w-full p-4 flex items-center justify-between gap-2 text-left hover:bg-slate-50/60 transition-colors"
+              aria-expanded={scheduleExpanded}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Calendar className="w-4 h-4 text-orange-600 shrink-0" />
+                <div>
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                    Booth Live Sessions
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    10:00 AM Live Q&A • 02:00 PM Product Demo
+                  </p>
+                </div>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                  scheduleExpanded ? "rotate-180 text-orange-600" : ""
+                }`}
+              />
+            </button>
+
+            {scheduleExpanded && (
+              <div className="px-4 pb-4 pt-2 border-t border-slate-100 space-y-2.5 text-xs">
+                <div className="divide-y divide-slate-100">
+                  {[
+                    { time: "10:00 AM", title: "Live Q&A with Engineering", status: "Live" },
+                    { time: "02:00 PM", title: "Cloud Core X1 Architecture Demo", status: "Upcoming" },
+                    { time: "04:30 PM", title: "1-on-1 Enterprise Consultations", status: "Open" }
+                  ].map((item, i) => (
+                    <div key={i} className="py-2 flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-slate-900">{item.title}</div>
+                        <div className="text-[10px] text-slate-400 font-semibold">{item.time}</div>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold uppercase ${
+                          item.status === "Live" ? "text-orange-600" : "text-emerald-600"
+                        }`}
+                      >
+                        {item.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="w-full py-2 rounded-xl bg-slate-900 hover:bg-orange-600 text-white transition-all font-bold text-xs"
+                >
+                  Book 1-on-1 Consultation
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

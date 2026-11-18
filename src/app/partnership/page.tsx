@@ -2,36 +2,35 @@
 
 import { motion } from "framer-motion";
 import { 
-  ShieldCheck, Rocket, Users, Globe, BarChart3, 
+  Rocket, Users, Globe, BarChart3, 
   MessageSquare, Zap, Target, ArrowRight, CheckCircle2,
-  Building2, Briefcase, Sparkles, Award
+  Building2, Award
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 
 export default function PartnershipPage() {
   const benefits = [
     {
-      icon: <Globe className="w-6 h-6" />,
+      icon: <Globe className="w-4 h-4 sm:w-5 sm:h-5" />,
       title: "Global Reach",
-      description: "Connect with a national and international audience without the overhead of physical exhibitions."
+      description: "Connect with a national and international audience without physical exhibition overhead."
     },
     {
-      icon: <Zap className="w-6 h-6" />,
+      icon: <Zap className="w-4 h-4 sm:w-5 sm:h-5" />,
       title: "Instant Setup",
-      description: "Launch your digital booth in minutes with our intuitive builder and pre-designed templates."
+      description: "Launch your digital booth in minutes with pre-designed 3D-feeling templates."
     },
     {
-      icon: <Users className="w-6 h-6" />,
+      icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />,
       title: "Smart Networking",
-      description: "Our AI-driven matching connects you with the most relevant leads and potential partners."
+      description: "AI-driven matching connects your brand with high-intent buyers and trade partners."
     },
     {
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: "Real-time Analytics",
-      description: "Track every interaction, view, and lead with our comprehensive exhibitor dashboard."
+      icon: <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />,
+      title: "Real-Time Analytics",
+      description: "Track every visitor interaction, lead, and conversion in your exhibitor dashboard."
     }
   ];
 
@@ -40,15 +39,15 @@ export default function PartnershipPage() {
       name: "Standard Exhibitor",
       price: "£299",
       period: "/season",
-      description: "Perfect for small businesses looking to establish a digital presence.",
+      description: "Ideal for emerging brands establishing a 24/7 digital storefront.",
       features: [
         "Digital Exhibition Booth",
-        "Product/Service Listing (up to 10)",
+        "Up to 10 Product Listings",
         "Basic Analytics Dashboard",
         "Live Chat Integration",
-        "Standard Placement"
+        "Standard Directory Placement"
       ],
-      cta: "Start Small",
+      cta: "Start Standard",
       href: "/exhibit",
       popular: false
     },
@@ -56,14 +55,14 @@ export default function PartnershipPage() {
       name: "Professional Partner",
       price: "£799",
       period: "/season",
-      description: "Advanced features for growing brands seeking maximum engagement.",
+      description: "Advanced growth tools for scaling brands seeking maximum buyer traffic.",
       features: [
-        "Premium Booth Design",
+        "Premium 3D-Feel Booth Design",
         "Unlimited Product Listings",
         "Advanced Lead Intelligence",
-        "Live Streaming Capabilities",
+        "Live Demo & Workshop Streaming",
         "Priority Search Placement",
-        "Dedicated Support"
+        "Dedicated Partner Support"
       ],
       cta: "Go Professional",
       href: "/exhibit",
@@ -73,14 +72,13 @@ export default function PartnershipPage() {
       name: "Enterprise Global",
       price: "Custom",
       period: "",
-      description: "Tailored solutions for large-scale organizations and franchises.",
+      description: "Tailored multi-hall solutions for large organizations and sponsors.",
       features: [
-        "Multi-booth Network",
-        "Custom Feature Development",
-        "White-label Opportunities",
-        "Full API Access",
-        "Sponsorship Priority",
-        "Quarterly Strategy Reviews"
+        "Multi-Booth Brand Network",
+        "Custom Feature Integration",
+        "Seasonal Headline Sponsorship",
+        "Full API & CRM Access",
+        "Quarterly Executive Reviews"
       ],
       cta: "Contact Sales",
       href: "/exhibit",
@@ -92,180 +90,164 @@ export default function PartnershipPage() {
     <main className="min-h-screen bg-white font-sans text-slate-900">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(234,88,12,0.05)_0,transparent_70%)]" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold uppercase tracking-wider mb-6 border border-orange-100"
-            >
+      {/* Compact Hero Section - Centered max-w-7xl */}
+      <section className="relative pt-24 pb-8 sm:pt-32 sm:pb-16 overflow-hidden bg-slate-50/60 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100/80 text-orange-700 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider mb-2 sm:mb-4">
               <Building2 className="w-3.5 h-3.5" />
               Exhibitor & Partnership Programs
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8"
-            >
-              Scale Your Business in the <span className="text-orange-600">Digital Economy</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-xl text-slate-500 leading-relaxed mb-10 max-w-2xl mx-auto"
-            >
-              Join thousands of forward-thinking brands in a permanent, interactive exhibition environment that never closes.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
-            >
+            </div>
+            <h1 className="text-xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-2 sm:mb-4 text-slate-900">
+              Scale Your Business in the <span className="text-orange-600">24/7 Digital Economy</span>
+            </h1>
+            <p className="text-xs sm:text-base text-slate-500 leading-relaxed mb-4 sm:mb-8 max-w-2xl mx-auto">
+              Join hundreds of forward-thinking UK and international brands in a permanent, interactive exhibition environment that never closes.
+            </p>
+            <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-4">
               <Link 
                 href="/exhibit"
-                className="px-10 py-4 bg-orange-600 text-white rounded-full font-bold text-lg hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/20 hover:scale-105"
+                className="px-5 py-2.5 sm:px-7 sm:py-3.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md active:scale-95"
               >
                 Become an Exhibitor
               </Link>
-              <button className="px-10 py-4 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105">
-                Download Partner Deck
-              </button>
-            </motion.div>
+              <Link
+                href="#packages"
+                className="px-5 py-2.5 sm:px-7 sm:py-3.5 bg-slate-950 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-slate-800 transition-all shadow-md active:scale-95"
+              >
+                View Packages
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="py-12 border-y border-slate-100 bg-slate-50/50">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-[0.3em] mb-8">Trusted by industry leaders worldwide</p>
-          <div className="flex flex-wrap justify-center items-center gap-12 opacity-40 grayscale">
-            {/* Placeholder Logos */}
-            <div className="text-2xl font-black text-slate-900">TECHCORP</div>
-            <div className="text-2xl font-black text-slate-900">GLOBEX</div>
-            <div className="text-2xl font-black text-slate-900">VIRTUALUX</div>
-            <div className="text-2xl font-black text-slate-900">NEXUS</div>
-            <div className="text-2xl font-black text-slate-900">OMNICOM</div>
+      {/* Compact Trust Strip */}
+      <section className="py-4 sm:py-6 border-b border-slate-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Trusted by 850+ Exhibiting Brands</p>
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 opacity-40 grayscale text-xs sm:text-base font-black text-slate-900">
+            <span>TECHCORP</span>
+            <span>GLOBEX</span>
+            <span>VIRTUALUX</span>
+            <span>NEXUS</span>
+            <span>OMNICOM</span>
           </div>
         </div>
       </section>
 
-      {/* Value Proposition */}
-      <section className="py-24 lg:py-32">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
+      {/* Value Proposition - Centered max-w-7xl & 2x2 Mobile Grid */}
+      <section className="py-6 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-12 items-center">
             <div>
-              <h2 className="text-4xl lg:text-5xl font-extrabold mb-8 tracking-tight">
+              <div className="text-orange-600 font-extrabold uppercase tracking-wider text-[10px] sm:text-xs mb-1">
+                Why Partner With Us
+              </div>
+              <h2 className="text-lg sm:text-3xl font-extrabold mb-2 sm:mb-4 tracking-tight leading-snug">
                 Why Exhibit with <span className="text-orange-600">247GBS?</span>
               </h2>
-              <p className="text-lg text-slate-500 mb-12 leading-relaxed">
-                Traditional exhibitions are limited by geography and time. Our digital platform removes these barriers, providing you with a persistent, high-engagement exhibition space that works for you 24/7.
+              <p className="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-8 leading-relaxed">
+                Traditional trade shows are restricted by venue costs and 3-day windows. Our digital expo removes those barriers, giving your brand a permanent high-converting booth 365 days a year.
               </p>
               
-              <div className="grid sm:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                 {benefits.map((benefit, i) => (
-                  <div key={i} className="group">
-                    <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
+                  <div key={i} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-100 flex items-start gap-3 sm:block">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 text-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 sm:mb-2">
                       {benefit.icon}
                     </div>
-                    <h3 className="text-lg font-bold mb-2">{benefit.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">{benefit.description}</p>
+                    <div>
+                      <h3 className="text-xs sm:text-base font-bold mb-0.5 sm:mb-1 text-slate-900">{benefit.title}</h3>
+                      <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">{benefit.description}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
             
-            <div className="relative">
-              <div className="absolute inset-0 bg-orange-600 rounded-[3rem] rotate-3 opacity-5" />
-              <div className="relative bg-slate-900 rounded-[3.5rem] p-4 shadow-2xl overflow-hidden aspect-square lg:aspect-auto lg:h-[600px]">
-                <Image 
-                  src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1000&auto=format&fit=crop"
-                  alt="Digital Exhibition Interface"
-                  fill
-                  className="object-cover rounded-[3rem] opacity-80"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-                <div className="absolute bottom-12 left-12 right-12 text-white">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="flex -space-x-4">
-                      {[1,2,3].map(i => (
-                        <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800" />
-                      ))}
-                    </div>
-                    <p className="text-sm font-medium">Join 5,000+ businesses already onboard</p>
-                  </div>
-                  <blockquote className="text-xl font-medium italic leading-relaxed">
-                    "Transitioning to the 247GBS Digital Expo was the best decision for our international growth strategy. Our lead conversion increased by 40%."
-                  </blockquote>
-                  <p className="mt-4 font-bold text-orange-500 uppercase tracking-widest text-xs">— Sarah Jenkins, Head of Growth at TechCorp</p>
-                </div>
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 h-56 sm:h-80 lg:h-[420px] shadow-lg">
+              <img 
+                src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1000&auto=format&fit=crop"
+                alt="Digital Exhibition Interface"
+                className="w-full h-full object-cover opacity-70"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 text-white">
+                <p className="text-[10px] sm:text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">
+                  Verified Partner Impact
+                </p>
+                <blockquote className="text-xs sm:text-base font-semibold italic leading-snug mb-1.5">
+                  &ldquo;Transitioning to the 247GBS Digital Expo increased our qualified B2B lead conversion by 40% in a single season.&rdquo;
+                </blockquote>
+                <p className="font-bold text-slate-300 text-[10px] sm:text-xs">— Sarah Jenkins, Head of Growth at TechCorp</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Partnership Model */}
-      <section className="py-24 bg-slate-900 text-white rounded-[4rem] mx-4 lg:mx-8">
-        <div className="container mx-auto px-4 lg:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-4xl lg:text-5xl font-extrabold mb-6 tracking-tight">Tailored Partnership Packages</h2>
-            <p className="text-slate-400 text-lg">Choose the level of engagement that matches your brand's ambitions.</p>
+      {/* Partnership Packages - Full-Bleed Dark Background, Centered Content (No Double Container) */}
+      <section id="packages" className="w-full py-8 sm:py-16 bg-slate-950 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-12">
+            <div className="text-orange-500 font-extrabold uppercase tracking-wider text-[10px] sm:text-xs mb-1">
+              Transparent Tiers
+            </div>
+            <h2 className="text-lg sm:text-3xl font-extrabold mb-1.5 tracking-tight">Tailored Partnership Packages</h2>
+            <p className="text-slate-400 text-xs sm:text-sm">Choose the exhibition tier that matches your brand&apos;s growth ambitions.</p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {packages.map((pkg, i) => (
               <div 
                 key={i} 
-                className={`relative p-10 rounded-[3rem] border transition-all duration-500 hover:scale-[1.02] ${
+                className={`relative p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between ${
                   pkg.popular 
-                    ? "bg-white text-slate-900 border-white shadow-2xl shadow-white/5" 
-                    : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                    ? "bg-white text-slate-900 border-orange-500 shadow-xl" 
+                    : "bg-slate-900/90 border-white/10 text-white"
                 }`}
               >
-                {pkg.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-6 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
-                    Most Recommended
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h3 className="text-sm sm:text-lg font-extrabold">{pkg.name}</h3>
+                    {pkg.popular && (
+                      <span className="bg-orange-600 text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">
+                        Recommended
+                      </span>
+                    )}
                   </div>
-                )}
-                
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold mb-2">{pkg.name}</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-black">{pkg.price}</span>
-                    <span className={`text-sm font-bold ${pkg.popular ? "text-slate-400" : "text-slate-500"}`}>{pkg.period}</span>
+                  <div className="flex items-baseline gap-1 mb-2">
+                    <span className="text-2xl sm:text-3xl font-black">{pkg.price}</span>
+                    <span className={`text-xs font-bold ${pkg.popular ? "text-slate-500" : "text-slate-400"}`}>{pkg.period}</span>
                   </div>
-                  <p className={`mt-4 text-sm leading-relaxed ${pkg.popular ? "text-slate-500" : "text-slate-400"}`}>
+                  <p className={`text-xs leading-relaxed mb-4 ${pkg.popular ? "text-slate-500" : "text-slate-400"}`}>
                     {pkg.description}
                   </p>
+
+                  <div className={`w-full h-px mb-4 ${pkg.popular ? "bg-slate-100" : "bg-white/10"}`} />
+
+                  <ul className="space-y-2 mb-5">
+                    {pkg.features.map((feature, j) => (
+                      <li key={j} className="flex items-start gap-2">
+                        <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${pkg.popular ? "text-orange-600" : "text-orange-500"}`} />
+                        <span className="text-xs font-medium">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <div className={`w-full h-px mb-8 ${pkg.popular ? "bg-slate-100" : "bg-white/10"}`} />
-
-                <ul className="space-y-4 mb-10">
-                  {pkg.features.map((feature, j) => (
-                    <li key={j} className="flex items-start gap-3">
-                      <CheckCircle2 className={`w-5 h-5 shrink-0 ${pkg.popular ? "text-orange-600" : "text-orange-500"}`} />
-                      <span className="text-sm font-medium">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href={pkg.href} className={`block text-center w-full py-4 rounded-2xl font-bold transition-all ${
-                  pkg.popular 
-                    ? "bg-slate-900 text-white hover:bg-orange-600" 
-                    : "bg-white/10 text-white hover:bg-white border border-white/20 hover:text-slate-900"
-                }`}>
-                  {pkg.cta}
+                <Link
+                  href={pkg.href}
+                  className={`inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all w-fit ${
+                    pkg.popular 
+                      ? "bg-orange-600 text-white hover:bg-orange-700 shadow-md" 
+                      : "bg-white/10 text-white hover:bg-white hover:text-slate-900 border border-white/15"
+                  }`}
+                >
+                  <span>{pkg.cta}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             ))}
@@ -273,27 +255,27 @@ export default function PartnershipPage() {
         </div>
       </section>
 
-      {/* Core Systems / Features */}
-      <section className="py-24 lg:py-32">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-extrabold mb-4 tracking-tight">The Ecosystem Advantage</h2>
-            <p className="text-slate-500 text-lg">Beyond a simple booth, you get a full suite of business growth tools.</p>
+      {/* The Ecosystem Advantage - 2x2 Grid on Mobile */}
+      <section className="py-6 sm:py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-xl mx-auto mb-5 sm:mb-10">
+            <h2 className="text-base sm:text-2xl md:text-3xl font-extrabold mb-1 tracking-tight">The Ecosystem Advantage</h2>
+            <p className="text-slate-500 text-xs sm:text-sm">Beyond a digital booth, you unlock a complete suite of automated marketing tools.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {[
-              { title: "Booth Builder", icon: <Rocket />, desc: "Drag-and-drop interface to create stunning 3D-feeling digital exhibition stands." },
-              { title: "Lead Engine", icon: <Target />, desc: "Capture high-quality leads with integrated forms and behavior tracking." },
-              { title: "Reward System", icon: <Award />, desc: "Create custom loyalty rewards to incentivize repeat visits and referrals." },
-              { title: "Group Access", icon: <MessageSquare />, desc: "Build dedicated customer groups for direct marketing and community management." }
+              { title: "Booth Builder", icon: <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />, desc: "Intuitive templates to launch interactive 3D-feeling exhibition stands." },
+              { title: "Lead Engine", icon: <Target className="w-4 h-4 sm:w-5 sm:h-5" />, desc: "Capture high-intent visitor leads with instant CRM & behavior tracking." },
+              { title: "Reward System", icon: <Award className="w-4 h-4 sm:w-5 sm:h-5" />, desc: "Set custom loyalty points to incentivize repeat booth visits and purchases." },
+              { title: "Community Hub", icon: <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />, desc: "Build dedicated buyer groups for direct broadcasts and product launches." }
             ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-900 mx-auto mb-6 border border-slate-100">
+              <div key={i} className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg sm:rounded-xl flex items-center justify-center text-orange-600 mb-2.5 shadow-xs border border-slate-100">
                   {item.icon}
                 </div>
-                <h4 className="text-xl font-bold mb-3">{item.title}</h4>
-                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                <h4 className="text-xs sm:text-base font-bold mb-1 text-slate-900">{item.title}</h4>
+                <p className="text-slate-500 text-[11px] sm:text-xs leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -301,23 +283,26 @@ export default function PartnershipPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 bg-orange-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2)_0,transparent_50%)]" />
-        <div className="container mx-auto px-4 relative z-10 text-center text-white">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl lg:text-6xl font-extrabold mb-8 tracking-tight">Ready to showcase your brand to the world?</h2>
-            <p className="text-xl text-white/80 mb-12">Join our next seasonal expo and experience the future of business networking.</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-               <Link 
-                href="/exhibit"
-                className="w-full sm:w-auto px-12 py-5 bg-white text-orange-600 rounded-full font-bold text-xl hover:bg-slate-50 transition-all shadow-2xl shadow-black/10 flex items-center justify-center gap-3"
-              >
-                Apply to Exhibit <ArrowRight className="w-6 h-6" />
-              </Link>
-              <button className="w-full sm:w-auto px-12 py-5 bg-slate-900 text-white rounded-full font-bold text-xl hover:bg-slate-800 transition-all">
-                Talk to an Expert
-              </button>
-            </div>
+      <section className="py-8 sm:py-16 bg-orange-600 text-white text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <h2 className="text-lg sm:text-3xl font-extrabold mb-1.5 sm:mb-3 tracking-tight">Ready to Showcase Your Brand 24/7?</h2>
+          <p className="text-xs sm:text-sm text-orange-100 mb-4 sm:mb-6 max-w-xl mx-auto">
+            Join our upcoming seasonal exhibition and start capturing leads across the UK & globally.
+          </p>
+          <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-4">
+            <Link 
+              href="/exhibit"
+              className="px-5 py-2.5 sm:px-7 sm:py-3 bg-white text-orange-600 rounded-full font-bold text-xs sm:text-sm hover:bg-orange-50 transition-all shadow-md inline-flex items-center gap-1.5"
+            >
+              <span>Apply to Exhibit</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              href="/tickets"
+              className="px-5 py-2.5 sm:px-7 sm:py-3 bg-slate-950 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-slate-900 transition-all shadow-md"
+            >
+              Explore Events
+            </Link>
           </div>
         </div>
       </section>

@@ -1,497 +1,547 @@
 "use client";
 
 import { useState } from "react";
-import { 
-    ClipboardList, 
-    Search, 
-    CheckCircle2, 
-    XCircle, 
-    MoreVertical, 
-    Store, 
-    Calendar, 
-    AlertCircle,
-    ArrowRight,
-    UserCheck,
-    Banknote,
-    FileText,
-    Shield,
-    Info,
-    Check,
-    X,
-    Loader2,
-    MapPin,
-    Ticket
+import {
+  Search,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  ArrowRight,
+  UserCheck,
+  Banknote,
+  Loader2,
+  MapPin,
+  Ticket,
+  X
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 
-interface Business {
-    name: string;
-    manager: string;
-    type: string;
-    risk: string;
-    submitted: string;
-    email: string;
-    documents: string[];
-    bankStatus: string;
+interface EventSubmission {
+  id: string;
+  title: string;
+  host: string;
+  format: "Digital Expo" | "Workshop" | "Webinar" | "Hybrid";
+  tickets: string;
+  price: string;
+  submitted: string;
+  description: string;
+  capacity: number;
+  category: string;
+  location: string;
+  status: "Pending" | "Approved" | "Rejected";
+  rejectionReason?: string;
 }
 
-interface Event {
-    id: string;
-    title: string;
-    host: string;
-    tickets: string;
-    price: string;
-    submitted: string;
-    description: string;
-    capacity: number;
-    category: string;
-    location: string;
-}
+const INITIAL_EVENTS: EventSubmission[] = [
+  {
+    id: "EVT-101",
+    title: "Annual Tech Symposium 2026",
+    host: "Global Tech Corp",
+    format: "Digital Expo",
+    tickets: "VIP Pass, General Access",
+    price: "£0 - £250",
+    submitted: "1h ago",
+    description:
+      "A comprehensive 24/7 digital showcase of enterprise AI, cloud infrastructure, and live product demos for UK and international buyers.",
+    capacity: 5000,
+    category: "Technology",
+    location: "Virtual Main Hall A",
+    status: "Pending"
+  },
+  {
+    id: "EVT-102",
+    title: "Summer Sustainable Fashion Week",
+    host: "Urban Threads Co.",
+    format: "Hybrid",
+    tickets: "Runway VIP, Standard",
+    price: "£45 - £120",
+    submitted: "3h ago",
+    description:
+      "Experience the latest trends in ethical and digital fashion. Featuring top UK designers, 3D booth showcases, and live buyer Q&A sessions.",
+    capacity: 2000,
+    category: "Fashion & Retail",
+    location: "Hybrid Venue B • London",
+    status: "Pending"
+  },
+  {
+    id: "EVT-103",
+    title: "FinTech Cross-Border Trade Workshop",
+    host: "Apex Financial Systems",
+    format: "Workshop",
+    tickets: "Executive Tier, Standard",
+    price: "£75 - £199",
+    submitted: "5h ago",
+    description:
+      "Interactive workshop covering multi-currency escrow settlements, B2B trade financing, and automated compliance workflows.",
+    capacity: 800,
+    category: "Fintech",
+    location: "Virtual Auditorium 2",
+    status: "Pending"
+  },
+  {
+    id: "EVT-104",
+    title: "Clean Energy & Grid Innovation Summit",
+    host: "GreenEnergy Pro",
+    format: "Webinar",
+    tickets: "Season Pass Included",
+    price: "£25 - £90",
+    submitted: "1d ago",
+    description:
+      "Keynote presentations and live technical demonstrations of commercial solar microgrids and battery storage solutions.",
+    capacity: 3500,
+    category: "Sustainability",
+    location: "Virtual Hall C",
+    status: "Approved"
+  }
+];
 
 export default function ApprovalQueuePage() {
-    const [activeTab, setActiveTab] = useState("businesses");
-    const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
-    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [showEventModal, setShowEventModal] = useState(false);
-    const [isRejecting, setIsRejecting] = useState(false);
-    const [rejectionReason, setRejectionReason] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<EventSubmission[]>(INITIAL_EVENTS);
+  const [statusFilter, setStatusFilter] = useState<"All" | "Pending" | "Approved" | "Rejected">("All");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "capacity">("newest");
 
-    const businesses: Business[] = [
-        { 
-            name: "Global Tech Corp", 
-            manager: "Jane Smith", 
-            type: "Exhibitor", 
-            risk: "Low", 
-            submitted: "2h ago", 
-            email: "jane@globaltech.com",
-            documents: ["Certificate of Incorporation.pdf", "Tax_Compliance.pdf"],
-            bankStatus: "Verified"
-        },
-        { 
-            name: "Urban Threads Co.", 
-            manager: "Mark Riley", 
-            type: "Retailer", 
-            risk: "Medium", 
-            submitted: "5h ago", 
-            email: "mark@urbanthreads.com",
-            documents: ["Business_ID.pdf", "Vat_Certificate.pdf"],
-            bankStatus: "Pending"
-        },
-        { 
-            name: "Skyline Media", 
-            manager: "Alex Chen", 
-            type: "Partner", 
-            risk: "High", 
-            submitted: "1d ago", 
-            email: "alex@skylinemedia.io",
-            documents: ["Partnership_Agreement.pdf"],
-            bankStatus: "Failed Check"
-        },
-    ];
+  const [selectedEvent, setSelectedEvent] = useState<EventSubmission | null>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const events: Event[] = [
-        { 
-            id: "E-101",
-            title: "Annual Tech Symposium", 
-            host: "Global Tech Corp", 
-            tickets: "VIP, GA", 
-            price: "£0 - £500", 
-            submitted: "1h ago",
-            description: "A comprehensive showcase of upcoming technologies and networking opportunities for industry professionals.",
-            capacity: 5000,
-            category: "Technology",
-            location: "Virtual Main Hall"
-        },
-        { 
-            id: "E-102",
-            title: "Summer Fashion Week", 
-            host: "Urban Threads", 
-            tickets: "Runway, GA", 
-            price: "£45 - £120", 
-            submitted: "3h ago",
-            description: "Experience the latest trends in digital and physical fashion. Featuring top designers and live runway shows.",
-            capacity: 2000,
-            category: "Fashion",
-            location: "Hybrid Venue B"
-        },
-    ];
+  const filteredEvents = events
+    .filter((e) => {
+      const matchesStatus = statusFilter === "All" || e.status === statusFilter;
+      const matchesSearch =
+        !searchTerm.trim() ||
+        e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.host.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.id.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortOrder === "capacity") return b.capacity - a.capacity;
+      if (sortOrder === "oldest") return b.id.localeCompare(a.id);
+      return a.id.localeCompare(b.id);
+    });
 
-    const handleApprove = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setShowReviewModal(false);
+  const handleApprove = () => {
+    if (!selectedEvent) return;
+    setLoading(true);
+    setTimeout(() => {
+      setEvents((prev) =>
+        prev.map((ev) =>
+          ev.id === selectedEvent.id ? { ...ev, status: "Approved", rejectionReason: undefined } : ev
+        )
+      );
+      setLoading(false);
+      setShowEventModal(false);
+      setSelectedEvent(null);
+    }, 600);
+  };
+
+  const handleRejectSubmit = () => {
+    if (!selectedEvent || !rejectionReason.trim()) return;
+    setLoading(true);
+    setTimeout(() => {
+      setEvents((prev) =>
+        prev.map((ev) =>
+          ev.id === selectedEvent.id
+            ? { ...ev, status: "Rejected", rejectionReason: rejectionReason.trim() }
+            : ev
+        )
+      );
+      setLoading(false);
+      setShowEventModal(false);
+      setSelectedEvent(null);
+      setIsRejecting(false);
+      setRejectionReason("");
+    }, 600);
+  };
+
+  const openModerationModal = (ev: EventSubmission) => {
+    setSelectedEvent(ev);
+    setIsRejecting(false);
+    setRejectionReason(ev.rejectionReason || "");
+    setShowEventModal(true);
+  };
+
+  return (
+    <div className="space-y-4 sm:space-y-5 max-w-7xl mx-auto">
+      {/* Compact Header */}
+      <div>
+        <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+          Event Approval Queue
+        </h1>
+        <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+          Moderate business event submissions, ticket pricing caps, and hall allocations.
+        </p>
+      </div>
+
+      {/* Filter Tabs (Peeping Horizontal Scroll) & Search Toolbar */}
+      <div className="space-y-2.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-0.5">
+          {(["All", "Pending", "Approved", "Rejected"] as const).map((status) => {
+            const count =
+              status === "All" ? events.length : events.filter((e) => e.status === status).length;
+            const isActive = statusFilter === status;
+            return (
+              <button
+                key={status}
+                type="button"
+                onClick={() => setStatusFilter(status)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shrink-0 flex items-center gap-1 ${
+                  isActive
+                    ? "bg-orange-600 text-white shadow-xs"
+                    : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50"
+                }`}
+              >
+                <span>{status}</span>
+                <span
+                  className={`text-[10px] font-bold ${
+                    isActive ? "text-orange-100" : "text-slate-400"
+                  }`}
+                >
+                  ({count})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search & Sort Controls */}
+        <div className="flex items-center gap-2 w-full">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search event, host, or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-8 pr-7 py-2 bg-white border border-slate-200/80 rounded-xl text-xs font-medium focus:outline-none focus:border-orange-500 shadow-2xs"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as any)}
+            className="px-2.5 py-2 bg-white border border-slate-200/80 rounded-xl outline-none text-[11px] font-bold text-slate-700 shrink-0 shadow-2xs"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="capacity">Largest Capacity</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Redesigned Event Submissions Container — Clean 3-Line Mobile Cards + Desktop Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Desktop Table Header */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-4 px-5 py-3 bg-slate-50/80 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <div className="col-span-4">Event & Category</div>
+          <div className="col-span-3">Host Business & Hall</div>
+          <div className="col-span-2">Pricing & Capacity</div>
+          <div className="col-span-1">Status</div>
+          <div className="col-span-2 text-right">Action</div>
+        </div>
+
+        {filteredEvents.length > 0 ? (
+          <div className="divide-y divide-slate-100">
+            {filteredEvents.map((e) => (
+              <div
+                key={e.id}
+                className="p-3.5 sm:p-4 lg:px-5 lg:py-3.5 hover:bg-slate-50/60 transition-colors"
+              >
+                {/* MOBILE & TABLET LAYOUT: Crisp 3-Line Scannable Card */}
+                <div className="lg:hidden space-y-2">
+                  {/* Line 1: Event Title + Right-Aligned Status */}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 leading-snug">
+                      {e.title}
+                    </h3>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wide shrink-0 mt-0.5 ${
+                        e.status === "Approved"
+                          ? "text-emerald-600"
+                          : e.status === "Rejected"
+                          ? "text-red-600"
+                          : "text-amber-600"
+                      }`}
+                    >
+                      {e.status}
+                    </span>
+                  </div>
+
+                  {/* Line 2: Host • Category • Format (Single clean line) */}
+                  <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 min-w-0 truncate">
+                    <span className="font-semibold text-slate-700 truncate">{e.host}</span>
+                    <span className="text-slate-300 shrink-0">•</span>
+                    <span className="text-orange-600 font-semibold shrink-0">{e.category}</span>
+                    <span className="text-slate-300 shrink-0">•</span>
+                    <span className="text-slate-400 shrink-0">{e.format}</span>
+                  </div>
+
+                  {/* Line 3: Unified Meta & Action Footer Row */}
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-semibold min-w-0 truncate">
+                      <span className="font-bold text-slate-900">{e.price}</span>
+                      <span className="text-slate-300">•</span>
+                      <span>{e.capacity.toLocaleString()} Pax</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-slate-400 font-normal">{e.submitted}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openModerationModal(e)}
+                      className="px-2.5 py-1.5 bg-slate-900 text-white rounded-lg font-bold text-[11px] hover:bg-orange-600 transition-all inline-flex items-center gap-1 shrink-0"
+                    >
+                      <span>{e.status === "Pending" ? "Moderate" : "Details"}</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {e.status === "Rejected" && e.rejectionReason && (
+                    <p className="text-[11px] text-red-600 font-medium pt-1">
+                      Reason: {e.rejectionReason}
+                    </p>
+                  )}
+                </div>
+
+                {/* DESKTOP LAYOUT: 12-Col Grid */}
+                <div className="hidden lg:grid lg:grid-cols-12 lg:gap-4 lg:items-center">
+                  <div className="col-span-4 min-w-0">
+                    <h3 className="text-[13px] font-bold text-slate-900 truncate">{e.title}</h3>
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium mt-0.5">
+                      <span className="text-slate-400">{e.id}</span>
+                      <span>•</span>
+                      <span className="text-orange-600 font-semibold">{e.category}</span>
+                      <span>•</span>
+                      <span>{e.format}</span>
+                    </div>
+                  </div>
+
+                  <div className="col-span-3 min-w-0 text-xs">
+                    <div className="font-semibold text-slate-800 truncate">{e.host}</div>
+                    <div className="text-[11px] text-slate-400 truncate">{e.location}</div>
+                  </div>
+
+                  <div className="col-span-2 text-xs">
+                    <div className="font-bold text-slate-900">{e.price}</div>
+                    <div className="text-[11px] text-slate-400">
+                      {e.capacity.toLocaleString()} Pax • {e.submitted}
+                    </div>
+                  </div>
+
+                  <div className="col-span-1">
+                    <span
+                      className={`text-[11px] font-bold uppercase tracking-wider ${
+                        e.status === "Approved"
+                          ? "text-emerald-600"
+                          : e.status === "Rejected"
+                          ? "text-red-600"
+                          : "text-amber-600"
+                      }`}
+                    >
+                      {e.status}
+                    </span>
+                  </div>
+
+                  <div className="col-span-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => openModerationModal(e)}
+                      className="px-3 py-1.5 bg-slate-900 text-white rounded-lg font-bold text-[11px] hover:bg-orange-600 transition-all inline-flex items-center gap-1"
+                    >
+                      <span>{e.status === "Pending" ? "Moderate" : "Details"}</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-10 px-4 text-center">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 mb-1">
+              No Event Submissions Found
+            </h3>
+            <p className="text-[11px] text-slate-500 mb-3 max-w-xs mx-auto">
+              No events match your current search or filter status.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter("All");
+                setSearchTerm("");
+              }}
+              className="px-3.5 py-1.5 bg-orange-600 text-white rounded-lg text-[11px] font-bold hover:bg-orange-700 transition-all"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* EVENT MODERATION MODAL */}
+      <Modal
+        isOpen={showEventModal}
+        onClose={() => {
+          if (!loading) {
             setShowEventModal(false);
-            setSelectedBusiness(null);
-            setSelectedEvent(null);
-        }, 1500);
-    };
-
-    const handleRejectSubmit = () => {
-        if (!rejectionReason.trim()) return;
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setShowReviewModal(false);
-            setShowEventModal(false);
-            setSelectedBusiness(null);
             setSelectedEvent(null);
             setIsRejecting(false);
             setRejectionReason("");
-        }, 1500);
-    };
+          }
+        }}
+        title="Event Moderation Dossier"
+      >
+        {selectedEvent && (
+          <div className="space-y-4">
+            {!isRejecting ? (
+              <>
+                <div className="pb-2.5 border-b border-slate-100">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                    <span className="text-slate-400">{selectedEvent.id}</span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-orange-600">{selectedEvent.category}</span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-slate-700">{selectedEvent.format}</span>
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+                    {selectedEvent.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                    Host: {selectedEvent.host}
+                  </p>
+                </div>
 
-    return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="grid grid-cols-2 gap-2.5 text-[11px] pb-2.5 border-b border-slate-100">
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                      Hall / Location
+                    </p>
+                    <p className="font-semibold text-slate-800 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-orange-600 shrink-0" />
+                      {selectedEvent.location}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                      Max Capacity
+                    </p>
+                    <p className="font-semibold text-slate-800 flex items-center gap-1">
+                      <UserCheck className="w-3 h-3 text-orange-600 shrink-0" />
+                      {selectedEvent.capacity.toLocaleString()} Attendees
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                      Ticket Pricing Range
+                    </p>
+                    <p className="font-semibold text-slate-800 flex items-center gap-1">
+                      <Banknote className="w-3 h-3 text-emerald-600 shrink-0" />
+                      {selectedEvent.price}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                      Ticket Templates
+                    </p>
+                    <p className="font-semibold text-slate-800 flex items-center gap-1">
+                      <Ticket className="w-3 h-3 text-orange-600 shrink-0" />
+                      {selectedEvent.tickets}
+                    </p>
+                  </div>
+                </div>
+
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Approval Queue</h1>
-                    <p className="text-slate-500">Review and moderate business registrations and new event submissions.</p>
-                </div>
-                <div className="flex gap-4 bg-orange-50 text-orange-700 px-4 py-2 rounded-xl border border-orange-100">
-                    <AlertCircle className="w-5 h-5" />
-                    <span className="text-sm font-bold uppercase tracking-wider">12 Items Pending Review</span>
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-8 border-b border-slate-200">
-                {[
-                    { id: "businesses", label: "Business KYB", count: 5, icon: <Store className="w-4 h-4" /> },
-                    { id: "events", label: "Event Moderation", count: 7, icon: <Calendar className="w-4 h-4" /> },
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 ${
-                            activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
-                        }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                            {tab.count}
-                        </span>
-                        {activeTab === tab.id && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-600 rounded-t-full" />
-                        )}
-                    </button>
-                ))}
-            </div>
-
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                
-                {/* Search & Filter */}
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-8">
-                    <div className="relative w-full md:w-96">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input type="text" placeholder="Search queue..." className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500" />
-                    </div>
-                    <div className="flex gap-2">
-                        <select className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold">
-                            <option>High Risk First</option>
-                            <option>Oldest First</option>
-                            <option>Newest First</option>
-                        </select>
-                    </div>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Event Overview & Schedule Scope
+                  </p>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    {selectedEvent.description}
+                  </p>
                 </div>
 
-                {/* LIST */}
-                <div className="grid gap-6">
-                    {activeTab === "businesses" ? (
-                        businesses.map((b, i) => (
-                            <div key={i} className="bg-white rounded-[2.5rem] border border-slate-100 p-6 flex flex-col lg:flex-row items-center gap-8 hover:shadow-lg transition-all group">
-                                <div className="w-16 h-16 rounded-3xl bg-orange-50 flex items-center justify-center text-orange-600 font-black text-2xl shrink-0">
-                                    {b.name[0]}
-                                </div>
-                                <div className="flex-1 space-y-2 text-center lg:text-left">
-                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{b.name}</h3>
-                                    <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-                                        <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> {b.manager}</span>
-                                        <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> KYB Pending</span>
-                                        <span className={`px-2 py-0.5 rounded-md ${
-                                            b.risk === 'Low' ? 'bg-emerald-50 text-emerald-600' : 
-                                            b.risk === 'Medium' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'
-                                        }`}>Risk: {b.risk}</span>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3 shrink-0">
-                                    <button 
-                                        onClick={() => {
-                                            setSelectedBusiness(b);
-                                            setShowReviewModal(true);
-                                        }}
-                                        className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-orange-600 transition-all flex items-center gap-2"
-                                    >
-                                        Review Dossier <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))
+                <div className="flex gap-2 pt-2.5 border-t border-slate-100">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => setIsRejecting(true)}
+                    className="flex-1 py-2 border border-red-200 text-red-600 rounded-xl font-bold text-[11px] hover:bg-red-50 transition-all flex items-center justify-center gap-1"
+                  >
+                    <XCircle className="w-3.5 h-3.5" /> Reject
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={handleApprove}
+                    className="flex-[1.5] py-2 bg-orange-600 text-white rounded-xl font-bold text-[11px] hover:bg-orange-700 transition-all flex items-center justify-center gap-1 shadow-xs"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                        events.map((e, i) => (
-                            <div key={i} className="bg-white rounded-[2.5rem] border border-slate-100 p-6 flex flex-col lg:flex-row items-center gap-8 hover:shadow-lg transition-all group">
-                                <div className="w-16 h-16 rounded-3xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                                    <Calendar className="w-8 h-8" />
-                                </div>
-                                <div className="flex-1 space-y-2 text-center lg:text-left">
-                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{e.title}</h3>
-                                    <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-                                        <span className="flex items-center gap-1"><Store className="w-3 h-3" /> {e.host}</span>
-                                        <span className="flex items-center gap-1"><Banknote className="w-3 h-3" /> {e.price}</span>
-                                        <span className="text-orange-600 font-black">Content Verification Required</span>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3 shrink-0">
-                                    <button 
-                                        onClick={() => {
-                                            setSelectedEvent(e);
-                                            setShowEventModal(true);
-                                        }}
-                                        className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-orange-600 transition-all flex items-center gap-2"
-                                    >
-                                        Moderate Content <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Approve & Publish
+                      </>
                     )}
+                  </button>
                 </div>
-            </div>
+              </>
+            ) : (
+              <div className="space-y-3.5">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5 mb-1">
+                    <AlertCircle className="w-4 h-4 text-red-600" /> State Reason for Rejection
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Specify why this event is being rejected. The host business will be notified immediately.
+                  </p>
+                </div>
 
-            {/* REVIEW MODAL */}
-            <Modal
-                isOpen={showReviewModal}
-                onClose={() => {
-                    if (!loading) {
-                        setShowReviewModal(false);
-                        setSelectedBusiness(null);
-                        setIsRejecting(false);
-                        setRejectionReason("");
-                    }
-                }}
-                title="Business Verification Dossier"
-            >
-                {selectedBusiness && (
-                    <div className="space-y-6">
-                        {!isRejecting ? (
-                            <>
-                                {/* Business Header */}
-                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <div className="w-12 h-12 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold text-xl">
-                                        {selectedBusiness.name[0]}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-900">{selectedBusiness.name}</h3>
-                                        <p className="text-xs text-slate-500 font-medium">{selectedBusiness.email}</p>
-                                    </div>
-                                    <div className="ml-auto">
-                                         <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
-                                            selectedBusiness.risk === 'Low' ? 'bg-emerald-100 text-emerald-700' : 
-                                            selectedBusiness.risk === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                                        }`}>
-                                            Risk: {selectedBusiness.risk}
-                                        </span>
-                                    </div>
-                                </div>
+                <textarea
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-orange-500 outline-none text-xs font-medium h-24 resize-none"
+                  placeholder="e.g. Ticket price exceeds the £500 seasonal pass cap..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                />
 
-                                {/* Verification Details */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Legal Manager</p>
-                                        <p className="text-sm font-bold text-slate-700 flex items-center gap-2"><UserCheck className="w-4 h-4 text-orange-600" /> {selectedBusiness.manager}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Status</p>
-                                        <p className="text-sm font-bold text-slate-700 flex items-center gap-2"><Banknote className="w-4 h-4 text-orange-600" /> {selectedBusiness.bankStatus}</p>
-                                    </div>
-                                </div>
-
-                                {/* Documents */}
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Submitted Documents</p>
-                                    <div className="space-y-2">
-                                        {selectedBusiness.documents.map((doc, idx) => (
-                                            <div key={idx} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:border-orange-200 transition-colors group cursor-pointer">
-                                                <div className="flex items-center gap-3">
-                                                    <FileText className="w-4 h-4 text-slate-400 group-hover:text-orange-600" />
-                                                    <span className="text-xs font-medium text-slate-600">{doc}</span>
-                                                </div>
-                                                <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-orange-600" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex gap-4 pt-6 border-t border-slate-100">
-                                    <button 
-                                        disabled={loading}
-                                        onClick={() => setIsRejecting(true)}
-                                        className="flex-1 py-4 border-2 border-slate-200 text-red-600 rounded-xl font-bold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <XCircle className="w-5 h-5" /> Reject
-                                    </button>
-                                    <button 
-                                        disabled={loading}
-                                        onClick={handleApprove}
-                                        className="flex-[2] py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg"
-                                    >
-                                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5" /> Approve Business</>}
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                                    <AlertCircle className="w-5 h-5 text-red-600" /> Rejection Reason
-                                </h4>
-                                <p className="text-xs text-slate-500 mb-6">Explain why this business is being rejected. This will be sent to the business manager.</p>
-                                
-                                <textarea 
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-sm font-medium h-32 resize-none"
-                                    placeholder="e.g. Identity document is blurred, Please re-upload your VAT certificate..."
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                />
-
-                                <div className="flex gap-4 mt-8">
-                                    <button 
-                                        disabled={loading}
-                                        onClick={() => setIsRejecting(false)}
-                                        className="flex-1 py-4 border-2 border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all"
-                                    >
-                                        Back
-                                    </button>
-                                    <button 
-                                        disabled={loading || !rejectionReason.trim()}
-                                        onClick={handleRejectSubmit}
-                                        className="flex-[2] py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-xl shadow-red-600/30 flex items-center justify-center gap-2"
-                                    >
-                                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm Rejection"}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </Modal>
-            {/* EVENT MODAL */}
-            <Modal
-                isOpen={showEventModal}
-                onClose={() => {
-                    if (!loading) {
-                        setShowEventModal(false);
-                        setSelectedEvent(null);
-                        setIsRejecting(false);
-                        setRejectionReason("");
-                    }
-                }}
-                title="Event Moderation Dossier"
-            >
-                {selectedEvent && (
-                    <div className="space-y-6">
-                        {!isRejecting ? (
-                            <>
-                                {/* Event Header */}
-                                <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                                    <div className="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-xl">
-                                        <Calendar className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-900">{selectedEvent.title}</h3>
-                                        <p className="text-xs text-slate-500 font-medium">{selectedEvent.host}</p>
-                                    </div>
-                                    <div className="ml-auto">
-                                         <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-wider">
-                                            {selectedEvent.category}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Event Details */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Location</p>
-                                        <p className="text-sm font-bold text-slate-700 flex items-center gap-2"><MapPin className="w-4 h-4 text-blue-600" /> {selectedEvent.location}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capacity</p>
-                                        <p className="text-sm font-bold text-slate-700 flex items-center gap-2"><UserCheck className="w-4 h-4 text-blue-600" /> {selectedEvent.capacity.toLocaleString()} Pax</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pricing</p>
-                                        <p className="text-sm font-bold text-slate-700 flex items-center gap-2"><Banknote className="w-4 h-4 text-blue-600" /> {selectedEvent.price}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tiers</p>
-                                        <p className="text-sm font-bold text-slate-700 flex items-center gap-2"><Ticket className="w-4 h-4 text-blue-600" /> {selectedEvent.tickets}</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Description</p>
-                                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                        {selectedEvent.description}
-                                    </p>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex gap-4 pt-6 border-t border-slate-100">
-                                    <button 
-                                        disabled={loading}
-                                        onClick={() => setIsRejecting(true)}
-                                        className="flex-1 py-4 border-2 border-slate-200 text-red-600 rounded-xl font-bold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <XCircle className="w-5 h-5" /> Reject
-                                    </button>
-                                    <button 
-                                        disabled={loading}
-                                        onClick={handleApprove}
-                                        className="flex-[2] py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg"
-                                    >
-                                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5" /> Approve Event</>}
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                                    <AlertCircle className="w-5 h-5 text-red-600" /> Rejection Reason
-                                </h4>
-                                <p className="text-xs text-slate-500 mb-6">Explain why this event content is being rejected. This will be sent to the host.</p>
-                                
-                                <textarea 
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-sm font-medium h-32 resize-none"
-                                    placeholder="e.g. Inappropriate content, capacity mismatch, invalid documentation..."
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                />
-
-                                <div className="flex gap-4 mt-8">
-                                    <button 
-                                        disabled={loading}
-                                        onClick={() => setIsRejecting(false)}
-                                        className="flex-1 py-4 border-2 border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all"
-                                    >
-                                        Back
-                                    </button>
-                                    <button 
-                                        disabled={loading || !rejectionReason.trim()}
-                                        onClick={handleRejectSubmit}
-                                        className="flex-[2] py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-xl shadow-red-600/30 flex items-center justify-center gap-2"
-                                    >
-                                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm Rejection"}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </Modal>
-        </div>
-    );
+                <div className="flex gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => setIsRejecting(false)}
+                    className="flex-1 py-2 border border-slate-200 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-50 transition-all"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading || !rejectionReason.trim()}
+                    onClick={handleRejectSubmit}
+                    className="flex-[1.5] py-2 bg-red-600 text-white rounded-xl font-bold text-xs hover:bg-red-700 transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      "Confirm Rejection"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
 }

@@ -1,26 +1,23 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  motion, AnimatePresence
-} from "framer-motion";
-import {
-  Check, Ticket, Users, Gift, ArrowRight, Sparkles,
+  Check, Ticket, ArrowRight, Sparkles,
   CreditCard, ShieldCheck, Zap, Globe, Cpu, ShoppingBag,
-  QrCode, Landmark, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Clock, Shield, Copy
+  QrCode, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Shield, Copy
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
-import OtpInput from "@/app/component/OtpInput";
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 import { PASS_PLANS } from "@/data/passes";
 
-const STEPS = ["Event Marketplace", "Add-ons", "Review", "Identity", "Payment", "Digital Passport"];
+// Step 4 (Local Identity / OTP Verification) removed per Central Solution (CHS) directive.
+const STEPS = ["Events", "Add-ons", "Review", "Payment", "Passport"];
 
 interface CartItem {
   id: string;
@@ -33,22 +30,18 @@ interface CartItem {
 
 function TicketsContent() {
   const searchParams = useSearchParams();
-
-  // Determine initial step and pass status from URL
   const hasPreselectedEvents = searchParams.get('season') || searchParams.get('selectedEvents');
+  const stepParam = searchParams.get('step');
 
-  const [step, setStep] = useState(hasPreselectedEvents ? 1 : 0);
+  const [step, setStep] = useState(stepParam ? parseInt(stepParam, 10) : (hasPreselectedEvents ? 1 : 0));
   const [loading, setLoading] = useState(false);
 
-  // State for Flow
-  const [hasGeneralPass, setHasGeneralPass] = useState(false);
-  const [activeAccessToken, setAccessToken] = useState("");
+  // Access Pass Token State
   const [enteredToken, setEnteredToken] = useState("");
   const [isTokenValidated, setIsTokenValidated] = useState(false);
   const [generatedToken, setGeneratedToken] = useState("");
   const [showTokenScreen, setShowTokenScreen] = useState(false);
   const [showPassModal, setShowPassModal] = useState(false);
-  const [hasSkippedPass, setHasSkippedPass] = useState(!!hasPreselectedEvents);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,30 +54,23 @@ function TicketsContent() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [activeInfoTab, setActiveInfoTab] = useState("overview");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [promoCode, setPromoCode] = useState("");
-  const [promoApplied, setPromoApplied] = useState(false);
-  const [userInfo, setUserInfo] = useState({ firstName: "", lastName: "", email: "", phone: "" });
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>("card");
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
 
-  // UK Pricing Constants
-  const BOOKING_FEE = 1.50; // Flat £1.50 per transaction
-  const VAT_RATE = 0.20; // 20% UK VAT
+  const BOOKING_FEE = 1.50;
 
-  // Reset pagination on search or filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, eventType]);
 
-  // Handle Season/Event Pre-selection
+  // Handle Season/Event Pre-selection from URL
   useEffect(() => {
     const seasonId = searchParams.get('season');
     const multiEvents = searchParams.get('selectedEvents');
     const quantities = searchParams.get('quantities');
 
     if (seasonId) {
-      const event = events.find(e => e.id === seasonId);
+      const event = events.find(e => e.id === seasonId) || events[0];
       if (event) {
         setSelectedEvents([event.id]);
         setCart(prev => {
@@ -104,7 +90,7 @@ function TicketsContent() {
       const qts = quantities ? quantities.split(',').map(Number) : [];
 
       const newSelected: string[] = [];
-      const newCartItems: any[] = [];
+      const newCartItems: CartItem[] = [];
 
       eventIds.forEach((id, index) => {
         const event = events.find(e => e.id === id);
@@ -131,78 +117,46 @@ function TicketsContent() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    // Show pass modal on mount if nothing is pre-selected
-    const timer = setTimeout(() => {
-      if (!hasSkippedPass && !hasPreselectedEvents) {
-        setShowPassModal(true);
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [hasSkippedPass, hasPreselectedEvents]);
-
   const passes = PASS_PLANS.filter(p => p.type === 'visitor');
-
-  const tiers = [
-    {
-      id: "standard",
-      name: "Standard Visitor",
-      price: 0,
-      description: "Entry-level access to the digital ecosystem.",
-      features: ["All Public Booths", "Standard Rewards", "Public Chat", "Guest Badge"],
-      color: "orange",
-      icon: <Ticket className="w-6 h-6 text-orange-600" />
-    },
-    {
-      id: "vip",
-      name: "VIP Networker",
-      price: 19,
-      description: "Premium access for the elite business visitor.",
-      features: ["2x Rewards", "VIP Lounges", "Priority Support", "Verified Badge", "Private Meetings"],
-      color: "slate",
-      icon: <ShieldCheck className="w-6 h-6 text-slate-900" />,
-      popular: true
-    }
-  ];
 
   const products = [
     {
       id: "guide",
       name: "Digital Guidebook",
       price: 5,
-      icon: <ShoppingBag className="w-5 h-5" />,
-      description: "A comprehensive digital guide featuring exhibitor maps, speaker bios, and exclusive discount codes for booth products."
+      icon: <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />,
+      description: "Comprehensive digital guide featuring exhibitor maps, speaker bios, and exclusive booth discount codes."
     },
     {
       id: "credits",
       name: "100 Expo Credits",
       price: 10,
-      icon: <Cpu className="w-5 h-5" />,
-      description: "Virtual currency that can be spent at any digital booth for product samples, premium downloads, or limited edition NFT assets."
+      icon: <Cpu className="w-4 h-4 sm:w-5 sm:h-5" />,
+      description: "Virtual currency redeemable at any digital booth for product samples, downloads, or exclusive brand perks."
     },
     {
       id: "recording",
       name: "Session Recordings",
       price: 25,
-      icon: <Play className="w-5 h-5" />,
-      description: "Lifetime access to high-definition video recordings of all keynote speeches and workshops from the entire exhibition period."
+      icon: <Play className="w-4 h-4 sm:w-5 sm:h-5" />,
+      description: "Lifetime access to HD video recordings of all keynote speeches and live workshops from the season."
     },
   ];
 
   const toggleEvent = (id: string) => {
     const isSelected = selectedEvents.includes(id);
+    const eventObj = events.find(e => e.id === id);
     if (isSelected) {
       setSelectedEvents(prev => prev.filter(e => e !== id));
       removeFromCart("standard", id);
-    } else {
+    } else if (eventObj) {
       setSelectedEvents(prev => [...prev, id]);
-      addToCart(tiers[0], 'ticket', id);
+      addToCart({ id: "standard", name: eventObj.name, price: 19 }, 'ticket', id);
     }
   };
 
   const addToCart = (item: any, type: 'pass' | 'ticket' | 'product', eventId?: string) => {
     setCart(prev => {
-      // For General Pass, replace any existing pass
       if (type === 'pass') {
         const otherItems = prev.filter(i => i.type !== 'pass');
         return [...otherItems, { id: item.id, name: item.name, price: item.price, type, quantity: 1 }];
@@ -241,8 +195,7 @@ function TicketsContent() {
   const passFee = needsPassFee ? 75 : 0;
 
   const itemsTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const discount = promoApplied ? 5 : 0;
-  const subtotal = Math.max(0, itemsTotal - discount);
+  const subtotal = Math.max(0, itemsTotal);
   const totalBookingFee = cart.length > 0 || needsPassFee ? BOOKING_FEE : 0;
   const finalPrice = subtotal + totalBookingFee + passFee;
 
@@ -251,26 +204,10 @@ function TicketsContent() {
     setTimeout(() => {
       setLoading(false);
       setStep(prev => Math.min(prev + 1, STEPS.length - 1));
-    }, 800);
+    }, 400);
   };
 
   const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
-
-  const handleApplyPromo = () => {
-    if (promoCode.trim().toLowerCase() === "expo2026") {
-      setPromoApplied(true);
-    }
-  };
-
-  const handleOtpComplete = (otp: string) => {
-    if (otp.length === 6) {
-      setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-        setOtpVerified(true);
-      }, 1500);
-    }
-  };
 
   const filteredEvents = events.filter(e =>
     (e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -291,29 +228,42 @@ function TicketsContent() {
     <main className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
 
-      {/* Background Decorative Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-100/50 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 rounded-full blur-3xl opacity-50" />
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 sm:pt-32 pb-24 sm:pb-20 relative z-10">
+        
+        {/* Compact Top Header + Step Bar */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-4 sm:mb-8 gap-3">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-orange-600 font-extrabold tracking-wider uppercase text-[10px] sm:text-xs mb-0.5">
+              <Ticket className="w-3.5 h-3.5" /> Event Box Office
+            </div>
+            <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
+              {step === 0 && <>Explore & Book <span className="text-orange-600">Expo Events</span></>}
+              {step === 1 && <>Enhance Your <span className="text-orange-600">Digital Visit</span></>}
+              {step === 2 && <>Order <span className="text-orange-600">Review & Pass</span></>}
+              {step === 3 && <>Secure <span className="text-orange-600">Payment</span></>}
+              {step === 4 && <>Your Digital <span className="text-orange-600">Expo Passport</span></>}
+            </h1>
+          </div>
 
-      <div className="container mx-auto px-4 pt-40 pb-20 relative z-10">
-        {/* Step Indicator */}
-        <div className="flex justify-center mb-12">
-          <div className="flex items-center gap-2 md:gap-4 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
+          {/* Step Indicator Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             {STEPS.map((s, i) => (
-              <div key={s} className="flex items-center shrink-0">
-                <div
-                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-base transition-all duration-300 ${i <= step ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30" : "bg-white text-slate-300 border border-slate-200"
-                    }`}
-                >
-                  {i < step ? <Check className="w-4 h-4 md:w-6 md:h-6" /> : i + 1}
-                </div>
-                <span className={`ml-2 text-xs md:text-sm font-bold hidden md:block ${i <= step ? "text-slate-900" : "text-slate-300"}`}>{s}</span>
-                {i < STEPS.length - 1 && (
-                  <div className={`w-4 md:w-12 h-1 mx-2 md:mx-4 rounded-full ${i < step ? "bg-orange-600" : "bg-slate-200"}`} />
-                )}
-              </div>
+              <button
+                key={s}
+                onClick={() => i < step && setStep(i)}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all shrink-0 ${
+                  i === step
+                    ? "bg-orange-600 text-white shadow-xs"
+                    : i < step
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-white text-slate-400 border border-slate-200"
+                }`}
+              >
+                <span className="w-3.5 h-3.5 rounded-full bg-black/10 flex items-center justify-center text-[9px]">
+                  {i < step ? <Check className="w-2.5 h-2.5" /> : i + 1}
+                </span>
+                <span>{s}</span>
+              </button>
             ))}
           </div>
         </div>
@@ -324,251 +274,155 @@ function TicketsContent() {
           {step === 0 && (
             <motion.div
               key="step0"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="max-w-7xl mx-auto"
+              exit={{ opacity: 0, y: -10 }}
             >
-              <div className="text-center mb-8">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Exhibitor Events</h1>
-                <p className="text-xl text-slate-600 max-w-2xl mx-auto">Explore brand showcases. A valid Platform Pass is required to book these events.</p>
-              </div>
+              {/* Compact Pass Banner + Search/Filter Row */}
+              <div className="flex flex-col lg:flex-row gap-2.5 sm:gap-4 mb-4 sm:mb-6">
+                <div className="flex flex-row gap-2 flex-1">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search events, cities, categories..."
+                      className="w-full pl-9 pr-3 py-2 sm:py-2.5 bg-white rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 text-xs sm:text-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="relative shrink-0">
+                    <select
+                      value={eventType}
+                      onChange={(e) => setEventType(e.target.value)}
+                      className="appearance-none pl-3 pr-8 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="all">All Types</option>
+                      <option value="national">National</option>
+                      <option value="platform-led">Workshops</option>
+                      <option value="business-led">Exhibitor</option>
+                    </select>
+                    <Filter className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 pointer-events-none" />
+                  </div>
+                </div>
 
-              {/* Season Pass Status Banner (UK Requirement) */}
-              {cart.some(i => i.type === 'pass') && (
-                <div className="max-w-4xl mx-auto mb-10 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white">
-                      <Check className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-emerald-900 uppercase tracking-widest">Entry Pass Active</p>
-                      <p className="text-sm text-emerald-700 font-medium">{cart.find(i => i.type === 'pass')?.name}</p>
-                    </div>
+                {/* Compact Pass Trigger Pill */}
+                <div className="flex items-center justify-between bg-orange-50 border border-orange-200/80 px-3.5 py-2 rounded-xl gap-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-orange-600 shrink-0" />
+                    <span className="text-[11px] sm:text-xs font-bold text-slate-800">
+                      {isTokenValidated || hasPassInCart ? "Platform Pass Active ✓" : "Need an All-Access Season Pass?"}
+                    </span>
                   </div>
                   <button
                     onClick={() => setShowPassModal(true)}
-                    className="text-xs font-bold text-emerald-600 underline hover:text-emerald-800 transition-colors"
+                    className="px-3 py-1 bg-orange-600 text-white rounded-full text-[10px] sm:text-xs font-bold hover:bg-orange-700 transition-colors shrink-0"
                   >
-                    Change Pass
+                    {isTokenValidated || hasPassInCart ? "View Pass" : "Get Pass"}
                   </button>
                 </div>
-              )}
-              {/* Sticky Shopping Summary (Updated) */}
-              {step === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 50 }}
-                  className="fixed top-32 right-12 z-[60] hidden xl:block"
-                >
-                  <AnimatePresence>
-                    {totalSelectedTicketsQuantity > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="w-96 bg-white rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-slate-100 flex flex-col overflow-hidden h-[calc(100vh-180px)]"
-                      >
-                        <div className="p-8 bg-slate-900 text-white relative overflow-hidden">
-                          <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <ShoppingBag className="w-24 h-24 rotate-12" />
-                          </div>
-                          <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
-                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Live Selection</span>
-                            </div>
-                            <h2 className="text-2xl font-black">Your Cart</h2>
-                            <p className="text-slate-400 text-xs font-bold mt-1 uppercase tracking-widest">{totalSelectedTicketsQuantity} Events Reserved</p>
-                          </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3 bg-slate-50/50">
-                          {cart.filter(item => item.type === 'ticket').length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center opacity-20 py-20">
-                              <Calendar className="w-12 h-12 mb-4" />
-                              <p className="font-bold">No events selected</p>
-                            </div>
-                          ) : (
-                            cart.filter(item => item.type === 'ticket').map(item => (
-                              <motion.div
-                                layout
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                key={`${item.id}-${item.eventId}`}
-                                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group"
-                              >
-                                <div className="flex-1 pr-4">
-                                  <p className="font-bold text-slate-800 text-sm leading-tight line-clamp-2 mb-1 group-hover:text-orange-600 transition-colors">{item.name}</p>
-                                  <p className="text-[10px] text-orange-600 font-black uppercase tracking-widest">£{(item.price * item.quantity).toFixed(2)}</p>
-                                </div>
-                                <div className="flex items-center gap-2 bg-slate-50 rounded-xl p-1 border border-slate-100">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, -1, item.eventId); }}
-                                    className="p-1.5 rounded-lg hover:bg-white text-slate-400 hover:text-orange-600 hover:shadow-sm transition-all"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <span className="font-black text-slate-900 text-xs w-6 text-center">{item.quantity}</span>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, 1, item.eventId); }}
-                                    className="p-1.5 rounded-lg hover:bg-white text-slate-400 hover:text-orange-600 hover:shadow-sm transition-all"
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </motion.div>
-                            ))
-                          )}
-                        </div>
-
-                        <div className="p-6 bg-white border-t border-slate-100">
-                          <div className="flex justify-between items-center mb-6">
-                            <div>
-                              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Subtotal</p>
-                              <p className="text-2xl font-black text-slate-900">£{cart.filter(i => i.type === 'ticket').reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2)}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Items</p>
-                              <p className="text-sm font-black text-slate-900">{totalSelectedTicketsQuantity}</p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={handleNext}
-                            className="w-full py-5 bg-orange-600 text-white rounded-[1.5rem] font-bold text-base flex items-center justify-center gap-3 hover:bg-orange-700 transition-all active:scale-95 shadow-xl shadow-orange-600/20 group/btn"
-                          >
-                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                              <>
-                                <span>Continue to Add-ons</span>
-                                <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              )}
-
-              {/* Search and Filter Bar */}
-              <div className="flex flex-col md:flex-row gap-4 mb-10 max-w-4xl mx-auto">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Search events by name, location, or category..."
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm text-lg"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="relative">
-                  <select
-                    value={eventType}
-                    onChange={(e) => setEventType(e.target.value)}
-                    className="appearance-none px-6 pr-12 py-4 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="all">All Event Types</option>
-                    <option value="national">National Expo</option>
-                    <option value="platform-led">Platform-led</option>
-                    <option value="business-led">Business-led</option>
-                  </select>
-                  <Filter className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-                </div>
               </div>
-              {/* Events Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                {paginatedEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    onClick={() => toggleEvent(event.id)}
-                    className={`relative group rounded-[2rem] overflow-hidden cursor-pointer border-2 transition-all duration-300 flex flex-col ${selectedEvents.includes(event.id)
-                      ? "border-orange-600 shadow-2xl scale-[1.02]"
-                      : "border-slate-100 hover:border-orange-300 hover:shadow-xl bg-white"
+
+              {/* Events Grid - High Density with Vivid Thumbnails */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 mb-6">
+                {paginatedEvents.map((event) => {
+                  const isSelected = selectedEvents.includes(event.id);
+                  return (
+                    <div
+                      key={event.id}
+                      onClick={() => toggleEvent(event.id)}
+                      className={`relative group rounded-2xl overflow-hidden cursor-pointer border-2 transition-all duration-300 flex flex-col bg-white ${
+                        isSelected
+                          ? "border-orange-600 shadow-lg"
+                          : "border-slate-200/80 hover:border-orange-300 shadow-xs"
                       }`}
-                  >
-                    {/* Card Header / Image Area */}
-                    <div className={`h-48 ${event.image} relative p-6 flex flex-col justify-between`}>
-                      <div className="flex justify-between items-start">
-                        <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-slate-800">
-                          {event.category}
-                        </span>
-                        <div className="flex gap-2">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${selectedEvents.includes(event.id)
-                            ? "bg-orange-600 text-white"
-                            : "bg-white/50 text-slate-400 group-hover:bg-white"
-                            }`}>
-                            {selectedEvents.includes(event.id) ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                    >
+                      {/* Thumbnail Header */}
+                      <div className="h-32 sm:h-40 relative bg-slate-900 overflow-hidden">
+                        <img
+                          src={event.fullImage}
+                          alt={event.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+                        
+                        <div className="absolute top-2.5 left-2.5 right-2.5 flex justify-between items-start">
+                          <span className="bg-white/95 backdrop-blur-xs px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-slate-900 shadow-xs">
+                            {event.category}
+                          </span>
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                            isSelected
+                              ? "bg-orange-600 text-white shadow-md"
+                              : "bg-black/40 backdrop-blur-xs text-white border border-white/30 group-hover:bg-orange-600"
+                          }`}>
+                            {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                           </div>
+                        </div>
+
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-white">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-black/50 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                            <Calendar className="w-3 h-3 text-orange-400" /> {event.date.split(",")[0]}
+                          </span>
+                          <span className="text-xs font-extrabold bg-orange-600 px-2 py-0.5 rounded-md">
+                            £19
+                          </span>
                         </div>
                       </div>
-                      <div>
-                        <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl inline-block shadow-sm">
-                          <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                            <Calendar className="w-4 h-4 text-orange-600" /> {event.date.split(",")[0]}
+
+                      {/* Card Body */}
+                      <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-1">
+                            {event.name}
+                          </h3>
+                          <p className="flex items-center gap-1 text-slate-500 text-[11px] sm:text-xs mb-2.5">
+                            <MapPin className="w-3 h-3 text-orange-600 shrink-0" />
+                            <span className="truncate">{event.location}</span>
+                          </p>
+                        </div>
+
+                        <div className="pt-2.5 border-t border-slate-100 flex justify-between items-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedEventInfo(event);
+                              setShowInfoModal(true);
+                            }}
+                            className="text-[11px] font-bold text-slate-500 hover:text-orange-600 transition-colors inline-flex items-center gap-1"
+                          >
+                            <Info className="w-3 h-3" /> Details
+                          </button>
+                          <span className={`text-xs font-extrabold ${isSelected ? "text-orange-600" : "text-slate-700 group-hover:text-orange-600"}`}>
+                            {isSelected ? "Selected ✓" : "Select Event →"}
                           </span>
                         </div>
                       </div>
                     </div>
-
-                    {/* Card Content */}
-                    <div className="p-6 flex-1 flex flex-col bg-white">
-                      <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
-                        {event.name}
-                      </h3>
-                      <div className="space-y-3 mb-6">
-                        <p className="flex items-center gap-2 text-slate-500 text-sm">
-                          <MapPin className="w-4 h-4" /> {event.location}
-                        </p>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedEventInfo(event);
-                            setShowInfoModal(true);
-                          }}
-                          className="text-xs font-bold text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors flex items-center gap-1.5"
-                        >
-                          <Info className="w-3.5 h-3.5" /> Learn More
-                        </button>
-                      </div>
-
-                      <div className="mt-auto pt-6 border-t border-slate-100 flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Starts from £19</span>
-                        <span className={`text-sm font-bold transition-colors ${selectedEvents.includes(event.id) ? "text-orange-600" : "text-slate-300 group-hover:text-orange-400"}`}>
-                          {selectedEvents.includes(event.id) ? "Selected" : "Select Event"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Selection Overlay (Subtle) */}
-                    {selectedEvents.includes(event.id) && (
-                      <div className="absolute inset-0 border-[3px] border-orange-600 rounded-[2rem] pointer-events-none" />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              {/* Pagination Controls (New) */}
+              {/* Compact Pagination */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mb-12">
+                <div className="flex justify-center items-center gap-2 mb-6">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="p-3 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+                    className="p-2 rounded-lg border border-slate-200 bg-white disabled:opacity-30 hover:bg-slate-50"
                   >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-4 h-4" />
                   </button>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     {Array.from({ length: totalPages }).map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setCurrentPage(i + 1)}
-                        className={`w-10 h-10 rounded-xl font-bold transition-all ${currentPage === i + 1
-                          ? "bg-orange-600 text-white shadow-lg shadow-orange-600/30"
-                          : "bg-white border border-slate-200 text-slate-400 hover:border-orange-600 hover:text-orange-600"
-                          }`}
+                        className={`w-8 h-8 rounded-lg font-bold text-xs transition-all ${
+                          currentPage === i + 1
+                            ? "bg-orange-600 text-white shadow-sm"
+                            : "bg-white border border-slate-200 text-slate-600 hover:border-orange-600"
+                        }`}
                       >
                         {i + 1}
                       </button>
@@ -577,472 +431,383 @@ function TicketsContent() {
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className="p-3 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+                    className="p-2 rounded-lg border border-slate-200 bg-white disabled:opacity-30 hover:bg-slate-50"
                   >
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
+
+              {/* Mobile & Desktop Sticky Checkout Bar when Events Selected */}
+              <AnimatePresence>
+                {totalSelectedTicketsQuantity > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 30 }}
+                    className="fixed bottom-16 lg:bottom-6 left-3 right-3 lg:left-auto lg:right-8 lg:w-[420px] z-50 bg-slate-950 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">
+                          {totalSelectedTicketsQuantity} {totalSelectedTicketsQuantity === 1 ? "Event" : "Events"} Selected
+                        </span>
+                      </div>
+                      <p className="text-base sm:text-lg font-black text-white">
+                        £{cart.filter(i => i.type === 'ticket').reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2)}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleNext}
+                      className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 shadow-lg active:scale-95 transition-all shrink-0"
+                    >
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Continue</span> <ArrowRight className="w-4 h-4" /></>}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
-          {/* STEP 1: ADD-ONS (Products System) */}
+          {/* STEP 1: ADD-ONS */}
           {step === 1 && (
             <motion.div
               key="step1"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: -10 }}
               className="max-w-4xl mx-auto"
             >
-              <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Enhance Your Visit</h1>
-                <p className="text-xl text-slate-600">Exclusive products and services for attendees.</p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 mb-6">
                 {products.map((product) => (
                   <div
                     key={product.id}
-                    className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl hover:border-orange-500 transition-all flex flex-col items-center text-center"
+                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between"
                   >
-                    <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 mb-4">
-                      {product.icon}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600">
+                          {product.icon}
+                        </div>
+                        <span className="text-lg sm:text-xl font-black text-slate-900">£{product.price}</span>
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1">{product.name}</h3>
+                      <p className="text-slate-500 text-[11px] sm:text-xs leading-relaxed mb-3">{product.description}</p>
                     </div>
-                    <h3 className="font-bold text-slate-900 mb-1">{product.name}</h3>
-                    <p className="text-2xl font-black text-slate-900 mb-4">£{product.price}</p>
-                    <button
-                      onClick={() => {
-                        setSelectedProductInfo(product);
-                        setShowProductModal(true);
-                      }}
-                      className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 hover:text-orange-600 transition-colors flex items-center gap-1"
-                    >
-                      <Info className="w-3 h-3" /> Learn More
-                    </button>
+
                     <button
                       onClick={() => addToCart(product, 'product')}
-                      className="mt-auto w-full py-3 bg-slate-50 text-slate-900 rounded-xl font-bold hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                      className="w-full py-2 bg-slate-100 text-slate-900 rounded-xl font-bold text-xs hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-1.5"
                     >
-                      <Plus className="w-4 h-4" /> Add
+                      <Plus className="w-3.5 h-3.5" /> Add to Order
                     </button>
                   </div>
                 ))}
               </div>
 
-              {/* Cart Summary */}
               {cart.length > 0 && (
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-12">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-bold text-slate-700 uppercase tracking-wider text-sm">Your Cart</span>
-                    <span className="font-black text-xl text-orange-600">£{subtotal.toFixed(2)}</span>
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-slate-700 uppercase tracking-wider text-xs">Selected Items</span>
+                    <span className="font-black text-base text-orange-600">£{subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {cart.map(item => (
-                      <div key={item.id} className="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-2">
-                        {item.name} x{item.quantity}
-                        <button onClick={() => removeFromCart(item.id)} className="text-slate-400 hover:text-red-500"><X className="w-3 h-3" /></button>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cart.map((item, idx) => (
+                      <div key={`${item.id}-${idx}`} className="bg-slate-100 px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                        <span>{item.name} ×{item.quantity}</span>
+                        <button onClick={() => removeFromCart(item.id, item.eventId)} className="text-slate-400 hover:text-red-500">
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-center gap-4">
-                <button onClick={handleBack} className="px-8 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50">Back</button>
+              <div className="flex justify-between items-center gap-3">
+                <button
+                  onClick={handleBack}
+                  className="px-5 py-2.5 border border-slate-200 bg-white rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                </button>
                 <button
                   onClick={handleNext}
-                  className="px-12 py-4 bg-orange-600 text-white rounded-full font-bold text-lg flex items-center gap-2 hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30"
+                  className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 hover:bg-orange-700 transition-all shadow-md"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Review Order"}
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Review Order</span> <ArrowRight className="w-3.5 h-3.5" /></>}
                 </button>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 2: REVIEW (UK Pattern: Booking Fee & VAT) */}
+          {/* STEP 2: REVIEW & ACCESS PASS TOKEN VALIDATION */}
           {step === 2 && (
             <motion.div
               key="step2"
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, x: -15 }}
               className="max-w-2xl mx-auto"
             >
-              <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
-                <h2 className="text-3xl font-extrabold mb-8 text-slate-900">Checkout Review</h2>
+              <div className="bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80">
+                <h2 className="text-base sm:text-xl font-extrabold mb-4 text-slate-900">Checkout Summary</h2>
 
-                {/* Cart Items List */}
-                <div className="space-y-4 mb-8">
-                  {cart.map(item => (
-                    <div key={`${item.id}-${item.eventId}`} className="flex justify-between items-center py-4 border-b border-slate-100 last:border-0">
+                <div className="divide-y divide-slate-100 mb-5">
+                  {cart.map((item, idx) => (
+                    <div key={`${item.id}-${idx}`} className="flex justify-between items-center py-2.5">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-slate-900">{item.name}</p>
-                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${item.type === 'pass' ? "bg-slate-900 text-white" : "bg-orange-100 text-orange-600"
-                            }`}>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-bold text-slate-900 text-xs sm:text-sm">{item.name}</p>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase bg-orange-100 text-orange-700">
                             {item.type}
                           </span>
                         </div>
-                        {item.type === 'ticket' && (
-                          <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider mt-1">
-                            Exhibitor: {events.find(e => e.id === item.eventId)?.organizer}
-                          </p>
-                        )}
-                        <p className="text-xs text-slate-400 mt-1">{item.quantity} unit(s) • £{item.price} ea</p>
+                        <p className="text-[11px] text-slate-400">{item.quantity} × £{item.price.toFixed(2)}</p>
                       </div>
-                      <span className="font-bold text-slate-900">£{(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm">£{(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* Access Token Redemption Area (New Requirement) */}
-                <div className="bg-orange-50 p-6 rounded-3xl border border-orange-100 mb-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Zap className="w-4 h-4 text-orange-600" />
-                    <label className="text-xs font-black text-orange-900 uppercase tracking-widest">Redeem Access Token</label>
+                {/* Access Pass Code Validation - Clean flat section, no double container */}
+                <div className="pt-4 pb-2 border-t border-slate-100 mb-4">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-orange-600" /> Redeem Access Pass Code
+                    </span>
+                    {!isTokenValidated && (
+                      <button
+                        onClick={() => setShowPassModal(true)}
+                        className="text-[11px] font-bold text-orange-600 hover:underline"
+                      >
+                        + Get Pass Token
+                      </button>
+                    )}
                   </div>
-                  <p className="text-[10px] text-orange-700/60 font-medium mb-4 leading-relaxed">
-                    If you already have a General Pass, enter your Access Token below to unlock Exhibitor events.
+                  <p className="text-[11px] text-slate-500 mb-2.5">
+                    Enter your Access Pass Token to waive the £75 season entry fee and deduct directly from your pass wallet.
                   </p>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       placeholder="e.g. GBX-TOKEN-2026"
-                      className="flex-1 px-4 py-3 bg-white border border-orange-200 rounded-xl focus:outline-none focus:border-orange-500 uppercase font-mono font-bold text-sm"
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 uppercase font-mono font-bold text-xs"
                       value={enteredToken}
                       onChange={(e) => setEnteredToken(e.target.value)}
                     />
                     <button
                       onClick={() => {
-                        if (enteredToken.length > 5) {
-                          setAccessToken(enteredToken);
+                        if (enteredToken.trim().length > 3) {
                           setIsTokenValidated(true);
                         }
                       }}
-                      className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all text-xs"
+                      className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all text-xs shrink-0"
                     >
-                      {isTokenValidated ? "Validated" : "Validate"}
+                      {isTokenValidated ? "Validated ✓" : "Validate"}
                     </button>
                   </div>
-                  {isTokenValidated ? (
-                    <p className="text-green-600 text-[10px] font-bold mt-2 flex items-center gap-1 italic">
-                      <Check className="w-3 h-3" /> Token active: Full Marketplace access granted.
+                  {isTokenValidated && (
+                    <p className="text-emerald-600 text-[11px] font-bold mt-2 flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Pass Token Active — £75 mandatory pass fee waived!
                     </p>
-                  ) : (
-                    null
                   )}
                 </div>
 
-                {/* Final Cost Breakdown (UK Standard) */}
-                <div className="space-y-3 bg-slate-50 p-6 rounded-3xl mb-8">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500 font-medium">Subtotal</span>
+                {/* Cost Breakdown - Clean integrated breakdown, no nested box */}
+                <div className="pt-4 border-t border-slate-100 space-y-2.5 mb-6 text-xs sm:text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Items Subtotal</span>
                     <span className="text-slate-900 font-bold">£{itemsTotal.toFixed(2)}</span>
                   </div>
                   {needsPassFee && (
-                    <div className="flex justify-between items-center text-sm text-orange-600">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold">Mandatory Pass Fee</span>
-                        <Tooltip content="Required for full event access, digital passport generation, and reward redemption.">
+                    <div className="flex justify-between items-center text-orange-600">
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold">Season Platform Pass Fee</span>
+                        <Tooltip content="Required if you do not have an active Access Pass token.">
                           <Info className="w-3.5 h-3.5 cursor-help" />
                         </Tooltip>
                       </div>
-                      <span className="font-black">£{passFee.toFixed(2)}</span>
+                      <span className="font-bold">£{passFee.toFixed(2)}</span>
                     </div>
                   )}
-                  {promoApplied && (
-                    <div className="flex justify-between items-center text-sm text-green-600">
-                      <span className="font-medium italic">Seasonal Discount</span>
-                      <span className="font-bold">-£{discount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-1">
-                      <span className="text-slate-500 font-medium">Booking Fee</span>
-                      <Info className="w-3 h-3 text-slate-300" />
-                    </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">UK Booking Fee</span>
                     <span className="text-slate-900 font-bold">£{totalBookingFee.toFixed(2)}</span>
                   </div>
                   <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
                     <div>
-                      <span className="font-black text-slate-900 text-lg">Total Amount</span>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Includes 20% UK VAT</p>
+                      <span className="font-extrabold text-slate-900 text-sm sm:text-base">Total Payable</span>
+                      <p className="text-[10px] text-slate-400">Includes 20% UK VAT</p>
                     </div>
-                    <span className="font-black text-3xl text-orange-600">£{finalPrice.toFixed(2)}</span>
+                    <span className="font-black text-xl sm:text-2xl text-orange-600">£{finalPrice.toFixed(2)}</span>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <button onClick={handleBack} className="flex-1 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all">Back</button>
-                  <button onClick={handleNext} className="flex-[2] py-4 bg-orange-600 text-white rounded-full font-bold hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex justify-center items-center gap-2">
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm & Identify"}
+                <div className="flex justify-between items-center gap-3">
+                  <button
+                    onClick={handleBack}
+                    className="px-5 py-2.5 border border-slate-200 rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Proceed to Payment</span> <ArrowRight className="w-3.5 h-3.5" /></>}
                   </button>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 3: IDENTITY & VERIFICATION */}
+          {/* STEP 3: PAYMENT (Direct after Review — No Local KYC/OTP Block) */}
           {step === 3 && (
             <motion.div
               key="step3"
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="max-w-2xl mx-auto"
+              exit={{ opacity: 0, x: -15 }}
+              className="max-w-xl mx-auto"
             >
-              <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
-                <h2 className="text-3xl font-extrabold mb-2 text-slate-900">Verify Identity</h2>
-                <p className="text-slate-500 mb-8">Secure your tickets with UK-compliant email verification.</p>
+              <div className="bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80">
+                <h2 className="text-base sm:text-xl font-extrabold mb-1 text-slate-900">Select Payment Method</h2>
+                <p className="text-xs text-slate-500 mb-4">Encrypted & secured via UK payment standards.</p>
 
-                {!otpVerified ? (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">First Name</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Jane"
-                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
-                          value={userInfo.firstName}
-                          onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Last Name</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Doe"
-                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
-                          value={userInfo.lastName}
-                          onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
-                      <input
-                        type="email"
-                        placeholder="e.g. jane@company.com"
-                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
-                        value={userInfo.email}
-                        onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-                      />
-                    </div>
-
-                    {userInfo.email && userInfo.firstName && userInfo.lastName && (
-                      <div className="mt-8 pt-8 border-t border-slate-100">
-                        <label className="block text-sm font-bold text-orange-600 mb-4 uppercase tracking-wider text-center">Secure Access Code</label>
-                        <p className="text-center text-slate-400 text-[10px] mb-6 font-medium">Verification required for platform access tokens.</p>
-                        <OtpInput length={6} onComplete={handleOtpComplete} />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Check className="w-10 h-10 text-green-600" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Identity Confirmed</h3>
-                    <p className="text-slate-500 mb-8">Verification successful. Proceed to secure payment gateway.</p>
-                    <button
-                      onClick={handleNext}
-                      className="w-full py-4 bg-orange-600 text-white rounded-full font-bold shadow-xl shadow-orange-600/30 hover:bg-orange-700 transition-all"
-                    >
-                      Continue to Payment
-                    </button>
-                  </div>
-                )}
-
-                {!otpVerified && (
-                  <div className="flex gap-4 mt-8">
-                    <button onClick={handleBack} className="flex-1 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all">Back</button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 4: PAYMENT */}
-          {step === 4 && (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="max-w-2xl mx-auto"
-            >
-              <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100">
-                <h2 className="text-3xl font-extrabold mb-2 text-slate-900">Payment</h2>
-                <p className="text-slate-500 mb-8">All transactions are encrypted and secured via UK payment standards.</p>
-
-                <div className="space-y-4 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
                   {[
-                    { id: "card", label: "Credit / Debit Card", icon: <CreditCard className="w-6 h-6" /> },
-                    { id: "wallet", label: "Expo Wallet Balance", icon: <Wallet className="w-6 h-6" />, balance: "£120.50" }
+                    { id: "card", label: "Credit / Debit Card", sub: "Instant UK Checkout", icon: <CreditCard className="w-5 h-5" /> },
+                    { id: "wallet", label: "Pass / Expo Wallet", sub: "Balance: £120.50", icon: <Wallet className="w-5 h-5" /> }
                   ].map((method) => (
                     <div
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`flex items-center gap-4 p-6 rounded-3xl cursor-pointer border-2 transition-all ${paymentMethod === method.id
-                        ? "border-orange-600 bg-orange-50 text-orange-900 shadow-md"
-                        : "border-slate-100 hover:border-orange-200 text-slate-700 hover:bg-slate-50"
-                        }`}
+                      className={`flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer border-2 transition-all ${
+                        paymentMethod === method.id
+                          ? "border-orange-600 bg-orange-50/50 text-orange-950"
+                          : "border-slate-200 hover:border-orange-200 text-slate-700"
+                      }`}
                     >
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === method.id ? "bg-white text-orange-600" : "bg-slate-100 text-slate-500"}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        paymentMethod === method.id ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-500"
+                      }`}>
                         {method.icon}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-lg">{method.label}</span>
-                        {method.balance && (
-                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Available: {method.balance}</span>
-                        )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-xs sm:text-sm truncate">{method.label}</p>
+                        <p className="text-[10px] font-semibold text-slate-400">{method.sub}</p>
                       </div>
-                      {paymentMethod === method.id && <Check className="ml-auto w-6 h-6 text-orange-600" />}
+                      {paymentMethod === method.id && <Check className="w-4 h-4 text-orange-600 shrink-0" />}
                     </div>
                   ))}
                 </div>
 
-                <div className="mb-8">
-                  <label className="flex items-start gap-3 cursor-pointer p-4 hover:bg-slate-50 rounded-xl transition-colors">
-                    <div className="relative flex items-center">
-                      <input
-                        type="checkbox"
-                        className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 shadow-sm checked:border-orange-600 checked:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-600/20"
-                        checked={agreedToTerms}
-                        onChange={(e) => setAgreedToTerms(e.target.checked)}
-                      />
-                      <Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" />
-                    </div>
-                    <span className="text-xs text-slate-600 pt-0.5 leading-relaxed">
-                      I agree to the Terms of Service and understand that exhibitor event data may be shared with organizers.
-                    </span>
-                  </label>
-                </div>
+                <label className="flex items-start gap-2.5 cursor-pointer py-2 px-1 mb-5">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  />
+                  <span className="text-[11px] text-slate-600 leading-relaxed">
+                    I agree to the 247GBS Terms of Service. Identity & account sync will complete via Central Solution (CHS).
+                  </span>
+                </label>
 
-                <div className="p-6 bg-slate-900 text-white rounded-3xl mb-8 flex justify-between items-center shadow-xl">
+                <div className="p-4 bg-slate-950 text-white rounded-2xl mb-5 flex justify-between items-center">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Payable Amount</span>
-                    <p className="text-3xl font-black">£{finalPrice.toFixed(2)}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">Amount Due</span>
+                    <p className="text-xl sm:text-2xl font-black">£{finalPrice.toFixed(2)}</p>
                   </div>
-                  <ShieldCheck className="w-10 h-10 text-orange-500 opacity-50" />
+                  <ShieldCheck className="w-7 h-7 text-orange-500" />
                 </div>
 
-                <div className="flex gap-4">
-                  <button onClick={handleBack} className="flex-1 py-4 border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-50 transition-all">Back</button>
+                <div className="flex justify-between items-center gap-3">
+                  <button
+                    onClick={handleBack}
+                    className="px-5 py-2.5 border border-slate-200 rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back
+                  </button>
                   <button
                     onClick={handleNext}
                     disabled={!paymentMethod || !agreedToTerms}
-                    className="flex-[2] py-4 bg-orange-600 text-white rounded-full font-bold hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Complete Transaction"}
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Complete Transaction</span> <ArrowRight className="w-3.5 h-3.5" /></>}
                   </button>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 5: PASSPORT (SUCCESS) */}
-          {step === 5 && (
+          {/* STEP 4: DIGITAL PASSPORT & CENTRAL SOLUTION (CHS) REDIRECT */}
+          {step === 4 && (
             <motion.div
-              key="step5"
-              initial={{ opacity: 0, scale: 0.5, rotateY: 90 }}
-              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+              key="step4"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               className="max-w-md mx-auto"
             >
-              <div className="relative group perspective-1000">
-                <div className="absolute inset-0 bg-gradient-to-tr from-orange-600 to-orange-400 rounded-[32px] blur-2xl opacity-40 animate-pulse" />
-
-                <motion.div
-                  className="relative bg-[#1a1a1a] text-white p-8 rounded-[32px] overflow-hidden shadow-2xl border border-white/10"
-                  whileHover={{ scale: 1.02, rotateY: 5, rotateX: 5 }}
-                >
-                  <div className="flex justify-between items-start mb-12">
-                    <div>
-                      <div className="bg-orange-600 text-[10px] font-black tracking-[0.2em] px-2 py-0.5 rounded uppercase mb-2 inline-block">
-                        Digital Passport
-                      </div>
-                      <h3 className="text-2xl font-black tracking-tighter">247GBS EXPO</h3>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <Zap className="w-6 h-6 text-orange-500 mb-2" />
-                      <div className="flex items-center gap-1 bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest border border-green-500/30">
-                        <ShieldCheck className="w-2.5 h-2.5" /> Verified
-                      </div>
-                    </div>
+              <div className="bg-slate-950 text-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-white/10 mb-5">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="bg-orange-600 text-[9px] font-black tracking-wider px-2 py-0.5 rounded uppercase inline-block mb-1">
+                      Digital Passport
+                    </span>
+                    <h3 className="text-lg font-black tracking-tight">247GBS EXPO PASS</h3>
                   </div>
-
-                  <div className="mb-8">
-                    <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Pass Holder</p>
-                    <p className="text-xl font-bold tracking-tight">{userInfo.firstName} {userInfo.lastName || "EXPO VISITOR"}</p>
-                    <p className="text-xs text-slate-400 font-medium">{userInfo.email}</p>
+                  <div className="flex items-center gap-1 bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border border-emerald-500/30">
+                    <ShieldCheck className="w-3 h-3" /> Active
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-y-6 gap-x-8 mb-8">
-                    <div>
-                      <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Access Level</p>
-                      <p className="font-bold text-orange-500 text-sm">
-                        {cart.find(i => i.id === 'vip') ? 'VIP PREMIER' : 'STANDARD ACCESS'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Quantity</p>
-                      <p className="font-bold uppercase tracking-tighter text-sm">{cart.reduce((a, b) => a + b.quantity, 0)} ASSETS</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Validity Period</p>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-3 h-3 text-orange-500" />
-                        <p className="font-bold text-xs">
-                          {selectedEvents.length > 0
-                            ? events.find(e => e.id === selectedEvents[0])?.date
-                            : "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Location</p>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3 h-3 text-orange-500" />
-                        <p className="font-bold text-xs truncate">
-                          {selectedEvents.length === 1
-                            ? events.find(e => e.id === selectedEvents[0])?.location
-                            : "Multiple Virtual Venues"}
-                        </p>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-2 gap-3 mb-4 text-xs bg-white/5 p-3 rounded-xl">
+                  <div>
+                    <p className="text-slate-400 text-[9px] uppercase font-bold">Access Tier</p>
+                    <p className="font-bold text-orange-400">ALL-ACCESS PASS</p>
                   </div>
+                  <div>
+                    <p className="text-slate-400 text-[9px] uppercase font-bold">Booked Assets</p>
+                    <p className="font-bold text-white">{Math.max(1, cart.reduce((a, b) => a + b.quantity, 0))} Tickets</p>
+                  </div>
+                </div>
 
-                  <div className="flex items-center justify-between pt-8 border-t border-white/10">
-                    <div className="bg-white p-2 rounded-lg">
-                      <QrCode className="w-10 h-10 text-black" />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[8px] text-slate-500 font-bold tracking-widest mb-1 uppercase">Passport ID</p>
-                      <p className="text-xs font-mono font-bold tracking-tighter">GBX-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
-                    </div>
+                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                  <div className="bg-white p-1.5 rounded-lg">
+                    <QrCode className="w-8 h-8 text-slate-950" />
                   </div>
-                </motion.div>
+                  <div className="text-right">
+                    <p className="text-[9px] text-slate-400 font-bold uppercase">Passport ID</p>
+                    <p className="text-xs font-mono font-bold text-orange-400">GBX-2026-PASS</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="text-center mt-12">
-                <h2 className="text-3xl font-bold mb-4">You're Almost Ready!</h2>
-                <p className="text-slate-600 mb-8 max-w-lg mx-auto">
-                  Your digital passport is ready. Create a secure account now to permanently save your tickets, access exclusive rewards, and enter the expo from any device.
+              <div className="text-center bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1">Sync with Central Solution (CHS)</h2>
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                  Your tickets are generated! Sign in or create your unified Central Solution (CHS) account to save your passport and claim booth rewards.
                 </p>
 
-                <div className="flex flex-col items-center justify-center gap-4">
+                <div className="flex flex-row justify-center gap-2.5">
                   <Link
-                    href={`/signup?role=customer&email=${encodeURIComponent(userInfo.email)}&firstName=${encodeURIComponent(userInfo.firstName)}&lastName=${encodeURIComponent(userInfo.lastName)}`}
-                    className="w-full max-w-sm px-12 py-5 bg-orange-600 text-white rounded-full font-bold text-xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 flex items-center justify-center gap-3 transform hover:scale-105 active:scale-95"
+                    href="/signup?role=customer"
+                    className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5"
                   >
-                    Save Ticket <ArrowRight className="w-6 h-6" />
+                    <span>Continue to CHS</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                  <Link
+                    href="/login?role=customer"
+                    className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all"
+                  >
+                    Sign In
                   </Link>
                 </div>
-                <p className="mt-6 text-xs text-slate-400">
-                  Already have an account? <Link href="/login" className="text-orange-600 font-bold hover:underline">Log in to sync</Link>
-                </p>
               </div>
             </motion.div>
           )}
@@ -1051,7 +816,7 @@ function TicketsContent() {
 
       <Footer />
 
-      {/* EVENT INFO MODAL (Interest Stage Deep Dive) */}
+      {/* COMPACT EVENT DETAILS MODAL */}
       <Modal
         isOpen={showInfoModal}
         onClose={() => {
@@ -1062,300 +827,126 @@ function TicketsContent() {
         title={selectedEventInfo?.name || "Event Details"}
       >
         {selectedEventInfo && (
-          <div className="space-y-8">
-            {/* Video / Hero Area */}
-            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video group cursor-pointer">
-              <Image
+          <div className="space-y-4">
+            <div className="relative rounded-xl overflow-hidden bg-slate-900 h-36 sm:h-48">
+              <img
                 src={selectedEventInfo.fullImage}
                 alt={selectedEventInfo.name}
-                fill
-                className="object-cover opacity-60 group-hover:opacity-40 transition-opacity"
+                className="w-full h-full object-cover opacity-80"
               />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 group-hover:scale-110 transition-transform">
-                  <Play className="w-6 h-6 text-white fill-white" />
-                </div>
+              <div className="absolute bottom-2.5 left-2.5 bg-black/60 backdrop-blur-xs text-white px-2.5 py-1 rounded-lg text-xs font-bold">
+                {selectedEventInfo.date} • {selectedEventInfo.location}
               </div>
-              <div className="absolute bottom-4 left-4 text-white font-bold text-sm">Watch Preview Trailer</div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex border-b border-slate-200">
-              {['overview', 'schedule', 'reviews'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveInfoTab(tab)}
-                  className={`px-6 py-3 font-bold text-sm capitalize border-b-2 transition-colors ${activeInfoTab === tab
-                    ? "border-orange-600 text-orange-600"
-                    : "border-transparent text-slate-500 hover:text-slate-800"
-                    }`}
-                >
-                  {tab}
-                </button>
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">{selectedEventInfo.description}</p>
+
+            <div className="bg-slate-50 p-3 rounded-xl space-y-1.5">
+              <h5 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Key Benefits</h5>
+              {selectedEventInfo.benefits.map((benefit: string, i: number) => (
+                <div key={i} className="text-xs text-slate-600 flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {benefit}
+                </div>
               ))}
             </div>
 
-            {/* Tab Content */}
-            <div className="min-h-[200px]">
-              {activeInfoTab === 'overview' && (
-                <div className="space-y-6 animate-in fade-in">
-                  <div>
-                    <h4 className="font-bold text-slate-900 mb-2">About the Event</h4>
-                    <p className="text-slate-600 leading-relaxed text-sm">{selectedEventInfo.description}</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50 p-4 rounded-xl">
-                      <h5 className="font-bold text-slate-900 text-xs mb-3 flex items-center gap-2 uppercase tracking-widest">
-                        <Star className="w-4 h-4 text-orange-500" /> Key Benefits
-                      </h5>
-                      <ul className="space-y-2">
-                        {selectedEventInfo.benefits.map((benefit: string, i: number) => (
-                          <li key={i} className="text-xs text-slate-600 flex items-center gap-2">
-                            <Check className="w-3 h-3 text-green-500" /> {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="bg-slate-50 p-4 rounded-xl">
-                      <h5 className="font-bold text-slate-900 text-xs mb-3 flex items-center gap-2 uppercase tracking-widest">
-                        <Info className="w-4 h-4 text-blue-500" /> Key Info
-                      </h5>
-                      <div className="space-y-2 text-xs text-slate-600">
-                        <div className="flex justify-between"><span>Organizer:</span> <span className="font-bold">{selectedEventInfo.organizer}</span></div>
-                        <div className="flex justify-between"><span>Format:</span> <span className="font-bold">Virtual & Hybrid</span></div>
-                        <div className="flex justify-between"><span>Age:</span> <span className="font-bold">18+</span></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeInfoTab === 'schedule' && (
-                <div className="space-y-4 animate-in fade-in">
-                  <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
-                    <div className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-lg text-xs text-center w-16">
-                      10:00 AM
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Opening Keynote</div>
-                      <div className="text-xs text-slate-500">Main Stage • {selectedEventInfo.organizer}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
-                    <div className="bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-lg text-xs text-center w-16">
-                      11:30 AM
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Tech Demos & Booth Visits</div>
-                      <div className="text-xs text-slate-500">Exhibition Hall A</div>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-blue-50 text-blue-800 text-center rounded-xl text-xs font-bold cursor-pointer hover:bg-blue-100 transition-colors">
-                    View Full Agenda
-                  </div>
-                </div>
-              )}
-
-              {activeInfoTab === 'reviews' && (
-                <div className="space-y-4 animate-in fade-in">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="text-5xl font-black text-slate-900">{selectedEventInfo.rating}</div>
-                    <div>
-                      <div className="flex text-yellow-400 text-sm">★★★★★</div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{selectedEventInfo.reviews} Verified Reviews</div>
-                    </div>
-                  </div>
-                  {[1, 2].map((i) => (
-                    <div key={i} className="p-4 bg-slate-50 rounded-xl">
-                      <div className="flex justify-between mb-2">
-                        <span className="font-bold text-slate-900 text-xs">Alex M.</span>
-                        <span className="text-[10px] text-slate-400">2 days ago</span>
-                      </div>
-                      <p className="text-xs text-slate-600">"Incredible experience! The virtual booths were super interactive."</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Footer / CTA */}
-            <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Starting Price</p>
-                <p className="text-2xl font-black text-slate-900">£19.00</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold">Entry Ticket</p>
+                <p className="text-lg font-black text-slate-900">£19.00</p>
               </div>
               <button
                 onClick={() => {
-                  if (!selectedEvents.includes(selectedEventInfo.id)) {
-                    toggleEvent(selectedEventInfo.id);
-                  }
+                  toggleEvent(selectedEventInfo.id);
                   setShowInfoModal(false);
                 }}
-                className={`px-8 py-4 rounded-full font-bold shadow-xl transition-all flex items-center gap-2 ${selectedEvents.includes(selectedEventInfo.id)
-                  ? "bg-slate-100 text-slate-400 cursor-default"
-                  : "bg-orange-600 text-white hover:bg-orange-700 shadow-orange-600/30"
-                  }`}
+                className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs hover:bg-orange-700 transition-all shadow-md"
               >
-                {selectedEvents.includes(selectedEventInfo.id) ? <><Check className="w-5 h-5" /> Already Selected</> : <><Plus className="w-5 h-5" /> Select This Event</>}
+                {selectedEvents.includes(selectedEventInfo.id) ? "Remove Event" : "Select Event"}
               </button>
             </div>
           </div>
         )}
       </Modal>
 
-      {/* PRODUCT INFO MODAL */}
-      <Modal
-        isOpen={showProductModal}
-        onClose={() => {
-          setShowProductModal(false);
-          setSelectedProductInfo(null);
-        }}
-        title="Add-on Details"
-      >
-        {selectedProductInfo && (
-          <div className="space-y-6">
-            <div className="flex flex-col items-center text-center p-6 bg-slate-50 rounded-3xl border border-slate-100">
-              <div className="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 mb-4">
-                {selectedProductInfo.icon}
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-1">{selectedProductInfo.name}</h3>
-              <p className="text-3xl font-black text-orange-600">£{selectedProductInfo.price.toFixed(2)}</p>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                <Info className="w-4 h-4 text-orange-600" /> Description
-              </h4>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                {selectedProductInfo.description}
-              </p>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
-              <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-              <div>
-                <p className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-1">Digital Fulfillment</p>
-                <p className="text-xs text-blue-700 leading-tight">This item is a digital asset and will be delivered to your ticket wallet immediately after purchase.</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                addToCart(selectedProductInfo, 'product');
-                setShowProductModal(false);
-              }}
-              className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg"
-            >
-              <Plus className="w-5 h-5" /> Add to Cart
-            </button>
-          </div>
-        )}
-      </Modal>
-
-      {/* PASS SELECTION OVERLAY MODAL */}
+      {/* COMPACT PASS MODAL */}
       <Modal
         isOpen={showPassModal}
-        onClose={() => {
-          setShowPassModal(false);
-          setHasSkippedPass(true);
-        }}
-        title="Get Your Platform Pass"
-        maxWidth="4xl"
+        onClose={() => setShowPassModal(false)}
+        title="Get Your Season Access Pass"
       >
-        <div className="max-w-4xl mx-auto">
+        <div>
           {!showTokenScreen ? (
-            <>
-              <div className="text-center mb-8">
-                <p className="text-slate-600">To enjoy an amazing event and unlock all marketplace features, get your season pass now!</p>
-              </div>
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500">Unlock all exhibitor events, workshops, and instant booth rewards with a Season Pass.</p>
 
-              <div className="flex justify-center mb-8">
-                {passes.map((pass) => (
-                  <div
-                    key={pass.id}
-                    className={`relative p-8 rounded-3xl border-2 transition-all max-w-sm w-full ${cart.some(i => i.id === pass.id)
-                      ? "border-orange-600 bg-orange-50/50 shadow-lg"
-                      : "border-slate-100 bg-white hover:border-orange-300 shadow-sm"
-                      }`}
-                  >
-                    {pass.popular && (
-                      <div className="absolute -top-3 right-4 bg-slate-900 text-white px-3 py-0.5 rounded-full text-[8px] font-black tracking-widest">
-                        BEST VALUE
-                      </div>
-                    )}
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-orange-600">
-                        <Globe className="w-6 h-6" />
-                      </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-black">£{pass.price}</span>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">{pass.name}</h3>
-                    <p className="text-slate-500 text-sm mb-6">{pass.description}</p>
-                    <ul className="space-y-3 mb-2">
-                      {pass.features.slice(0, 4).map(f => (
-                        <li key={f} className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                          <Check className="w-4 h-4 text-green-500" /> {f}
-                        </li>
-                      ))}
-                    </ul>
+              {passes.map((pass) => (
+                <div
+                  key={pass.id}
+                  className="p-4 rounded-2xl border-2 border-orange-600 bg-orange-50/40"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="text-sm font-extrabold text-slate-900">{pass.name}</h3>
+                    <span className="text-xl font-black text-orange-600">£{pass.price}</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-slate-500 text-xs mb-2.5">{pass.description}</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {pass.features.slice(0, 4).map(f => (
+                      <div key={f} className="flex items-center gap-1 text-[10px] font-bold text-slate-700">
+                        <Check className="w-3 h-3 text-emerald-500 shrink-0" /> {f}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
-              <div className="flex flex-col gap-3 max-w-sm mx-auto">
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowPassModal(false)}
+                  className="px-4 py-2.5 text-slate-500 font-bold text-xs rounded-full border border-slate-200"
+                >
+                  Close
+                </button>
                 <button
                   onClick={() => {
                     const pass = passes[0];
-                    if (!cart.some(i => i.id === pass.id)) {
+                    if (pass && !cart.some(i => i.id === pass.id)) {
                       addToCart(pass, 'pass');
                     }
                     setLoading(true);
                     setTimeout(() => {
-                      const token = "GBX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                      const token = "GBX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
                       setGeneratedToken(token);
+                      setEnteredToken(token);
+                      setIsTokenValidated(true);
                       setLoading(false);
                       setShowTokenScreen(true);
-                    }, 1500);
+                    }, 600);
                   }}
-                  className="w-full py-4 bg-slate-900 text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-lg"
+                  className="flex-1 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Purchase & Get Access Token"}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowPassModal(false);
-                    setHasSkippedPass(true);
-                  }}
-                  className="w-full py-2 text-slate-400 font-bold text-sm hover:text-slate-600 transition-all"
-                >
-                  Skip for now
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Activate Pass & Get Token"}
                 </button>
               </div>
-            </>
+            </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
-                <ShieldCheck className="w-8 h-8" />
+            <div className="text-center py-4 space-y-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900 mb-2">Pass Secured!</h2>
-              <p className="text-slate-600 text-sm mb-6">Copy your unique Access Token below. Use it during review to unlock full event access.</p>
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900">Access Token Activated!</h3>
+                <p className="text-slate-500 text-xs">Your token is automatically applied to your cart.</p>
+              </div>
 
-              <div className="bg-slate-50 p-4 rounded-2xl border-2 border-dashed border-slate-200 mb-8">
-                <div className="flex items-center justify-center gap-4">
-                  <span className="text-2xl font-mono font-black text-slate-900 tracking-tighter">{generatedToken}</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedToken);
-                      alert("Token copied!");
-                    }}
-                    className="p-2 bg-white rounded-lg shadow-sm text-orange-600"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
-                </div>
+              <div className="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200 flex items-center justify-center gap-3">
+                <span className="text-lg font-mono font-black text-slate-900">{generatedToken}</span>
+                <button
+                  onClick={() => navigator.clipboard.writeText(generatedToken)}
+                  className="p-1.5 bg-white rounded-lg border border-slate-200 text-orange-600"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
               </div>
 
               <button
@@ -1363,9 +954,9 @@ function TicketsContent() {
                   setShowPassModal(false);
                   setShowTokenScreen(false);
                 }}
-                className="w-full py-4 bg-orange-600 text-white rounded-full font-bold shadow-lg"
+                className="w-full py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs shadow-md"
               >
-                Continue to Events
+                Continue Booking
               </button>
             </div>
           )}
@@ -1379,7 +970,7 @@ export default function TicketsPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
       </div>
     }>
       <TicketsContent />
