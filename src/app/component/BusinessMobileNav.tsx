@@ -107,7 +107,7 @@ export default function BusinessMobileNav() {
                     Exhibitor Hub Menu
                   </h3>
                   <p className="text-[10px] text-slate-400 font-medium">
-                    Acme Corp • CHS Verified Partner
+                    Acme Corp • Verified Partner
                   </p>
                 </div>
               </div>

@@ -220,7 +220,7 @@ export default function VirtualBoothPage() {
             {activeTab === "about" && (
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-3">
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-tight">
-                  Exhibitor Profile (CHS Verified)
+                  Exhibitor Profile (Verified)
                 </h3>
                 <p className="text-slate-600 leading-relaxed text-xs">{booth.description}</p>
                 <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">

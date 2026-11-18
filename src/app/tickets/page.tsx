@@ -1242,7 +1242,7 @@ function TicketsContent() {
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
                   />
                   <span className="text-[11px] text-slate-600 leading-relaxed">
-                    I agree to the 247GBS Terms of Service. Identity & account sync will complete via Central Solution (CHS).
+                    I agree to the 247GBS Terms of Service and Event Privacy Policy.
                   </span>
                 </label>
 
@@ -1338,24 +1338,24 @@ function TicketsContent() {
               </div>
 
               <div className="text-center bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1">Sync with Central Solution (CHS)</h2>
+                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1">Pass Issued & Confirmed</h2>
                 <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                  Your tickets are generated! Sign in or create your unified Central Solution (CHS) account to save your passport and claim booth rewards.
+                  Your passes are confirmed! Access your tickets anytime in your customer dashboard or continue exploring upcoming events.
                 </p>
 
                 <div className="flex flex-row justify-center gap-2.5">
                   <Link
-                    href="/signup?role=customer"
+                    href="/dashboard/customer/tickets"
                     className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5"
                   >
-                    <span>Continue to CHS</span>
+                    <span>View My Passes</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                   <Link
-                    href="/login?role=customer"
+                    href="/"
                     className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all"
                   >
-                    Sign In
+                    Explore Expo
                   </Link>
                 </div>
               </div>

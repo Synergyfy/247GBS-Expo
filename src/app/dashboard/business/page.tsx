@@ -120,7 +120,7 @@ export default function BusinessDashboardPage() {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col justify-between">
           <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex justify-between items-center">
             <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
-              Booth Readiness & CHS Sync
+              Booth Readiness & Profile
             </h3>
             <span className="text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider">
               90% Ready
@@ -137,11 +137,11 @@ export default function BusinessDashboardPage() {
                 <div className="flex items-center gap-2 min-w-0">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="text-slate-600 font-medium truncate">
-                    Business Logo, Banner & KYB Verified via Central Hub Solution (CHS)
+                    Business Logo, Banner & KYB Verified
                   </span>
                 </div>
                 <span className="text-[10px] font-bold text-emerald-600 uppercase shrink-0">
-                  Synced
+                  Verified
                 </span>
               </div>
 

@@ -96,7 +96,7 @@ export default function AdminBusinessesPage() {
   const stats = [
     { label: "Total Partners", val: "1,248", sub: "Active accounts", icon: <Building2 className="w-4 h-4 text-blue-600 shrink-0" /> },
     { label: "Premium Tier", val: "142", sub: "Yearly PRO booths", icon: <Trophy className="w-4 h-4 text-orange-600 shrink-0" /> },
-    { label: "CHS Synced", val: "890", sub: "Verified entities", icon: <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" /> },
+    { label: "Verified Entities", val: "890", sub: "KYB approved", icon: <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" /> },
     { label: "Partner GMV", val: "£14.2M", sub: "Gross trade volume", icon: <TrendingUp className="w-4 h-4 text-purple-600 shrink-0" /> }
   ];
 
@@ -108,7 +108,7 @@ export default function AdminBusinessesPage() {
           Registered Businesses
         </h1>
         <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-          Monitor CHS-synced exhibitors, booth activity, and seasonal partner tiers.
+          Monitor verified exhibitors, booth activity, and seasonal partner tiers.
         </p>
       </div>
 

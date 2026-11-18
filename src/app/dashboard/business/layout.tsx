@@ -22,7 +22,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
         <DashboardHeader
           user={{
             name: "Acme Corp",
-            role: "CHS Verified Exhibitor",
+            role: "Verified Exhibitor",
             email: "contact@acme.com",
             initials: "AC"
           }}

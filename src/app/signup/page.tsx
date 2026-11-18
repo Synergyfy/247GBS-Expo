@@ -152,7 +152,7 @@ function SignupForm() {
           className="w-full bg-slate-950 text-white py-3 rounded-xl font-bold text-xs sm:text-sm hover:bg-orange-600 transition-colors shadow-md mt-1 cursor-pointer flex items-center justify-center gap-1.5"
         >
           <Sparkles className="w-4 h-4 text-orange-400" />
-          <span>{isFromTickets ? "Sign Up & Continue Booking" : "Create Account & Sync CHS"}</span>
+          <span>{isFromTickets ? "Sign Up & Continue Booking" : "Create Account"}</span>
         </button>
       </form>
 

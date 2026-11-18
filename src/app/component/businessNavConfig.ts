@@ -41,7 +41,7 @@ export const BUSINESS_NAV_GROUPS: BusinessNavGroup[] = [
     items: [
       { label: "Overview", href: "/dashboard/business", icon: LayoutDashboard, exact: true },
       { label: "Discover Events", href: "/dashboard/business/marketplace", icon: Globe },
-      { label: "My Booth (CHS)", href: "/dashboard/business/booth", icon: Store },
+      { label: "My Booth", href: "/dashboard/business/booth", icon: Store },
       { label: "MCOM Products", href: "/dashboard/business/products", icon: Package, exact: true },
       { label: "Bundle Fulfilment", href: "/dashboard/business/products/fulfilment", icon: Truck }
     ]
@@ -73,7 +73,7 @@ export const BUSINESS_NAV_GROUPS: BusinessNavGroup[] = [
     label: "Chat, Support & Settings",
     icon: Settings,
     items: [
-      { label: "CHS Live Chat", href: "/dashboard/business/messages", icon: MessageSquare, badge: "3" },
+      { label: "Live Chat", href: "/dashboard/business/messages", icon: MessageSquare, badge: "3" },
       { label: "Support & Disputes", href: "/dashboard/business/support", icon: LifeBuoy },
       { label: "Profile & Settings", href: "/dashboard/business/settings", icon: Settings }
     ]

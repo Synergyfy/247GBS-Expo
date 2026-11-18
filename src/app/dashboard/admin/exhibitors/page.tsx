@@ -13,7 +13,7 @@ export default function ExhibitorDirectoryPage() {
       name: "Urban Threads Co.",
       owner: "Mark Riley",
       tier: "Yearly Pro",
-      chsStatus: "CHS Verified",
+      status: "Verified",
       eventsCount: 3,
       joined: "Jan 26, 2026"
     },
@@ -22,7 +22,7 @@ export default function ExhibitorDirectoryPage() {
       name: "EcoHome Solutions",
       owner: "Sarah Lane",
       tier: "PAYG",
-      chsStatus: "CHS Verified",
+      status: "Verified",
       eventsCount: 1,
       joined: "Jan 25, 2026"
     },
@@ -31,7 +31,7 @@ export default function ExhibitorDirectoryPage() {
       name: "GamerSpace Tech",
       owner: "Alex Chen",
       tier: "Yearly Pro",
-      chsStatus: "CHS Verified",
+      status: "Verified",
       eventsCount: 4,
       joined: "Jan 26, 2026"
     },
@@ -40,7 +40,7 @@ export default function ExhibitorDirectoryPage() {
       name: "Zenith Apparel",
       owner: "David Wu",
       tier: "PAYG",
-      chsStatus: "CHS Verified",
+      status: "Verified",
       eventsCount: 2,
       joined: "Jan 24, 2026"
     },
@@ -49,7 +49,7 @@ export default function ExhibitorDirectoryPage() {
       name: "Aqua Marine Gear",
       owner: "Linda Frost",
       tier: "Yearly Pro",
-      chsStatus: "CHS Verified",
+      status: "Verified",
       eventsCount: 5,
       joined: "Jan 26, 2026"
     }
@@ -69,7 +69,7 @@ export default function ExhibitorDirectoryPage() {
             Active Exhibitor Booths
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-            Exhibitor onboarding and KYB are verified via CHS. To moderate submitted events, visit the Event Approval Queue.
+            Exhibitor onboarding and KYB are verified centrally. To moderate submitted events, visit the Event Approval Queue.
           </p>
         </div>
         <Link
@@ -108,7 +108,7 @@ export default function ExhibitorDirectoryPage() {
                     {item.name}
                   </h3>
                   <span className="text-[11px] font-black uppercase tracking-wider text-emerald-600">
-                    {item.chsStatus}
+                    {item.status}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mt-0.5">

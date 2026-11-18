@@ -29,7 +29,7 @@ export default function MyBoothPage() {
             My Booth & Storefront
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-            Logo, banner, and KYB profile are automatically pulled from Central Hub Solution (CHS).
+            Logo, banner, and KYB profile are automatically pulled from your verified business profile.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -39,7 +39,7 @@ export default function MyBoothPage() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-2xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-orange-600 ${syncing ? "animate-spin" : ""}`} />
-            <span>{syncing ? "Syncing..." : "Resync CHS"}</span>
+            <span>{syncing ? "Syncing..." : "Resync Profile"}</span>
           </button>
           <Link
             href="/dashboard/customer/booths/101"
@@ -54,7 +54,7 @@ export default function MyBoothPage() {
       {/* Full-Width Horizontal Tabs */}
       <div className="flex gap-4 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
         {[
-          { id: "branding", label: "CHS Branding Profile" },
+          { id: "branding", label: "Branding Profile" },
           { id: "information", label: "Storefront Info" },
           { id: "contact", label: "Booth Contact" }
         ].map((tab) => (
@@ -80,26 +80,21 @@ export default function MyBoothPage() {
         {/* BRANDING TAB (Single direct container spanning 100% full width, no double container) */}
         {activeTab === "branding" && (
           <div className="w-full space-y-3.5">
-            <div className="flex items-center justify-between gap-2 px-0.5">
-              <div>
-                <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
-                  Central Hub Solution (CHS) Brand Assets
-                </h3>
-                <p className="text-[11px] text-slate-500">
-                  Company logo and cover banner are automatically synchronized from your verified CHS business profile.
-                </p>
-              </div>
-              <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <ShieldCheck className="w-3.5 h-3.5" /> CHS Synced
-              </span>
+            <div className="px-0.5">
+              <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
+                Brand Assets
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                Company logo and cover banner are automatically synchronized from your verified business profile.
+              </p>
             </div>
 
-            {/* Full-Width Live CHS Banner & Brand Header (Direct card, no double box) */}
+            {/* Full-Width Live Banner & Brand Header (Direct card, no double box) */}
             <div className="w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shadow-sm">
               <div className="h-32 sm:h-44 relative w-full">
                 <Image
                   src="/main_stage_banner.png"
-                  alt="CHS Booth Banner"
+                  alt="Booth Banner"
                   fill
                   className="object-cover opacity-75"
                 />
@@ -113,7 +108,7 @@ export default function MyBoothPage() {
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider block">
-                      CHS Entity ID: RC-884920
+                      Entity ID: RC-884920
                     </span>
                     <h4 className="text-sm font-extrabold text-white uppercase tracking-tight truncate">
                       Acme Corporation Ltd
@@ -123,9 +118,6 @@ export default function MyBoothPage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider shrink-0">
-                  Auto-Updated from CHS
-                </span>
               </div>
             </div>
 
@@ -140,7 +132,7 @@ export default function MyBoothPage() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">
                   KYB Verification
                 </span>
-                <span className="font-bold text-emerald-600">Verified on CHS</span>
+                <span className="font-bold text-emerald-600">Verified Entity</span>
               </div>
               <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">
