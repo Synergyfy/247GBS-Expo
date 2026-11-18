@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, Ticket, ArrowRight, Sparkles,
   CreditCard, ShieldCheck, Zap, Globe, Cpu, ShoppingBag,
-  QrCode, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Shield, Copy
+  QrCode, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Shield, Copy, ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -56,6 +56,15 @@ function TicketsContent() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<string | null>("card");
   const [agreedToTerms, setAgreedToTerms] = useState(true);
+
+  // Mock Payment & Simulation States
+  const [gatewayProvider, setGatewayProvider] = useState<"stripe" | "paypal">("stripe");
+  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
+  const [cardHolder, setCardHolder] = useState("Alex Morgan");
+  const [cardExpiry, setCardExpiry] = useState("12/28");
+  const [cardCvc, setCardCvc] = useState("842");
+  const [paymentProcessingStage, setPaymentProcessingStage] = useState<string | null>(null);
+  const [transactionRef, setTransactionRef] = useState("TXN-GBX-84920");
 
   const BOOKING_FEE = 1.50;
 
@@ -205,6 +214,59 @@ function TicketsContent() {
       setLoading(false);
       setStep(prev => Math.min(prev + 1, STEPS.length - 1));
     }, 400);
+  };
+
+  const handleSimulatePayment = () => {
+    setLoading(true);
+
+    if (paymentMethod === "wallet") {
+      setPaymentProcessingStage("Deducting from CHS Expo Wallet...");
+      setTimeout(() => {
+        setPaymentProcessingStage("Wallet settlement confirmed!");
+        const randomRef = "TXN-CHS-" + Math.floor(10000 + Math.random() * 90000);
+        setTransactionRef(randomRef);
+      }, 600);
+      setTimeout(() => {
+        setLoading(false);
+        setPaymentProcessingStage(null);
+        setStep(4);
+      }, 1300);
+      return;
+    }
+
+    if (gatewayProvider === "paypal") {
+      setPaymentProcessingStage("Connecting to PayPal Sandbox...");
+      setTimeout(() => {
+        setPaymentProcessingStage("Capturing PayPal Order PAYID-SANDBOX...");
+      }, 600);
+      setTimeout(() => {
+        setPaymentProcessingStage("PayPal Payment Approved! Generating Passport...");
+        const randomId = "PAYID-SANDBOX-" + Math.floor(10000 + Math.random() * 90000);
+        setTransactionRef(randomId);
+      }, 1200);
+      setTimeout(() => {
+        setLoading(false);
+        setPaymentProcessingStage(null);
+        setStep(4);
+      }, 1800);
+      return;
+    }
+
+    // Stripe Gateway
+    setPaymentProcessingStage("Creating Stripe PaymentIntent...");
+    setTimeout(() => {
+      setPaymentProcessingStage("Confirming with Stripe Sandbox & 3D Secure...");
+    }, 600);
+    setTimeout(() => {
+      setPaymentProcessingStage("Stripe Payment Succeeded! Generating Passport...");
+      const randomPi = "pi_stripe_" + Math.floor(10000 + Math.random() * 90000);
+      setTransactionRef(randomPi);
+    }, 1200);
+    setTimeout(() => {
+      setLoading(false);
+      setPaymentProcessingStage(null);
+      setStep(4);
+    }, 1800);
   };
 
   const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
@@ -673,11 +735,17 @@ function TicketsContent() {
               exit={{ opacity: 0, x: -15 }}
               className="max-w-xl mx-auto"
             >
-              <div className="bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80">
-                <h2 className="text-base sm:text-xl font-extrabold mb-1 text-slate-900">Select Payment Method</h2>
+              <div className="bg-white p-4 sm:p-7 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80">
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="text-base sm:text-xl font-extrabold text-slate-900">Select Payment Method</h2>
+                  <span className="text-[10px] font-bold text-orange-700 bg-orange-100/80 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Simulated Sandbox
+                  </span>
+                </div>
                 <p className="text-xs text-slate-500 mb-4">Encrypted & secured via UK payment standards.</p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                {/* Payment Method Selector Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                   {[
                     { id: "card", label: "Credit / Debit Card", sub: "Instant UK Checkout", icon: <CreditCard className="w-5 h-5" /> },
                     { id: "wallet", label: "Pass / Expo Wallet", sub: "Balance: £120.50", icon: <Wallet className="w-5 h-5" /> }
@@ -687,7 +755,7 @@ function TicketsContent() {
                       onClick={() => setPaymentMethod(method.id)}
                       className={`flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer border-2 transition-all ${
                         paymentMethod === method.id
-                          ? "border-orange-600 bg-orange-50/50 text-orange-950"
+                          ? "border-orange-600 bg-orange-50/50 text-orange-950 shadow-xs"
                           : "border-slate-200 hover:border-orange-200 text-slate-700"
                       }`}
                     >
@@ -705,10 +773,253 @@ function TicketsContent() {
                   ))}
                 </div>
 
-                <label className="flex items-start gap-2.5 cursor-pointer py-2 px-1 mb-5">
+                {/* CARD DETAILS FORM (Expands when Card is selected) */}
+                <AnimatePresence mode="wait">
+                  {paymentMethod === "card" && (
+                    <motion.div
+                      key="card-form"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-4 overflow-hidden"
+                    >
+                      <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3 sm:p-5 space-y-3.5">
+                        {/* Gateway Switcher: Stripe vs PayPal */}
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                            Select Gateway Provider
+                          </label>
+                          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200/70 rounded-xl">
+                            <button
+                              type="button"
+                              onClick={() => setGatewayProvider("stripe")}
+                              className={`py-2 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                                gatewayProvider === "stripe"
+                                  ? "bg-white text-slate-900 shadow-xs border border-slate-200/80 ring-1 ring-orange-500/20"
+                                  : "text-slate-600 hover:text-slate-900"
+                              }`}
+                            >
+                              <CreditCard className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                              <span>Stripe (Card)</span>
+                              <span className="text-[9px] font-bold bg-indigo-50 text-indigo-700 px-1 py-0.2 rounded">
+                                Test
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setGatewayProvider("paypal")}
+                              className={`py-2 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                                gatewayProvider === "paypal"
+                                  ? "bg-white text-blue-900 shadow-xs border border-slate-200/80 ring-1 ring-blue-500/20"
+                                  : "text-slate-600 hover:text-blue-900"
+                              }`}
+                            >
+                              <span className="font-black text-blue-600 italic text-xs">P</span>
+                              <span>PayPal Sandbox</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* STRIPE SANDBOX VIEW */}
+                        {gatewayProvider === "stripe" && (
+                          <motion.div
+                            key="stripe-view"
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="space-y-3 pt-1"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200/70">
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>Stripe Sandbox Elements</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCardNumber("4242 4242 4242 4242");
+                                  setCardHolder("Alex Morgan");
+                                  setCardExpiry("12/28");
+                                  setCardCvc("842");
+                                }}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-100/70 bg-white px-2.5 py-1 rounded-lg transition-all border border-orange-200 shadow-xs"
+                              >
+                                <Zap className="w-3 h-3 text-orange-600" />
+                                <span>⚡ Fill Stripe Test Card</span>
+                              </button>
+                            </div>
+
+                            {/* Card Number */}
+                            <div>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                Card Number
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={cardNumber}
+                                  onChange={(e) => {
+                                    const v = e.target.value.replace(/\D/g, "").slice(0, 16);
+                                    const formatted = v.match(/.{1,4}/g)?.join(" ") || v;
+                                    setCardNumber(formatted);
+                                  }}
+                                  placeholder="4242 4242 4242 4242"
+                                  className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 pr-16"
+                                />
+                                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center">
+                                  {cardNumber.startsWith("4") ? (
+                                    <span className="text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                      VISA
+                                    </span>
+                                  ) : cardNumber.startsWith("5") ? (
+                                    <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                      MC
+                                    </span>
+                                  ) : cardNumber.startsWith("3") ? (
+                                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                      AMEX
+                                    </span>
+                                  ) : (
+                                    <CreditCard className="w-4 h-4 text-slate-400" />
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Cardholder Name */}
+                            <div>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                Cardholder Name
+                              </label>
+                              <input
+                                type="text"
+                                value={cardHolder}
+                                onChange={(e) => setCardHolder(e.target.value)}
+                                placeholder="e.g. Alex Morgan"
+                                className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                              />
+                            </div>
+
+                            {/* Expiry & CVC Grid */}
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                  Expires
+                                </label>
+                                <input
+                                  type="text"
+                                  value={cardExpiry}
+                                  onChange={(e) => {
+                                    let v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                                    if (v.length >= 3) {
+                                      v = `${v.slice(0, 2)}/${v.slice(2)}`;
+                                    }
+                                    setCardExpiry(v);
+                                  }}
+                                  placeholder="MM/YY"
+                                  maxLength={5}
+                                  className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-center"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                  CVC / CVV
+                                </label>
+                                <input
+                                  type="password"
+                                  value={cardCvc}
+                                  onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                  placeholder="123"
+                                  maxLength={4}
+                                  className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-center"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 pt-1 text-[10px] text-slate-500">
+                              <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                              <span>Stripe Mock Sandbox: Enter any 16 digits or click fill test card.</span>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* PAYPAL SANDBOX VIEW */}
+                        {gatewayProvider === "paypal" && (
+                          <motion.div
+                            key="paypal-view"
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="space-y-3 pt-1"
+                          >
+                            <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs space-y-2">
+                              <div className="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
+                                <div className="flex items-center gap-1.5 font-black text-blue-950">
+                                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                                  <span>PayPal Sandbox Environment</span>
+                                </div>
+                                <span className="text-[10px] font-mono font-bold text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200">
+                                  v2/checkout/orders
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-[11px] text-blue-900">
+                                <span>Mock Buyer Account:</span>
+                                <span className="font-mono font-bold">buyer-sandbox@247gbs.com</span>
+                              </div>
+                              <p className="text-[11px] text-blue-800/90 leading-relaxed">
+                                Ready to simulate instant approval. Clicking pay captures the simulated PayPal order without leaving the page.
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* WALLET BREAKDOWN (Expands when Wallet is selected) */}
+                  {paymentMethod === "wallet" && (
+                    <motion.div
+                      key="wallet-form"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-4 overflow-hidden"
+                    >
+                      <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-5 space-y-2.5">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
+                          <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
+                            <Wallet className="w-4 h-4 text-orange-600" />
+                            <span>CHS Unified Wallet</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                            Synced & Active
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-500">Wallet Available:</span>
+                          <span className="font-extrabold text-slate-900">£120.50</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-500">Amount Due:</span>
+                          <span className="font-extrabold text-orange-600">£{finalPrice.toFixed(2)}</span>
+                        </div>
+                        {finalPrice > 120.50 ? (
+                          <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+                            Your wallet covers <span className="font-bold">£120.50</span>. The remainder (<span className="font-bold">£{(finalPrice - 120.50).toFixed(2)}</span>) will be covered via your linked mock card.
+                          </div>
+                        ) : (
+                          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800">
+                            ✓ Your wallet balance covers 100% of this checkout.
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* TERMS CHECKBOX */}
+                <label className="flex items-start gap-2.5 cursor-pointer py-1.5 px-1 mb-4">
                   <input
                     type="checkbox"
-                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 shrink-0"
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
                   />
@@ -717,7 +1028,22 @@ function TicketsContent() {
                   </span>
                 </label>
 
-                <div className="p-4 bg-slate-950 text-white rounded-2xl mb-5 flex justify-between items-center">
+                {/* PROCESSING STAGES BANNER */}
+                {paymentProcessingStage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 p-3 bg-orange-50 border border-orange-200/90 rounded-2xl flex items-center gap-2.5"
+                  >
+                    <Loader2 className="w-4 h-4 text-orange-600 animate-spin shrink-0" />
+                    <span className="text-xs font-bold text-orange-950 animate-pulse">
+                      {paymentProcessingStage}
+                    </span>
+                  </motion.div>
+                )}
+
+                {/* AMOUNT DUE BANNER */}
+                <div className="p-3.5 sm:p-4 bg-slate-950 text-white rounded-2xl mb-5 flex justify-between items-center">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">Amount Due</span>
                     <p className="text-xl sm:text-2xl font-black">£{finalPrice.toFixed(2)}</p>
@@ -725,19 +1051,50 @@ function TicketsContent() {
                   <ShieldCheck className="w-7 h-7 text-orange-500" />
                 </div>
 
+                {/* BUTTONS */}
                 <div className="flex justify-between items-center gap-3">
                   <button
                     onClick={handleBack}
-                    className="px-5 py-2.5 border border-slate-200 rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                    disabled={loading}
+                    className="px-5 py-2.5 border border-slate-200 rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1 disabled:opacity-50"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" /> Back
                   </button>
                   <button
-                    onClick={handleNext}
-                    disabled={!paymentMethod || !agreedToTerms}
-                    className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5 disabled:opacity-50"
+                    onClick={handleSimulatePayment}
+                    disabled={!paymentMethod || !agreedToTerms || loading}
+                    className={`px-6 py-2.5 sm:px-8 sm:py-3 rounded-full font-bold text-xs sm:text-sm transition-all shadow-md inline-flex items-center gap-2 disabled:opacity-50 cursor-pointer ${
+                      paymentMethod === "card" && gatewayProvider === "paypal"
+                        ? "bg-[#0070BA] hover:bg-[#005ea6] text-white"
+                        : "bg-orange-600 hover:bg-orange-700 text-white"
+                    }`}
                   >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Complete Transaction</span> <ArrowRight className="w-3.5 h-3.5" /></>}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Verifying...</span>
+                      </>
+                    ) : (
+                      <>
+                        {paymentMethod === "card" && gatewayProvider === "paypal" ? (
+                          <>
+                            <span className="font-black text-amber-300 italic text-sm">P</span>
+                            <span>Pay £{finalPrice.toFixed(2)} with PayPal</span>
+                          </>
+                        ) : paymentMethod === "card" && gatewayProvider === "stripe" ? (
+                          <>
+                            <CreditCard className="w-4 h-4" />
+                            <span>Pay £{finalPrice.toFixed(2)} with Stripe</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wallet className="w-4 h-4" />
+                            <span>Pay £{finalPrice.toFixed(2)} with Wallet</span>
+                          </>
+                        )}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -752,6 +1109,35 @@ function TicketsContent() {
               animate={{ opacity: 1, scale: 1 }}
               className="max-w-md mx-auto"
             >
+              {/* PAYMENT SETTLEMENT RECEIPT BADGE */}
+              <div className="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-3.5 mb-4 text-left shadow-xs">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-emerald-200/70">
+                  <div className="flex items-center gap-1.5 text-emerald-900 font-black text-xs">
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span>Payment Confirmed</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded">
+                    {transactionRef}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div>
+                    <p className="text-emerald-700/80 text-[10px] font-medium">Gateway & Method</p>
+                    <p className="font-bold text-slate-900">
+                      {paymentMethod === "wallet"
+                        ? "CHS Expo Wallet"
+                        : gatewayProvider === "paypal"
+                        ? "PayPal Sandbox (Instant)"
+                        : `Stripe (Visa •••• ${cardNumber.replace(/\s/g, "").slice(-4) || "4242"})`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-emerald-700/80 text-[10px] font-medium">Amount Settled</p>
+                    <p className="font-black text-emerald-900">£{finalPrice.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="bg-slate-950 text-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-white/10 mb-5">
                 <div className="flex justify-between items-start mb-4">
                   <div>
