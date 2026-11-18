@@ -2,17 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, ChevronDown } from "lucide-react";
+import { Calendar, ChevronDown, User } from "lucide-react";
 import { TICKER_EVENTS } from "@/data/ticker";
+import { getStoredUser } from "@/lib/auth";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [nextEvent, setNextEvent] = useState({ season: "SPRING 2026", dates: "April 10-19, 2026" });
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const seasonalEvents = TICKER_EVENTS.filter(e => e.isActive);
 
   useEffect(() => {
+    setCurrentUser(getStoredUser());
     const handleScroll = () => setScrolled(window.scrollY > 15);
     window.addEventListener("scroll", handleScroll);
 
@@ -106,14 +109,24 @@ export default function Navbar() {
 
             {/* Desktop Action Buttons */}
             <div className="hidden lg:flex items-center gap-3">
+              {currentUser ? (
+                <Link
+                  href={currentUser.role === "business" ? "/dashboard/business" : currentUser.role === "admin" ? "/dashboard/admin" : "/dashboard/customer"}
+                  className="text-xs sm:text-sm font-bold text-slate-700 hover:text-orange-600 px-3 py-2 transition-colors flex items-center gap-1.5"
+                >
+                  <User className="w-4 h-4 text-orange-600" />
+                  <span>Dashboard</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-sm font-bold text-slate-700 hover:text-orange-600 px-3 py-2 transition-colors"
+                >
+                  Login
+                </Link>
+              )}
               <Link
-                href="/login"
-                className="text-sm font-bold text-slate-700 hover:text-orange-600 px-3 py-2 transition-colors"
-              >
-                Login
-              </Link>
-              <Link
-                href="/tickets"
+                href={currentUser ? "/tickets" : "/signup?role=customer&redirect=/tickets"}
                 className="bg-orange-600 text-white px-5 py-2 rounded-full text-xs sm:text-sm font-bold hover:bg-orange-700 transition-all shadow-md shadow-orange-600/20 active:scale-95"
               >
                 Tickets
@@ -179,7 +192,7 @@ export default function Navbar() {
 
             {/* Ticker Action */}
             <Link
-              href="/tickets"
+              href={currentUser ? "/tickets" : "/signup?role=customer&redirect=/tickets"}
               className="shrink-0 bg-orange-600 hover:bg-orange-500 text-white px-2.5 py-1 sm:px-4 sm:py-1 rounded-full transition-all font-bold text-[10px] uppercase tracking-wider"
             >
               Book

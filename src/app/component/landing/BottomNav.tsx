@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -13,17 +13,24 @@ import {
   Lightbulb, 
   Store, 
   Ticket, 
-  Building2, 
+  Newspaper, 
   LogIn, 
   ArrowRight,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  User
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getStoredUser } from "@/lib/auth";
 
 export default function BottomNav() {
   const pathname = usePathname();
   const [isEventsOpen, setIsEventsOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    setCurrentUser(getStoredUser());
+  }, [pathname]);
 
   // Do not render bottom nav inside dashboard routes
   if (pathname?.startsWith("/dashboard")) {
@@ -249,15 +256,15 @@ export default function BottomNav() {
                 </div>
               </div>
 
-              {/* Quick Actions (Get Tickets, Exhibit, Sign In) */}
+              {/* Quick Actions (Get Tickets, News Pulse, Sign In) - No duplication of Exhibit */}
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">
                   Quick Actions
                 </p>
                 <div className="grid grid-cols-2 gap-2.5 mb-2.5">
-                  {/* Action 1: Get Tickets */}
+                  {/* Action 1: Get Tickets (Requires Sign-in) */}
                   <Link
-                    href="/tickets"
+                    href={currentUser ? "/tickets" : "/signup?role=customer&redirect=/tickets"}
                     onClick={() => setIsEventsOpen(false)}
                     className="flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs shadow-lg shadow-orange-600/25 active:scale-95"
                   >
@@ -265,27 +272,39 @@ export default function BottomNav() {
                     <span>Get Tickets</span>
                   </Link>
 
-                  {/* Action 2: Exhibit */}
+                  {/* Action 2: Expo News Pulse */}
                   <Link
-                    href="/exhibit"
+                    href="/news"
                     onClick={() => setIsEventsOpen(false)}
-                    className="flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-slate-950 text-white font-bold text-xs shadow-md active:scale-95 border border-slate-800"
+                    className="flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-slate-900 text-white font-bold text-xs shadow-md active:scale-95 border border-slate-800"
                   >
-                    <Building2 className="w-4 h-4" />
-                    <span>Exhibit Brand</span>
+                    <Newspaper className="w-4 h-4" />
+                    <span>Expo Pulse</span>
                   </Link>
                 </div>
 
-                {/* Action 3: Sign in to Account */}
-                <Link
-                  href="/login"
-                  onClick={() => setIsEventsOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full p-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors"
-                >
-                  <LogIn className="w-4 h-4 text-slate-500" />
-                  <span>Sign in to Account</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 ml-auto" />
-                </Link>
+                {/* Action 3: Account / Sign In */}
+                {currentUser ? (
+                  <Link
+                    href={currentUser.role === "business" ? "/dashboard/business" : currentUser.role === "admin" ? "/dashboard/admin" : "/dashboard/customer"}
+                    onClick={() => setIsEventsOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full p-3 rounded-2xl border border-orange-200 bg-orange-50/50 text-orange-950 font-bold text-xs transition-colors"
+                  >
+                    <User className="w-4 h-4 text-orange-600" />
+                    <span>Go to Dashboard ({currentUser.name})</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-orange-600 ml-auto" />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsEventsOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full p-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors"
+                  >
+                    <LogIn className="w-4 h-4 text-slate-500" />
+                    <span>Sign in / Register</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-400 ml-auto" />
+                  </Link>
+                )}
               </div>
             </motion.div>
           </div>

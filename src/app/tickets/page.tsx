@@ -8,7 +8,7 @@ import {
   QrCode, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Shield, Copy, ExternalLink, ChevronDown, ChevronUp
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import Navbar from "@/app/component/landing/Navbar";
@@ -17,6 +17,7 @@ import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 import { PASS_PLANS } from "@/data/passes";
+import { getStoredUser, clearStoredUser } from "@/lib/auth";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
@@ -111,12 +112,27 @@ function StripeCardForm({
 }
 
 function TicketsContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const hasPreselectedEvents = searchParams.get('season') || searchParams.get('selectedEvents');
   const stepParam = searchParams.get('step');
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [authChecking, setAuthChecking] = useState(true);
+
   const [step, setStep] = useState(stepParam ? parseInt(stepParam, 10) : (hasPreselectedEvents ? 1 : 0));
   const [loading, setLoading] = useState(false);
+
+  // Authentication Enforcement - Redirect to Sign Up / Sign In if not logged in
+  useEffect(() => {
+    const user = getStoredUser();
+    if (!user) {
+      router.replace("/signup?role=customer&redirect=/tickets");
+    } else {
+      setCurrentUser(user);
+      setAuthChecking(false);
+    }
+  }, [router]);
 
   // Access Pass Token State
   const [enteredToken, setEnteredToken] = useState("");
@@ -473,6 +489,15 @@ function TicketsContent() {
 
   const totalSelectedTicketsQuantity = cart.filter(item => item.type === 'ticket').reduce((acc, item) => acc + item.quantity, 0);
 
+  if (authChecking) {
+    return (
+      <main className="min-h-screen bg-slate-50 font-sans flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 text-orange-600 animate-spin mb-3" />
+        <p className="text-slate-600 font-bold text-xs sm:text-sm">Verifying Expo account...</p>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
@@ -482,8 +507,26 @@ function TicketsContent() {
         {/* Compact Top Header + Step Bar */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-4 sm:mb-8 gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-orange-600 font-extrabold tracking-wider uppercase text-[10px] sm:text-xs mb-0.5">
-              <Ticket className="w-3.5 h-3.5" /> Event Box Office
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center gap-1.5 text-orange-600 font-extrabold tracking-wider uppercase text-[10px] sm:text-xs">
+                <Ticket className="w-3.5 h-3.5" /> Event Box Office
+              </span>
+              {currentUser && (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>{currentUser.name} (Explorer)</span>
+                  <button
+                    onClick={() => {
+                      clearStoredUser();
+                      router.replace("/signup?role=customer&redirect=/tickets");
+                    }}
+                    className="text-[9px] text-orange-600 font-bold hover:underline ml-0.5"
+                    title="Switch Account"
+                  >
+                    Switch
+                  </button>
+                </span>
+              )}
             </div>
             <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
               {step === 0 && <>Explore & Book <span className="text-orange-600">Expo Events</span></>}

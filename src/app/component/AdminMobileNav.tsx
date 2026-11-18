@@ -259,88 +259,94 @@ function AdminMobileNavContent() {
                 </div>
               </div>
 
-              {/* Grouped Links List (Scrollable) */}
+              {/* Grouped Links List (Scrollable - Filtered to exclude primary navbar tabs) */}
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 pb-8 custom-scrollbar">
-                {ADMIN_NAV_GROUPS.map((group) => {
-                  const isGroupExpanded = !!expandedGroups[group.id];
-                  const hasActiveChild = group.items.some(item =>
-                    item.exact ? pathname === item.href : pathname.startsWith(item.href)
-                  );
+                {(() => {
+                  const primaryHrefs = new Set(MOBILE_PRIMARY_TABS.map((tab) => tab.href));
+                  return ADMIN_NAV_GROUPS.map((group) => {
+                    const nonDuplicateItems = group.items.filter((item) => !primaryHrefs.has(item.href));
+                    if (nonDuplicateItems.length === 0) return null;
 
-                  return (
-                    <div
-                      key={group.id}
-                      className="rounded-2xl border border-slate-100 bg-slate-50/70 overflow-hidden"
-                    >
-                      {/* Accordion Group Header */}
-                      <button
-                        type="button"
-                        onClick={() => toggleGroup(group.id)}
-                        className={`w-full flex items-center justify-between px-3.5 py-2.5 text-left transition-colors ${
-                          hasActiveChild ? "bg-orange-50/80 text-orange-950 font-black" : "text-slate-700 font-bold"
-                        }`}
+                    const isGroupExpanded = !!expandedGroups[group.id];
+                    const hasActiveChild = nonDuplicateItems.some(item =>
+                      item.exact ? pathname === item.href : pathname.startsWith(item.href)
+                    );
+
+                    return (
+                      <div
+                        key={group.id}
+                        className="rounded-2xl border border-slate-100 bg-slate-50/70 overflow-hidden"
                       >
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className={hasActiveChild ? "text-orange-600" : "text-slate-500"}>
-                            {renderIcon(group.iconName, "w-4 h-4")}
+                        {/* Accordion Group Header */}
+                        <button
+                          type="button"
+                          onClick={() => toggleGroup(group.id)}
+                          className={`w-full flex items-center justify-between px-3.5 py-2.5 text-left transition-colors ${
+                            hasActiveChild ? "bg-orange-50/80 text-orange-950 font-black" : "text-slate-700 font-bold"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className={hasActiveChild ? "text-orange-600" : "text-slate-500"}>
+                              {renderIcon(group.iconName, "w-4 h-4")}
+                            </span>
+                            <span className="uppercase tracking-wider text-[11px]">
+                              {group.title}
+                            </span>
+                          </div>
+                          <span className="text-slate-400">
+                            {isGroupExpanded ? (
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            ) : (
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            )}
                           </span>
-                          <span className="uppercase tracking-wider text-[11px]">
-                            {group.title}
-                          </span>
-                        </div>
-                        <span className="text-slate-400">
-                          {isGroupExpanded ? (
-                            <ChevronDown className="w-3.5 h-3.5" />
-                          ) : (
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          )}
-                        </span>
-                      </button>
+                        </button>
 
-                      {/* Accordion Items */}
-                      {isGroupExpanded && (
-                        <div className="p-1.5 bg-white border-t border-slate-100 space-y-1">
-                          {group.items.map((item) => {
-                            const isActive = item.exact
-                              ? pathname === item.href
-                              : pathname.startsWith(item.href);
+                        {/* Accordion Items */}
+                        {isGroupExpanded && (
+                          <div className="p-1.5 bg-white border-t border-slate-100 space-y-1">
+                            {nonDuplicateItems.map((item) => {
+                              const isActive = item.exact
+                                ? pathname === item.href
+                                : pathname.startsWith(item.href);
 
-                            return (
-                              <Link
-                                key={item.href}
-                                href={item.href}
-                                onClick={() => setIsDrawerOpen(false)}
-                                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all ${
-                                  isActive
-                                    ? "bg-orange-600 text-white font-bold shadow-xs"
-                                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium"
-                                }`}
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <span className={isActive ? "text-white" : "text-slate-400"}>
-                                    {renderIcon(item.iconName, "w-3.5 h-3.5")}
-                                  </span>
-                                  <span className="truncate">{item.label}</span>
-                                </div>
-                                {item.badge && (
-                                  <span
-                                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                                      isActive
-                                        ? "bg-white text-orange-600"
-                                        : "bg-orange-100 text-orange-700"
-                                    }`}
-                                  >
-                                    {item.badge}
-                                  </span>
-                                )}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                              return (
+                                <Link
+                                  key={item.href}
+                                  href={item.href}
+                                  onClick={() => setIsDrawerOpen(false)}
+                                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all ${
+                                    isActive
+                                      ? "bg-orange-600 text-white font-bold shadow-xs"
+                                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <span className={isActive ? "text-white" : "text-slate-400"}>
+                                      {renderIcon(item.iconName, "w-3.5 h-3.5")}
+                                    </span>
+                                    <span className="truncate">{item.label}</span>
+                                  </div>
+                                  {item.badge && (
+                                    <span
+                                      className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
+                                        isActive
+                                          ? "bg-white text-orange-600"
+                                          : "bg-orange-100 text-orange-700"
+                                      }`}
+                                    >
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </motion.div>
           </>

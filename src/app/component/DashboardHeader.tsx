@@ -5,6 +5,7 @@ import { Search, Bell, ChevronDown, LogOut, User, Settings, Gift } from "lucide-
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { clearStoredUser } from "@/lib/auth";
 
 interface DashboardHeaderProps {
     user: {
@@ -23,7 +24,7 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
 
     const handleLogout = () => {
         setProfileOpen(false);
-        // Clear session logic would go here
+        clearStoredUser();
         router.push("/");
     };
 
