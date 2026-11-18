@@ -31,8 +31,9 @@ interface CartItem {
 function TicketsContent() {
   const searchParams = useSearchParams();
   const hasPreselectedEvents = searchParams.get('season') || searchParams.get('selectedEvents');
+  const stepParam = searchParams.get('step');
 
-  const [step, setStep] = useState(hasPreselectedEvents ? 1 : 0);
+  const [step, setStep] = useState(stepParam ? parseInt(stepParam, 10) : (hasPreselectedEvents ? 1 : 0));
   const [loading, setLoading] = useState(false);
 
   // Access Pass Token State
@@ -571,10 +572,10 @@ function TicketsContent() {
                   ))}
                 </div>
 
-                {/* Access Pass Code Validation */}
-                <div className="bg-orange-50/70 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-orange-200/70 mb-5">
+                {/* Access Pass Code Validation - Clean flat section, no double container */}
+                <div className="pt-4 pb-2 border-t border-slate-100 mb-4">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-extrabold text-orange-950 flex items-center gap-1.5">
+                    <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5 text-orange-600" /> Redeem Access Pass Code
                     </span>
                     {!isTokenValidated && (
@@ -586,14 +587,14 @@ function TicketsContent() {
                       </button>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-600 mb-2.5">
+                  <p className="text-[11px] text-slate-500 mb-2.5">
                     Enter your Access Pass Token to waive the £75 season entry fee and deduct directly from your pass wallet.
                   </p>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       placeholder="e.g. GBX-TOKEN-2026"
-                      className="flex-1 px-3 py-2 bg-white border border-orange-200 rounded-xl focus:outline-none focus:border-orange-500 uppercase font-mono font-bold text-xs"
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 uppercase font-mono font-bold text-xs"
                       value={enteredToken}
                       onChange={(e) => setEnteredToken(e.target.value)}
                     />
@@ -615,8 +616,8 @@ function TicketsContent() {
                   )}
                 </div>
 
-                {/* Cost Breakdown */}
-                <div className="space-y-2 bg-slate-50 p-4 rounded-xl sm:rounded-2xl mb-5 text-xs sm:text-sm">
+                {/* Cost Breakdown - Clean integrated breakdown, no nested box */}
+                <div className="pt-4 border-t border-slate-100 space-y-2.5 mb-6 text-xs sm:text-sm">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500">Items Subtotal</span>
                     <span className="text-slate-900 font-bold">£{itemsTotal.toFixed(2)}</span>
@@ -636,7 +637,7 @@ function TicketsContent() {
                     <span className="text-slate-500">UK Booking Fee</span>
                     <span className="text-slate-900 font-bold">£{totalBookingFee.toFixed(2)}</span>
                   </div>
-                  <div className="pt-2.5 border-t border-slate-200 flex justify-between items-center">
+                  <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
                     <div>
                       <span className="font-extrabold text-slate-900 text-sm sm:text-base">Total Payable</span>
                       <p className="text-[10px] text-slate-400">Includes 20% UK VAT</p>
@@ -704,7 +705,7 @@ function TicketsContent() {
                   ))}
                 </div>
 
-                <label className="flex items-start gap-2.5 cursor-pointer p-3 bg-slate-50 rounded-xl mb-5">
+                <label className="flex items-start gap-2.5 cursor-pointer py-2 px-1 mb-5">
                   <input
                     type="checkbox"
                     className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
