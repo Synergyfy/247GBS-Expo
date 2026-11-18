@@ -89,10 +89,10 @@ export default function CreateEventPage() {
                     <ArrowLeft className="w-3.5 h-3.5" /> Back to My Events
                 </Link>
                 <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
-                    Create Booth Event (Admin Template Guided)
+                    Create Event
                 </h1>
                 <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
-                    Select an Admin-configured ticket template to guarantee season price-cap compliance.
+                    Configure your event details, schedule, and ticket template for Expo visitors.
                 </p>
             </div>
 
@@ -154,23 +154,7 @@ export default function CreateEventPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        Sector Category
-                                    </label>
-                                    <select
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
-                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500"
-                                    >
-                                        <option>Technology & AI</option>
-                                        <option>FinTech & Banking</option>
-                                        <option>Retail & MCOM Commerce</option>
-                                        <option>Clean Energy</option>
-                                    </select>
-                                </div>
-
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                                         Event Date

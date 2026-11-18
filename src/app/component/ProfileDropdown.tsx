@@ -153,3 +153,4 @@ export default function ProfileDropdown({ user, compact = false }: ProfileDropdo
     </div>
   );
 }
+
