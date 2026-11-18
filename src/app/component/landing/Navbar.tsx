@@ -5,20 +5,7 @@ import Link from "next/link";
 import { Calendar, ChevronDown, User, LogIn } from "lucide-react";
 import { TICKER_EVENTS } from "@/data/ticker";
 import { getStoredUser } from "@/lib/auth";
-
-function getInitials(name?: string, email?: string): string {
-  if (name && name.trim()) {
-    const parts = name.trim().split(" ");
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  }
-  if (email && email.trim()) {
-    return email.slice(0, 2).toUpperCase();
-  }
-  return "U";
-}
+import ProfileDropdown from "@/app/component/ProfileDropdown";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -121,23 +108,10 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Mobile Action (Top Right): Profile Initials if signed in, Login button if not */}
+            {/* Mobile Action (Top Right): Profile Dropdown if signed in, Login pill if not */}
             <div className="flex lg:hidden items-center gap-2">
               {currentUser ? (
-                <Link
-                  href={
-                    currentUser.role === "business"
-                      ? "/dashboard/business"
-                      : currentUser.role === "admin"
-                      ? "/dashboard/admin"
-                      : "/dashboard/customer"
-                  }
-                  className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white font-black text-xs flex items-center justify-center shadow-md shadow-orange-600/20 border-2 border-white active:scale-95 transition-transform"
-                  title={`Signed in as ${currentUser.name}`}
-                  aria-label="User Profile"
-                >
-                  <span>{getInitials(currentUser.name, currentUser.email)}</span>
-                </Link>
+                <ProfileDropdown user={currentUser} compact={true} />
               ) : (
                 <Link
                   href="/login"
@@ -152,24 +126,7 @@ export default function Navbar() {
             {/* Desktop Action Buttons */}
             <div className="hidden lg:flex items-center gap-3">
               {currentUser ? (
-                <Link
-                  href={
-                    currentUser.role === "business"
-                      ? "/dashboard/business"
-                      : currentUser.role === "admin"
-                      ? "/dashboard/admin"
-                      : "/dashboard/customer"
-                  }
-                  className="flex items-center gap-2 px-2.5 py-1 rounded-full hover:bg-slate-100 transition-all border border-slate-200/80 group"
-                  title={`Signed in as ${currentUser.name}`}
-                >
-                  <div className="w-7 h-7 rounded-full bg-orange-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                    {getInitials(currentUser.name, currentUser.email)}
-                  </div>
-                  <span className="text-xs font-bold text-slate-800 group-hover:text-orange-600 truncate max-w-[120px]">
-                    {currentUser.name}
-                  </span>
-                </Link>
+                <ProfileDropdown user={currentUser} compact={false} />
               ) : (
                 <Link
                   href="/login"

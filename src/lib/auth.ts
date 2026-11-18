@@ -38,3 +38,4 @@ export function clearStoredUser(): void {
 export function isUserAuthenticated(): boolean {
   return getStoredUser() !== null;
 }
+
