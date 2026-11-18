@@ -2,9 +2,23 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, ChevronDown, User } from "lucide-react";
+import { Calendar, ChevronDown, User, LogIn } from "lucide-react";
 import { TICKER_EVENTS } from "@/data/ticker";
 import { getStoredUser } from "@/lib/auth";
+
+function getInitials(name?: string, email?: string): string {
+  if (name && name.trim()) {
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+  if (email && email.trim()) {
+    return email.slice(0, 2).toUpperCase();
+  }
+  return "U";
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -107,22 +121,62 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Desktop Action Buttons */}
-            <div className="hidden lg:flex items-center gap-3">
+            {/* Mobile Action (Top Right): Profile Initials if signed in, Login button if not */}
+            <div className="flex lg:hidden items-center gap-2">
               {currentUser ? (
                 <Link
-                  href={currentUser.role === "business" ? "/dashboard/business" : currentUser.role === "admin" ? "/dashboard/admin" : "/dashboard/customer"}
-                  className="text-xs sm:text-sm font-bold text-slate-700 hover:text-orange-600 px-3 py-2 transition-colors flex items-center gap-1.5"
+                  href={
+                    currentUser.role === "business"
+                      ? "/dashboard/business"
+                      : currentUser.role === "admin"
+                      ? "/dashboard/admin"
+                      : "/dashboard/customer"
+                  }
+                  className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white font-black text-xs flex items-center justify-center shadow-md shadow-orange-600/20 border-2 border-white active:scale-95 transition-transform"
+                  title={`Signed in as ${currentUser.name}`}
+                  aria-label="User Profile"
                 >
-                  <User className="w-4 h-4 text-orange-600" />
-                  <span>Dashboard</span>
+                  <span>{getInitials(currentUser.name, currentUser.email)}</span>
                 </Link>
               ) : (
                 <Link
                   href="/login"
-                  className="text-sm font-bold text-slate-700 hover:text-orange-600 px-3 py-2 transition-colors"
+                  className="px-3 py-1.5 rounded-full bg-slate-900 text-white font-bold text-xs hover:bg-orange-600 transition-colors shadow-xs active:scale-95 flex items-center gap-1.5"
                 >
-                  Login
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Login</span>
+                </Link>
+              )}
+            </div>
+
+            {/* Desktop Action Buttons */}
+            <div className="hidden lg:flex items-center gap-3">
+              {currentUser ? (
+                <Link
+                  href={
+                    currentUser.role === "business"
+                      ? "/dashboard/business"
+                      : currentUser.role === "admin"
+                      ? "/dashboard/admin"
+                      : "/dashboard/customer"
+                  }
+                  className="flex items-center gap-2 px-2.5 py-1 rounded-full hover:bg-slate-100 transition-all border border-slate-200/80 group"
+                  title={`Signed in as ${currentUser.name}`}
+                >
+                  <div className="w-7 h-7 rounded-full bg-orange-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                    {getInitials(currentUser.name, currentUser.email)}
+                  </div>
+                  <span className="text-xs font-bold text-slate-800 group-hover:text-orange-600 truncate max-w-[120px]">
+                    {currentUser.name}
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 hover:text-orange-600 px-3 py-1.5 rounded-full hover:bg-slate-50 transition-colors"
+                >
+                  <User className="w-4 h-4 text-slate-500" />
+                  <span>Login</span>
                 </Link>
               )}
               <Link
