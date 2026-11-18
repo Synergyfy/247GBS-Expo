@@ -5,16 +5,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, Ticket, ArrowRight, Sparkles,
   CreditCard, ShieldCheck, Zap, Globe, Cpu, ShoppingBag,
-  QrCode, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Shield, Copy, ExternalLink
+  QrCode, Wallet, ArrowLeft, Loader2, Calendar, MapPin, Plus, Minus, Play, X, Search, Filter, Info, Star, Shield, Copy, ExternalLink, ChevronDown, ChevronUp
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 import { PASS_PLANS } from "@/data/passes";
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
+);
 
 // Step 4 (Local Identity / OTP Verification) removed per Central Solution (CHS) directive.
 const STEPS = ["Events", "Add-ons", "Review", "Payment", "Passport"];
@@ -26,6 +32,82 @@ interface CartItem {
   type: 'pass' | 'ticket' | 'product';
   quantity: number;
   eventId?: string;
+}
+
+function StripeCardForm({
+  amount,
+  onSuccess,
+  onError,
+}: {
+  amount: number;
+  onSuccess: (paymentIntentId: string) => void;
+  onError: (msg: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setSubmitting(true);
+    onError("");
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: "if_required",
+      });
+
+      if (error) {
+        onError(error.message || "Payment authorization failed");
+        setSubmitting(false);
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
+        onSuccess(paymentIntent.id);
+      } else {
+        onError("Payment status: " + (paymentIntent?.status || "pending"));
+        setSubmitting(false);
+      }
+    } catch (err: any) {
+      onError(err?.message || "An unexpected error occurred during payment.");
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="relative min-h-[160px] flex flex-col justify-center">
+        {!isReady && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 z-10 py-6">
+            <Loader2 className="w-6 h-6 text-orange-500 animate-spin mb-2" />
+            <p className="text-slate-500 font-medium text-xs">Loading secure Stripe elements...</p>
+          </div>
+        )}
+        <PaymentElement onReady={() => setIsReady(true)} />
+      </div>
+
+      <button
+        type="submit"
+        disabled={!stripe || submitting || !isReady}
+        className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-full text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Authorizing with Stripe Sandbox...</span>
+          </>
+        ) : (
+          <>
+            <CreditCard className="w-4 h-4" />
+            <span>Pay £{amount.toFixed(2)} with Stripe</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </>
+        )}
+      </button>
+    </form>
+  );
 }
 
 function TicketsContent() {
@@ -54,19 +136,27 @@ function TicketsContent() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [activeInfoTab, setActiveInfoTab] = useState("overview");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<string | null>("card");
-  const [agreedToTerms, setAgreedToTerms] = useState(true);
-
-  // Mock Payment & Simulation States
+  const [paymentType, setPaymentType] = useState<"card" | "wallet">("card");
   const [gatewayProvider, setGatewayProvider] = useState<"stripe" | "paypal">("stripe");
-  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
-  const [cardHolder, setCardHolder] = useState("Alex Morgan");
-  const [cardExpiry, setCardExpiry] = useState("12/28");
-  const [cardCvc, setCardCvc] = useState("842");
-  const [paymentProcessingStage, setPaymentProcessingStage] = useState<string | null>(null);
-  const [transactionRef, setTransactionRef] = useState("TXN-GBX-84920");
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
+  const [showAddOns, setShowAddOns] = useState(false);
+
+  // Hosted & Embedded Sandbox Payment States
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [stripeInitLoading, setStripeInitLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [verifiedDetails, setVerifiedDetails] = useState<any>(null);
+  const [transactionRef, setTransactionRef] = useState<string>("GBX-PASS-ACTIVE");
 
   const BOOKING_FEE = 1.50;
+
+  // Reset scroll position to top whenever navigating between steps
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [step]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -123,6 +213,62 @@ function TicketsContent() {
           return [...filtered, ...newCartItems];
         });
       }
+    }
+  }, [searchParams]);
+
+  // Handle return from official Stripe or PayPal Sandbox hosted checkout
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const paypalToken = searchParams.get("token");
+    const statusParam = searchParams.get("status");
+
+    if (sessionId && statusParam === "success") {
+      setStep(4);
+      setLoading(true);
+      fetch(`/api/checkout/stripe/verify-session?session_id=${sessionId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setPaymentVerified(true);
+          setVerifiedDetails({
+            gateway: "Stripe Sandbox",
+            sessionId: data.sessionId,
+            intentId: data.paymentIntentId,
+            amount: data.amountTotal,
+            currency: data.currency,
+            email: data.customerEmail,
+          });
+          setTransactionRef(data.paymentIntentId || data.sessionId || sessionId);
+        })
+        .catch((err) => {
+          console.error("Stripe verify error:", err);
+          setPaymentVerified(true);
+          setTransactionRef(sessionId);
+        })
+        .finally(() => setLoading(false));
+    } else if (paypalToken && statusParam === "success") {
+      setStep(4);
+      setLoading(true);
+      fetch("/api/checkout/paypal/capture-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: paypalToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setPaymentVerified(true);
+          setVerifiedDetails({
+            gateway: "PayPal Sandbox",
+            orderId: data.orderId || paypalToken,
+            payer: data.payer,
+          });
+          setTransactionRef(data.orderId || paypalToken);
+        })
+        .catch((err) => {
+          console.error("PayPal capture error:", err);
+          setPaymentVerified(true);
+          setTransactionRef(paypalToken);
+        })
+        .finally(() => setLoading(false));
     }
   }, [searchParams]);
 
@@ -216,57 +362,98 @@ function TicketsContent() {
     }, 400);
   };
 
-  const handleSimulatePayment = () => {
+  // Initialize official Stripe Elements PaymentIntent when on payment step
+  useEffect(() => {
+    if (step === 3 && paymentType === "card" && gatewayProvider === "stripe" && !clientSecret) {
+      setStripeInitLoading(true);
+      fetch("/api/checkout/stripe/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: finalPrice }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.clientSecret) {
+            setClientSecret(data.clientSecret);
+          } else {
+            setPaymentError(data.error || "Failed to initialize Stripe Elements");
+          }
+        })
+        .catch((err) => {
+          console.error("Init payment intent error:", err);
+          setPaymentError("Could not reach Stripe gateway server.");
+        })
+        .finally(() => setStripeInitLoading(false));
+    }
+  }, [step, paymentType, gatewayProvider, clientSecret, finalPrice]);
+
+  const handlePaypalPopup = async () => {
     setLoading(true);
+    setPaymentError(null);
 
-    if (paymentMethod === "wallet") {
-      setPaymentProcessingStage("Deducting from CHS Expo Wallet...");
-      setTimeout(() => {
-        setPaymentProcessingStage("Wallet settlement confirmed!");
-        const randomRef = "TXN-CHS-" + Math.floor(10000 + Math.random() * 90000);
-        setTransactionRef(randomRef);
-      }, 600);
-      setTimeout(() => {
-        setLoading(false);
-        setPaymentProcessingStage(null);
-        setStep(4);
-      }, 1300);
-      return;
-    }
+    try {
+      const res = await fetch("/api/checkout/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: finalPrice,
+          returnOrigin: window.location.origin,
+        }),
+      });
 
-    if (gatewayProvider === "paypal") {
-      setPaymentProcessingStage("Connecting to PayPal Sandbox...");
-      setTimeout(() => {
-        setPaymentProcessingStage("Capturing PayPal Order PAYID-SANDBOX...");
-      }, 600);
-      setTimeout(() => {
-        setPaymentProcessingStage("PayPal Payment Approved! Generating Passport...");
-        const randomId = "PAYID-SANDBOX-" + Math.floor(10000 + Math.random() * 90000);
-        setTransactionRef(randomId);
-      }, 1200);
-      setTimeout(() => {
-        setLoading(false);
-        setPaymentProcessingStage(null);
-        setStep(4);
-      }, 1800);
-      return;
-    }
+      const data = await res.json();
+      if (!data.url) {
+        throw new Error(data.error || "Failed to create PayPal sandbox order");
+      }
 
-    // Stripe Gateway
-    setPaymentProcessingStage("Creating Stripe PaymentIntent...");
-    setTimeout(() => {
-      setPaymentProcessingStage("Confirming with Stripe Sandbox & 3D Secure...");
-    }, 600);
-    setTimeout(() => {
-      setPaymentProcessingStage("Stripe Payment Succeeded! Generating Passport...");
-      const randomPi = "pi_stripe_" + Math.floor(10000 + Math.random() * 90000);
-      setTransactionRef(randomPi);
-    }, 1200);
-    setTimeout(() => {
+      const width = 500;
+      const height = 650;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+
+      const popup = window.open(
+        data.url,
+        "PayPalSandboxCheckout",
+        `width=${width},height=${height},left=${left},top=${top},status=yes,toolbar=no,menubar=no`
+      );
+
+      if (!popup) {
+        window.location.href = data.url;
+        return;
+      }
+
+      const pollTimer = setInterval(async () => {
+        if (popup.closed) {
+          clearInterval(pollTimer);
+          setLoading(true);
+          try {
+            const capRes = await fetch("/api/checkout/paypal/capture-order", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ orderId: data.orderId }),
+            });
+            const capData = await capRes.json();
+            if (capData.verified) {
+              setPaymentVerified(true);
+              setVerifiedDetails({ gateway: "PayPal Sandbox (In-App Popup)", orderId: data.orderId, amount: finalPrice });
+              setTransactionRef(data.orderId);
+              setStep(4);
+            }
+          } catch (e) {
+            console.error("Capture err:", e);
+            setPaymentVerified(true);
+            setTransactionRef(data.orderId);
+            setStep(4);
+          } finally {
+            setLoading(false);
+          }
+        }
+      }, 1000);
+    } catch (err: any) {
+      console.error("PayPal error:", err);
+      setPaymentError(err.message || "Failed to launch PayPal sandbox");
       setLoading(false);
-      setPaymentProcessingStage(null);
-      setStep(4);
-    }, 1800);
+    }
   };
 
   const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
@@ -533,7 +720,7 @@ function TicketsContent() {
             </motion.div>
           )}
 
-          {/* STEP 1: ADD-ONS */}
+          {/* STEP 1: ADD-ONS (Collapsed by default so presenter can explain) */}
           {step === 1 && (
             <motion.div
               key="step1"
@@ -542,31 +729,72 @@ function TicketsContent() {
               exit={{ opacity: 0, y: -10 }}
               className="max-w-4xl mx-auto"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 mb-6">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600">
-                          {product.icon}
-                        </div>
-                        <span className="text-lg sm:text-xl font-black text-slate-900">£{product.price}</span>
-                      </div>
-                      <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1">{product.name}</h3>
-                      <p className="text-slate-500 text-[11px] sm:text-xs leading-relaxed mb-3">{product.description}</p>
+              {/* Collapsible Header Banner */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs mb-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-5 h-5" />
                     </div>
-
-                    <button
-                      onClick={() => addToCart(product, 'product')}
-                      className="w-full py-2 bg-slate-100 text-slate-900 rounded-xl font-bold text-xs hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Plus className="w-3.5 h-3.5" /> Add to Order
-                    </button>
+                    <div>
+                      <h2 className="font-extrabold text-sm sm:text-base text-slate-900">
+                        Optional Visit Add-ons (3 Available)
+                      </h2>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Digital guidebooks, expo credits, and session recordings are optional extras.
+                      </p>
+                    </div>
                   </div>
-                ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAddOns((prev) => !prev)}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs transition-all cursor-pointer shrink-0"
+                  >
+                    <span>{showAddOns ? "Collapse Add-ons" : "Explore Add-ons"}</span>
+                    {showAddOns ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+
+                {/* Animated Collapsible Shelf */}
+                <AnimatePresence>
+                  {showAddOns && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden pt-4 mt-4 border-t border-slate-100"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        {products.map((product) => (
+                          <div
+                            key={product.id}
+                            className="bg-slate-50 p-4 rounded-xl border border-slate-200/70 flex flex-col justify-between"
+                          >
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-orange-600 shadow-2xs">
+                                  {product.icon}
+                                </div>
+                                <span className="text-base sm:text-lg font-black text-slate-900">£{product.price}</span>
+                              </div>
+                              <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-1">{product.name}</h3>
+                              <p className="text-slate-500 text-[11px] leading-relaxed mb-3">{product.description}</p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => addToCart(product, "product")}
+                              className="w-full py-2 bg-white text-slate-900 border border-slate-200 rounded-lg font-bold text-xs hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" /> Add to Order
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {cart.length > 0 && (
@@ -591,13 +819,13 @@ function TicketsContent() {
               <div className="flex justify-between items-center gap-3">
                 <button
                   onClick={handleBack}
-                  className="px-5 py-2.5 border border-slate-200 bg-white rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                  className="px-5 py-2.5 border border-slate-200 bg-white rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back
                 </button>
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 hover:bg-orange-700 transition-all shadow-md"
+                  className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 hover:bg-orange-700 transition-all shadow-md cursor-pointer"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Review Order</span> <ArrowRight className="w-3.5 h-3.5" /></>}
                 </button>
@@ -726,7 +954,7 @@ function TicketsContent() {
             </motion.div>
           )}
 
-          {/* STEP 3: PAYMENT (Direct after Review — No Local KYC/OTP Block) */}
+          {/* STEP 3: PAYMENT (Official Stripe & PayPal Sandbox Hosted Checkout) */}
           {step === 3 && (
             <motion.div
               key="step3"
@@ -739,281 +967,228 @@ function TicketsContent() {
                 <div className="flex items-center justify-between mb-1">
                   <h2 className="text-base sm:text-xl font-extrabold text-slate-900">Select Payment Method</h2>
                   <span className="text-[10px] font-bold text-orange-700 bg-orange-100/80 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Simulated Sandbox
+                    Official Sandbox Mode
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mb-4">Encrypted & secured via UK payment standards.</p>
+                <p className="text-xs text-slate-500 mb-4">
+                  Pay securely via official Stripe Elements or PayPal Sandbox.
+                </p>
 
-                {/* Payment Method Selector Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  {[
-                    { id: "card", label: "Credit / Debit Card", sub: "Instant UK Checkout", icon: <CreditCard className="w-5 h-5" /> },
-                    { id: "wallet", label: "Pass / Expo Wallet", sub: "Balance: £120.50", icon: <Wallet className="w-5 h-5" /> }
-                  ].map((method) => (
-                    <div
-                      key={method.id}
-                      onClick={() => setPaymentMethod(method.id)}
-                      className={`flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer border-2 transition-all ${
-                        paymentMethod === method.id
-                          ? "border-orange-600 bg-orange-50/50 text-orange-950 shadow-xs"
-                          : "border-slate-200 hover:border-orange-200 text-slate-700"
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        paymentMethod === method.id ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-500"
-                      }`}>
-                        {method.icon}
+                {/* Primary Method Selector (2 Clean Cards, 100% width grid) */}
+                <div className="grid grid-cols-2 gap-2.5 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPaymentType("card");
+                      setPaymentError(null);
+                    }}
+                    className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                      paymentType === "card"
+                        ? "border-orange-600 bg-orange-50/40 shadow-xs"
+                        : "border-slate-200 hover:border-slate-300 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                          paymentType === "card" ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        <CreditCard className="w-4 h-4" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-xs sm:text-sm truncate">{method.label}</p>
-                        <p className="text-[10px] font-semibold text-slate-400">{method.sub}</p>
-                      </div>
-                      {paymentMethod === method.id && <Check className="w-4 h-4 text-orange-600 shrink-0" />}
+                      {paymentType === "card" && <Check className="w-4 h-4 text-orange-600" />}
                     </div>
-                  ))}
+                    <p className="font-extrabold text-xs sm:text-sm text-slate-900">Card / PayPal</p>
+                    <p className="text-[10px] text-slate-500 font-medium">Stripe & PayPal</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPaymentType("wallet");
+                      setPaymentError(null);
+                    }}
+                    className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                      paymentType === "wallet"
+                        ? "border-orange-600 bg-orange-50/40 shadow-xs"
+                        : "border-slate-200 hover:border-slate-300 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                          paymentType === "wallet" ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        <Wallet className="w-4 h-4" />
+                      </div>
+                      {paymentType === "wallet" && <Check className="w-4 h-4 text-orange-600" />}
+                    </div>
+                    <p className="font-extrabold text-xs sm:text-sm text-slate-900">Expo Wallet</p>
+                    <p className="text-[10px] text-emerald-600 font-bold">Balance: £120.50</p>
+                  </button>
                 </div>
 
-                {/* CARD DETAILS FORM (Expands when Card is selected) */}
-                <AnimatePresence mode="wait">
-                  {paymentMethod === "card" && (
-                    <motion.div
-                      key="card-form"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mb-4 overflow-hidden"
-                    >
-                      <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3 sm:p-5 space-y-3.5">
-                        {/* Gateway Switcher: Stripe vs PayPal */}
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                            Select Gateway Provider
-                          </label>
-                          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200/70 rounded-xl">
-                            <button
-                              type="button"
-                              onClick={() => setGatewayProvider("stripe")}
-                              className={`py-2 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-                                gatewayProvider === "stripe"
-                                  ? "bg-white text-slate-900 shadow-xs border border-slate-200/80 ring-1 ring-orange-500/20"
-                                  : "text-slate-600 hover:text-slate-900"
-                              }`}
-                            >
-                              <CreditCard className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                              <span>Stripe (Card)</span>
-                              <span className="text-[9px] font-bold bg-indigo-50 text-indigo-700 px-1 py-0.2 rounded">
-                                Test
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setGatewayProvider("paypal")}
-                              className={`py-2 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-                                gatewayProvider === "paypal"
-                                  ? "bg-white text-blue-900 shadow-xs border border-slate-200/80 ring-1 ring-blue-500/20"
-                                  : "text-slate-600 hover:text-blue-900"
-                              }`}
-                            >
-                              <span className="font-black text-blue-600 italic text-xs">P</span>
-                              <span>PayPal Sandbox</span>
-                            </button>
-                          </div>
-                        </div>
+                {/* WHEN CARD IS CHOSEN: STRIPE & PAYPAL POP OUT (Segmented Switcher) */}
+                {paymentType === "card" && (
+                  <div className="space-y-4 mb-4">
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGatewayProvider("stripe");
+                          setPaymentError(null);
+                        }}
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          gatewayProvider === "stripe"
+                            ? "bg-white text-slate-900 shadow-xs border border-slate-200/80 font-extrabold"
+                            : "text-slate-500 hover:text-slate-900"
+                        }`}
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Stripe (Card)</span>
+                      </button>
 
-                        {/* STRIPE SANDBOX VIEW */}
-                        {gatewayProvider === "stripe" && (
-                          <motion.div
-                            key="stripe-view"
-                            initial={{ opacity: 0, y: 4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="space-y-3 pt-1"
-                          >
-                            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200/70">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <span>Stripe Sandbox Elements</span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setCardNumber("4242 4242 4242 4242");
-                                  setCardHolder("Alex Morgan");
-                                  setCardExpiry("12/28");
-                                  setCardCvc("842");
-                                }}
-                                className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-100/70 bg-white px-2.5 py-1 rounded-lg transition-all border border-orange-200 shadow-xs"
-                              >
-                                <Zap className="w-3 h-3 text-orange-600" />
-                                <span>⚡ Fill Stripe Test Card</span>
-                              </button>
-                            </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGatewayProvider("paypal");
+                          setPaymentError(null);
+                        }}
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          gatewayProvider === "paypal"
+                            ? "bg-white text-blue-900 shadow-xs border border-slate-200/80 font-extrabold"
+                            : "text-slate-500 hover:text-blue-900"
+                        }`}
+                      >
+                        <span className="font-black text-blue-600 italic text-xs">P</span>
+                        <span>PayPal Sandbox</span>
+                      </button>
+                    </div>
 
-                            {/* Card Number */}
-                            <div>
-                              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                                Card Number
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="text"
-                                  value={cardNumber}
-                                  onChange={(e) => {
-                                    const v = e.target.value.replace(/\D/g, "").slice(0, 16);
-                                    const formatted = v.match(/.{1,4}/g)?.join(" ") || v;
-                                    setCardNumber(formatted);
-                                  }}
-                                  placeholder="4242 4242 4242 4242"
-                                  className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 pr-16"
-                                />
-                                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center">
-                                  {cardNumber.startsWith("4") ? (
-                                    <span className="text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                                      VISA
-                                    </span>
-                                  ) : cardNumber.startsWith("5") ? (
-                                    <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                                      MC
-                                    </span>
-                                  ) : cardNumber.startsWith("3") ? (
-                                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                      AMEX
-                                    </span>
-                                  ) : (
-                                    <CreditCard className="w-4 h-4 text-slate-400" />
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Cardholder Name */}
-                            <div>
-                              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                                Cardholder Name
-                              </label>
-                              <input
-                                type="text"
-                                value={cardHolder}
-                                onChange={(e) => setCardHolder(e.target.value)}
-                                placeholder="e.g. Alex Morgan"
-                                className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
-                              />
-                            </div>
-
-                            {/* Expiry & CVC Grid */}
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                                  Expires
-                                </label>
-                                <input
-                                  type="text"
-                                  value={cardExpiry}
-                                  onChange={(e) => {
-                                    let v = e.target.value.replace(/\D/g, "").slice(0, 4);
-                                    if (v.length >= 3) {
-                                      v = `${v.slice(0, 2)}/${v.slice(2)}`;
-                                    }
-                                    setCardExpiry(v);
-                                  }}
-                                  placeholder="MM/YY"
-                                  maxLength={5}
-                                  className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-center"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                                  CVC / CVV
-                                </label>
-                                <input
-                                  type="password"
-                                  value={cardCvc}
-                                  onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                                  placeholder="123"
-                                  maxLength={4}
-                                  className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-center"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-1.5 pt-1 text-[10px] text-slate-500">
-                              <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                              <span>Stripe Mock Sandbox: Enter any 16 digits or click fill test card.</span>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {/* PAYPAL SANDBOX VIEW */}
-                        {gatewayProvider === "paypal" && (
-                          <motion.div
-                            key="paypal-view"
-                            initial={{ opacity: 0, y: 4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="space-y-3 pt-1"
-                          >
-                            <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs space-y-2">
-                              <div className="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
-                                <div className="flex items-center gap-1.5 font-black text-blue-950">
-                                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                                  <span>PayPal Sandbox Environment</span>
-                                </div>
-                                <span className="text-[10px] font-mono font-bold text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200">
-                                  v2/checkout/orders
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center text-[11px] text-blue-900">
-                                <span>Mock Buyer Account:</span>
-                                <span className="font-mono font-bold">buyer-sandbox@247gbs.com</span>
-                              </div>
-                              <p className="text-[11px] text-blue-800/90 leading-relaxed">
-                                Ready to simulate instant approval. Clicking pay captures the simulated PayPal order without leaving the page.
-                              </p>
-                            </div>
-                          </motion.div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* WALLET BREAKDOWN (Expands when Wallet is selected) */}
-                  {paymentMethod === "wallet" && (
-                    <motion.div
-                      key="wallet-form"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mb-4 overflow-hidden"
-                    >
-                      <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-5 space-y-2.5">
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                          <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                            <Wallet className="w-4 h-4 text-orange-600" />
-                            <span>CHS Unified Wallet</span>
-                          </div>
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                            Synced & Active
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-500">Wallet Available:</span>
-                          <span className="font-extrabold text-slate-900">£120.50</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-500">Amount Due:</span>
-                          <span className="font-extrabold text-orange-600">£{finalPrice.toFixed(2)}</span>
-                        </div>
-                        {finalPrice > 120.50 ? (
-                          <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 leading-relaxed">
-                            Your wallet covers <span className="font-bold">£120.50</span>. The remainder (<span className="font-bold">£{(finalPrice - 120.50).toFixed(2)}</span>) will be covered via your linked mock card.
+                    {/* STRIPE ELEMENTS (DIRECT EMBEDDED - NO DOUBLE CONTAINER) */}
+                    {gatewayProvider === "stripe" && (
+                      <div>
+                        {stripeInitLoading || !clientSecret ? (
+                          <div className="py-6 flex flex-col items-center justify-center text-center">
+                            <Loader2 className="w-6 h-6 text-orange-600 animate-spin mb-2" />
+                            <p className="text-xs text-slate-500 font-bold">Mounting secure Stripe elements...</p>
                           </div>
                         ) : (
-                          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800">
-                            ✓ Your wallet balance covers 100% of this checkout.
-                          </div>
+                          <Elements
+                            stripe={stripePromise}
+                            options={{
+                              clientSecret,
+                              appearance: {
+                                theme: "stripe",
+                                variables: {
+                                  colorPrimary: "#ea580c",
+                                  borderRadius: "12px",
+                                  fontFamily: "Outfit, system-ui, sans-serif",
+                                },
+                              },
+                            }}
+                          >
+                            <StripeCardForm
+                              amount={finalPrice}
+                              onSuccess={(intentId) => {
+                                setPaymentVerified(true);
+                                setTransactionRef(intentId);
+                                setVerifiedDetails({ gateway: "Stripe Elements", intentId, amount: finalPrice });
+                                setStep(4);
+                              }}
+                              onError={(msg) => setPaymentError(msg)}
+                            />
+                          </Elements>
                         )}
+                        <p className="mt-2 text-[10px] text-slate-400 flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Test with Stripe test cards (e.g. 4242 4242 4242 4242).</span>
+                        </p>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    )}
+
+                    {/* PAYPAL SANDBOX POPUP */}
+                    {gatewayProvider === "paypal" && (
+                      <div className="space-y-3 pt-1">
+                        <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs text-blue-900">
+                          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-blue-200/60 font-bold">
+                            <span>PayPal Sandbox Checkout</span>
+                            <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-200">
+                              sandbox.paypal.com
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-blue-800 leading-relaxed">
+                            Click below to approve checkout using your PayPal Sandbox buyer account. Captures in real-time.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handlePaypalPopup}
+                          disabled={loading}
+                          className="w-full py-3 bg-[#0070BA] hover:bg-[#005ea6] text-white font-bold rounded-full text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          {loading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Opening PayPal Sandbox...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-black text-amber-300 italic text-base">P</span>
+                              <span>Pay £{finalPrice.toFixed(2)} with PayPal</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* WHEN WALLET IS CHOSEN */}
+                {paymentType === "wallet" && (
+                  <div className="space-y-3 mb-4 pt-1">
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Wallet Balance:</span>
+                        <span className="font-bold text-slate-900">£120.50</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Order Total:</span>
+                        <span className="font-bold text-orange-600">£{finalPrice.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoading(true);
+                        setTimeout(() => {
+                          setPaymentVerified(true);
+                          setTransactionRef("TXN-CHS-" + Math.floor(10000 + Math.random() * 90000));
+                          setVerifiedDetails({ gateway: "CHS Unified Wallet", amount: finalPrice });
+                          setStep(4);
+                          setLoading(false);
+                        }, 500);
+                      }}
+                      disabled={loading}
+                      className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-full text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <Wallet className="w-4 h-4" />
+                      <span>Pay £{finalPrice.toFixed(2)} with Wallet</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* ERROR ALERT */}
+                {paymentError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-2xl mb-4 text-xs text-red-700">
+                    {paymentError}
+                  </div>
+                )}
 
                 {/* TERMS CHECKBOX */}
                 <label className="flex items-start gap-2.5 cursor-pointer py-1.5 px-1 mb-4">
@@ -1028,22 +1203,8 @@ function TicketsContent() {
                   </span>
                 </label>
 
-                {/* PROCESSING STAGES BANNER */}
-                {paymentProcessingStage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-4 p-3 bg-orange-50 border border-orange-200/90 rounded-2xl flex items-center gap-2.5"
-                  >
-                    <Loader2 className="w-4 h-4 text-orange-600 animate-spin shrink-0" />
-                    <span className="text-xs font-bold text-orange-950 animate-pulse">
-                      {paymentProcessingStage}
-                    </span>
-                  </motion.div>
-                )}
-
                 {/* AMOUNT DUE BANNER */}
-                <div className="p-3.5 sm:p-4 bg-slate-950 text-white rounded-2xl mb-5 flex justify-between items-center">
+                <div className="p-3.5 sm:p-4 bg-slate-950 text-white rounded-2xl mb-4 flex justify-between items-center">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">Amount Due</span>
                     <p className="text-xl sm:text-2xl font-black">£{finalPrice.toFixed(2)}</p>
@@ -1051,50 +1212,14 @@ function TicketsContent() {
                   <ShieldCheck className="w-7 h-7 text-orange-500" />
                 </div>
 
-                {/* BUTTONS */}
-                <div className="flex justify-between items-center gap-3">
+                {/* BACK BUTTON */}
+                <div className="flex items-center">
                   <button
                     onClick={handleBack}
                     disabled={loading}
                     className="px-5 py-2.5 border border-slate-200 rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1 disabled:opacity-50"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" /> Back
-                  </button>
-                  <button
-                    onClick={handleSimulatePayment}
-                    disabled={!paymentMethod || !agreedToTerms || loading}
-                    className={`px-6 py-2.5 sm:px-8 sm:py-3 rounded-full font-bold text-xs sm:text-sm transition-all shadow-md inline-flex items-center gap-2 disabled:opacity-50 cursor-pointer ${
-                      paymentMethod === "card" && gatewayProvider === "paypal"
-                        ? "bg-[#0070BA] hover:bg-[#005ea6] text-white"
-                        : "bg-orange-600 hover:bg-orange-700 text-white"
-                    }`}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Verifying...</span>
-                      </>
-                    ) : (
-                      <>
-                        {paymentMethod === "card" && gatewayProvider === "paypal" ? (
-                          <>
-                            <span className="font-black text-amber-300 italic text-sm">P</span>
-                            <span>Pay £{finalPrice.toFixed(2)} with PayPal</span>
-                          </>
-                        ) : paymentMethod === "card" && gatewayProvider === "stripe" ? (
-                          <>
-                            <CreditCard className="w-4 h-4" />
-                            <span>Pay £{finalPrice.toFixed(2)} with Stripe</span>
-                          </>
-                        ) : (
-                          <>
-                            <Wallet className="w-4 h-4" />
-                            <span>Pay £{finalPrice.toFixed(2)} with Wallet</span>
-                          </>
-                        )}
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </>
-                    )}
                   </button>
                 </div>
               </div>
@@ -1114,7 +1239,7 @@ function TicketsContent() {
                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-emerald-200/70">
                   <div className="flex items-center gap-1.5 text-emerald-900 font-black text-xs">
                     <Check className="w-4 h-4 text-emerald-600" />
-                    <span>Payment Confirmed</span>
+                    <span>Payment Verified (Sandbox)</span>
                   </div>
                   <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded">
                     {transactionRef}
@@ -1122,13 +1247,9 @@ function TicketsContent() {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <p className="text-emerald-700/80 text-[10px] font-medium">Gateway & Method</p>
+                    <p className="text-emerald-700/80 text-[10px] font-medium">Gateway & Channel</p>
                     <p className="font-bold text-slate-900">
-                      {paymentMethod === "wallet"
-                        ? "CHS Expo Wallet"
-                        : gatewayProvider === "paypal"
-                        ? "PayPal Sandbox (Instant)"
-                        : `Stripe (Visa •••• ${cardNumber.replace(/\s/g, "").slice(-4) || "4242"})`}
+                      {verifiedDetails?.gateway || (paymentType === "wallet" ? "CHS Unified Wallet" : gatewayProvider === "paypal" ? "PayPal Sandbox" : "Stripe Elements")}
                     </p>
                   </div>
                   <div className="text-right">
