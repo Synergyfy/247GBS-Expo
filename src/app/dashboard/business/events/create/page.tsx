@@ -150,30 +150,71 @@ export default function CreateEventPage() {
                 </p>
             </div>
 
-            {/* Sleek Segmented Stepper */}
-            <div className="p-1 bg-slate-100 rounded-xl flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider">
-                {[
-                    { num: 1, short: "Details", full: "1. Event Details" },
-                    { num: 2, short: "Partners", full: "2. Co-Hosts & Partners" },
-                    { num: 3, short: "Tickets", full: "3. Ticket Templates" },
-                    { num: 4, short: "Review", full: "4. Review & Submit" },
-                ].map((s) => (
-                    <button
-                        key={s.num}
-                        type="button"
-                        onClick={() => setStep(s.num)}
-                        className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all truncate ${
-                            step === s.num
-                                ? "bg-white text-orange-600 shadow-xs font-extrabold"
-                                : step > s.num
-                                ? "text-emerald-700 font-bold hover:text-emerald-800"
-                                : "text-slate-500 hover:text-slate-800"
-                        }`}
-                    >
-                        <span className="sm:hidden">{s.num}. {s.short}</span>
-                        <span className="hidden sm:inline">{s.full}</span>
-                    </button>
-                ))}
+            {/* Elegant Numbered Timeline Stepper (No Text Truncation) */}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 shadow-2xs">
+                <div className="flex items-center justify-between relative max-w-lg mx-auto">
+                    {/* Background Connector Bar */}
+                    <div className="absolute left-6 right-6 top-4 -translate-y-1/2 h-0.5 bg-slate-200 z-0" />
+                    <div
+                        className="absolute left-6 top-4 -translate-y-1/2 h-0.5 bg-orange-600 transition-all duration-300 z-0"
+                        style={{ width: `${((step - 1) / 3) * 100}%` }}
+                    />
+
+                    {[
+                        { num: 1, title: "Schedule" },
+                        { num: 2, title: "Partners" },
+                        { num: 3, title: "Tickets" },
+                        { num: 4, title: "Review" },
+                    ].map((s) => {
+                        const isCompleted = step > s.num;
+                        const isCurrent = step === s.num;
+
+                        return (
+                            <button
+                                key={s.num}
+                                type="button"
+                                onClick={() => setStep(s.num)}
+                                className="relative z-10 flex flex-col items-center group cursor-pointer"
+                            >
+                                <div
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                                        isCurrent
+                                            ? "bg-orange-600 text-white ring-4 ring-orange-100 shadow-sm"
+                                            : isCompleted
+                                            ? "bg-emerald-600 text-white shadow-2xs"
+                                            : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
+                                    }`}
+                                >
+                                    {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : s.num}
+                                </div>
+                                <span
+                                    className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mt-1.5 transition-colors hidden sm:block ${
+                                        isCurrent
+                                            ? "text-orange-600 font-extrabold"
+                                            : isCompleted
+                                            ? "text-emerald-700 font-bold"
+                                            : "text-slate-400 group-hover:text-slate-600"
+                                    }`}
+                                >
+                                    {s.title}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Mobile Active Step Indicator Banner (Zero truncation) */}
+                <div className="sm:hidden mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                        Step {step} of 4
+                    </span>
+                    <span className="font-extrabold text-orange-600 uppercase tracking-tight text-xs">
+                        {step === 1 && "1. Event Schedule & Scope"}
+                        {step === 2 && "2. Co-Hosts & Partners"}
+                        {step === 3 && "3. Ticket Pricing & Templates"}
+                        {step === 4 && "4. Review & Confirmation"}
+                    </span>
+                </div>
             </div>
 
             {submitted ? (
@@ -191,9 +232,14 @@ export default function CreateEventPage() {
                 <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
                     {step === 1 && (
                         <div className="space-y-4">
-                            <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                                <Calendar className="w-4 h-4 text-orange-600" /> Step 1: Event Schedule & Scope
-                            </h2>
+                            <div className="pb-3 border-b border-slate-100">
+                                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Calendar className="w-4 h-4 text-orange-600" /> Event Schedule & Scope
+                                </h2>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    Set the session title, event date, and visitor attendee capacity.
+                                </p>
+                            </div>
 
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
@@ -249,18 +295,19 @@ export default function CreateEventPage() {
 
                     {step === 2 && (
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                                    <Users className="w-4 h-4 text-orange-600" /> Step 2: Partners & Co-Hosts (Storyline §4.4)
-                                </h2>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                    Optional Collaboration
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                                <div>
+                                    <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Users className="w-4 h-4 text-orange-600" /> Co-Hosts & Partners
+                                    </h2>
+                                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                        Invite registered businesses to co-host, demo products, or bundle promotions.
+                                    </p>
+                                </div>
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 shrink-0">
+                                    Optional
                                 </span>
                             </div>
-
-                            <p className="text-xs text-slate-500 leading-relaxed">
-                                Invite registered business partners to co-host, demo products, or bundle promotional deals inside this session. Invited partners must accept before being displayed publicly.
-                            </p>
 
                             {/* Partner Invite Input Card */}
                             <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3">
@@ -295,7 +342,7 @@ export default function CreateEventPage() {
                                             onChange={(e) => setPartnerRole(e.target.value)}
                                             className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-orange-500"
                                         >
-                                            <option value="Co-Host & Sponsor">Co-Host & Sponsor</option>
+                                            <option value="Co-Host & Logistics Sponsor">Co-Host & Logistics Sponsor</option>
                                             <option value="Guest Speaker / Presenter">Guest Speaker / Presenter</option>
                                             <option value="Live Product Demonstration">Live Product Demonstration</option>
                                             <option value="Bundle Deal Contributor">Bundle Deal Contributor</option>
@@ -307,15 +354,15 @@ export default function CreateEventPage() {
                                     <button
                                         type="button"
                                         onClick={handleAddPartner}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                                     >
                                         <UserPlus className="w-3.5 h-3.5" /> Send Invitation
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Active Invitations List */}
-                            <div className="space-y-2">
+                            {/* Active Invitations List (Redesigned 2-Tier Mobile Layout, Zero Truncation) */}
+                            <div className="space-y-2.5">
                                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                                     Invited Session Partners ({invitedPartners.length})
                                 </label>
@@ -328,34 +375,43 @@ export default function CreateEventPage() {
                                     invitedPartners.map((partner) => (
                                         <div
                                             key={partner.id}
-                                            className="p-3 bg-white border border-slate-200/90 rounded-xl flex items-center justify-between gap-3 shadow-2xs"
+                                            className="p-3.5 bg-white border border-slate-200/90 rounded-xl shadow-2xs space-y-2.5"
                                         >
-                                            <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
-                                                    <Building2 className="w-4 h-4" />
+                                            {/* Tier 1: Icon, Full Business Name, and Remove Action */}
+                                            <div className="flex items-start justify-between gap-2.5">
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                                                        <Building2 className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">
+                                                            {partner.name}
+                                                        </h4>
+                                                        <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                                                            {partner.category}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-xs font-extrabold text-slate-900 truncate">
-                                                        {partner.name}
-                                                    </p>
-                                                    <p className="text-[10px] text-slate-500 font-medium">
-                                                        Role: <strong className="text-orange-600">{partner.role}</strong>
-                                                    </p>
-                                                </div>
-                                            </div>
 
-                                            <div className="flex items-center gap-2 shrink-0">
-                                                <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                                                    {partner.status}
-                                                </span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemovePartner(partner.id)}
-                                                    className="w-6 h-6 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors cursor-pointer"
+                                                    className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                                                     title="Remove partner"
+                                                    aria-label="Remove partner"
                                                 >
-                                                    <X className="w-3.5 h-3.5" />
+                                                    <X className="w-4 h-4" />
                                                 </button>
+                                            </div>
+
+                                            {/* Tier 2: Role & Status Badges with Full Responsive Width */}
+                                            <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                                                <div className="text-[11px] font-bold text-slate-600">
+                                                    Role: <span className="text-orange-600 font-extrabold">{partner.role}</span>
+                                                </div>
+                                                <span className="text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                                    {partner.status}
+                                                </span>
                                             </div>
                                         </div>
                                     ))
@@ -383,11 +439,16 @@ export default function CreateEventPage() {
 
                     {step === 3 && (
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                                    <Ticket className="w-4 h-4 text-orange-600" /> Step 3: Select Admin Ticket Template
-                                </h2>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                                <div>
+                                    <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Ticket className="w-4 h-4 text-orange-600" /> Ticket Pricing & Templates
+                                    </h2>
+                                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                        Select an Admin-approved template and set pricing within the season cap.
+                                    </p>
+                                </div>
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                                     Price Cap Enforced
                                 </span>
                             </div>
@@ -477,9 +538,14 @@ export default function CreateEventPage() {
 
                     {step === 4 && (
                         <div className="space-y-4">
-                            <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Step 4: Compliance & Partner Summary
-                            </h2>
+                            <div className="pb-3 border-b border-slate-100">
+                                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> Review & Confirmation
+                                </h2>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    Verify all details, invited partners, and pricing before submitting for moderation.
+                                </p>
+                            </div>
 
                             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
                                 <div className="flex justify-between">
