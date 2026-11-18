@@ -3,220 +3,398 @@
 import { useState } from "react";
 import Image from "next/image";
 import Modal from "../../../component/Modal";
-import Tooltip from "../../../component/Tooltip";
+import {
+  Plus,
+  RefreshCw,
+  Search,
+  ExternalLink,
+  Trash2,
+  Edit3,
+  X
+} from "lucide-react";
 
-// --- HELP ICONS ---
-const InfoIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-);
+interface ExpoProduct {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  image: string;
+  mcomUrl: string;
+  source: "MCOM Auto-Import" | "Manual Link";
+}
 
 export default function ProductsPage() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [products, setProducts] = useState([
-        { id: 1, name: "Premium Watch Series 1", category: "Accessories", sku: "WT-001-B", price: "299.00", stock: 45, status: "Active", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=100&auto=format&fit=crop" },
-        { id: 2, name: "Premium Watch Series 2", category: "Accessories", sku: "WT-002-B", price: "349.00", stock: 12, status: "Active", image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=100&auto=format&fit=crop" },
-        { id: 3, name: "Premium Watch Series 3", category: "Accessories", sku: "WT-003-B", price: "399.00", stock: 0, status: "Out of Stock", image: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=100&auto=format&fit=crop" },
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [products, setProducts] = useState<ExpoProduct[]>([
+    {
+      id: 1,
+      name: "Cloud Core Hub X1",
+      description:
+        "High-availability enterprise cloud router with automated failover and hardware encryption.",
+      price: "499.00",
+      image: "/ideal.png",
+      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1",
+      source: "MCOM Auto-Import"
+    },
+    {
+      id: 2,
+      name: "Edge Guard Pro Appliance",
+      description:
+        "Real-time zero-trust firewall and DDoS mitigation node for distributed retail branches.",
+      price: "199.00",
+      image: "/main_stage_banner.png",
+      mcomUrl: "https://mcommall.com/products/edge-guard-pro",
+      source: "MCOM Auto-Import"
+    },
+    {
+      id: 3,
+      name: "Global Sync Node S4",
+      description:
+        "Multi-region storage replication server with plug-and-play MCOM inventory synchronization.",
+      price: "899.00",
+      image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
+      mcomUrl: "https://mcommall.com/products/global-sync-node",
+      source: "MCOM Auto-Import"
+    }
+  ]);
+
+  const [newProd, setNewProd] = useState({
+    name: "",
+    description: "",
+    price: "",
+    image: "/hero.webp",
+    mcomUrl: ""
+  });
+
+  // Per meeting directive: 1-click Auto-Import from MCOM Mall
+  const handleAutoImportMcom = () => {
+    setIsImporting(true);
+    setTimeout(() => {
+      setIsImporting(false);
+      const exists = products.some((p) => p.name === "Smart POS Terminal V3 (MCOM)");
+      if (!exists) {
+        setProducts((prev) => [
+          {
+            id: Date.now(),
+            name: "Smart POS Terminal V3 (MCOM)",
+            description:
+              "Synced automatically from your MCOM Mall merchant store with live checkout link.",
+            price: "249.00",
+            image: "/hero.webp",
+            mcomUrl: "https://mcommall.com/products/smart-pos-v3",
+            source: "MCOM Auto-Import"
+          },
+          ...prev
+        ]);
+      }
+    }, 800);
+  };
+
+  // Per meeting directive: Streamlined fields (Product Name, Description, Price, Image, Buy Now Link to MCOM Mall)
+  const handleAddProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProd.name.trim()) return;
+    setProducts([
+      {
+        id: Date.now(),
+        name: newProd.name,
+        description:
+          newProd.description || "Direct exhibition showcase item linked to MCOM Mall checkout.",
+        price: newProd.price || "199.00",
+        image: newProd.image || "/hero.webp",
+        mcomUrl: newProd.mcomUrl || "https://mcommall.com/products/item",
+        source: "Manual Link"
+      },
+      ...products
     ]);
+    setNewProd({ name: "", description: "", price: "", image: "/hero.webp", mcomUrl: "" });
+    setIsModalOpen(false);
+  };
 
-    const handleAddProduct = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Mock adding product
-        const newId = products.length + 1;
-        setProducts([{
-            id: newId,
-            name: "New Expo Product",
-            category: "General",
-            sku: `NEW-00${newId}`,
-            price: "199.00",
-            stock: 100,
-            status: "Draft",
-            image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=100&auto=format&fit=crop" // Mock image
-        }, ...products]);
-        setIsModalOpen(false);
-    };
+  const handleDelete = (id: number) => {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+  };
 
-    return (
-        <div className="max-w-6xl">
-            <div className="flex justify-between items-end mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Products & Services</h1>
-                    <p className="text-slate-500">Manage your catalog for the exhibition.</p>
-                </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-200 flex items-center gap-2 transition-transform active:scale-95"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                    Add New Product
-                </button>
-            </div>
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-            {/* FILTER BAR */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 flex gap-4 mb-6">
-                <input type="text" placeholder="Search products..." className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:border-orange-500" />
-                <select className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none">
-                    <option>All Status</option>
-                    <option>Active</option>
-                    <option>Draft</option>
-                    <option>Out of Stock</option>
-                </select>
-            </div>
-
-            {/* PRODUCT LIST */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                            <th className="px-6 py-4 font-semibold text-slate-600 text-sm">Product</th>
-                            <th className="px-6 py-4 font-semibold text-slate-600 text-sm">SKU</th>
-                            <th className="px-6 py-4 font-semibold text-slate-600 text-sm">Price</th>
-                            <th className="px-6 py-4 font-semibold text-slate-600 text-sm">Stock</th>
-                            <th className="px-6 py-4 font-semibold text-slate-600 text-sm">Status</th>
-                            <th className="px-6 py-4 font-semibold text-slate-600 text-sm text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {products.map((item) => (
-                            <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">
-                                            <Image src={item.image} alt="Product" fill className="object-cover" />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-slate-900">{item.name}</div>
-                                            <div className="text-xs text-slate-500">{item.category}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-slate-600">{item.sku}</td>
-                                <td className="px-6 py-4 font-medium text-slate-900">£{item.price}</td>
-                                <td className="px-6 py-4 text-sm text-slate-600">{item.stock} units</td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : item.status === 'Out of Stock' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
-                                        {item.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-3">
-                                        <button className="text-slate-400 hover:text-orange-600 font-medium text-sm">Edit</button>
-                                        <button className="text-slate-400 hover:text-red-600 font-medium text-sm">Delete</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {/* Pagination */}
-                <div className="p-4 border-t border-slate-200 flex justify-center">
-                    <button className="text-sm text-slate-500 font-medium px-4 py-2 hover:bg-slate-50 rounded-lg">Load More</button>
-                </div>
-            </div>
-
-            {/* ADD PRODUCT MODAL */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Product">
-                <form className="space-y-5" onSubmit={handleAddProduct}>
-                    <div>
-                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                            Product Name
-                            <Tooltip content="The main title displayed in the expo hall">
-                                <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                            </Tooltip>
-                        </label>
-                        <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10" placeholder="e.g. Wireless Headphones" />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                                Category
-                                <Tooltip content="Helps buyers find your product in the expo categories">
-                                    <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                                </Tooltip>
-                            </label>
-                            <select className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10 bg-white">
-                                <option>Electronics</option>
-                                <option>Fashion</option>
-                                <option>Home & Garden</option>
-                                <option>Software</option>
-                                <option>Services</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                                Status
-                                <Tooltip content="Control when your product becomes visible to the public">
-                                    <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                                </Tooltip>
-                            </label>
-                            <select className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10 bg-white">
-                                <option>Active</option>
-                                <option>Draft</option>
-                                <option>Hidden</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                                Price (£)
-                                <Tooltip content="Set a competitive price including tax">
-                                    <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                                </Tooltip>
-                            </label>
-                            <input type="number" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10" placeholder="0.00" />
-                        </div>
-                        <div>
-                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                                Stock Level
-                                <Tooltip content="Units available for immediate shipment">
-                                    <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                                </Tooltip>
-                            </label>
-                            <input type="number" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10" placeholder="100" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                            Product Description
-                            <Tooltip content="Tell the world why your product is amazing">
-                                <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                            </Tooltip>
-                        </label>
-                        <textarea className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10 h-24" placeholder="Describe your product..."></textarea>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                                SKU
-                                <Tooltip content="Unique internal code for inventory tracking">
-                                    <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                                </Tooltip>
-                            </label>
-                            <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10" placeholder="PROD-001" />
-                        </div>
-                        <div>
-                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
-                                Image URL
-                                <Tooltip content="Paste a link to your product image">
-                                    <InfoIcon className="text-slate-400 hover:text-orange-500 cursor-help" />
-                                </Tooltip>
-                            </label>
-                            <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 outline-none transition-shadow focus:ring-4 focus:ring-orange-500/10" placeholder="https://..." />
-                        </div>
-                    </div>
-
-                    <div className="pt-4 flex gap-3">
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancel</button>
-                        <button type="submit" className="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-200 transition-colors">Save Product</button>
-                    </div>
-                </form>
-            </Modal>
+  return (
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5">
+      {/* Compact Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+            MCOM Mall Products & Services
+          </h1>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+            Auto-import your products from MCOM Mall or link items directly to MCOM checkout.
+          </p>
         </div>
-    );
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <button
+            type="button"
+            onClick={handleAutoImportMcom}
+            disabled={isImporting}
+            className="bg-slate-900 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-600 flex items-center gap-1.5 transition-all shadow-xs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-orange-400 ${isImporting ? "animate-spin" : ""}`} />
+            <span>{isImporting ? "Importing from MCOM..." : "Auto-Import from MCOM Mall"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-orange-600 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-700 shadow-xs flex items-center gap-1 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Product</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search imported MCOM products..."
+          className="w-full bg-white border border-slate-200/80 rounded-xl pl-8 pr-7 py-2 text-xs font-medium outline-none focus:border-orange-500 shadow-2xs"
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => setSearchTerm("")}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Unified Products Container (Desktop Table + Mobile Stacked Cards) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50/80 border-b border-slate-100 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+              <tr>
+                <th className="px-5 py-3.5">Product & Description</th>
+                <th className="px-5 py-3.5">Price</th>
+                <th className="px-5 py-3.5">Source</th>
+                <th className="px-5 py-3.5">MCOM Checkout Link</th>
+                <th className="px-5 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredProducts.map((item) => (
+                <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3 max-w-md">
+                      <div className="w-11 h-11 bg-slate-100 rounded-xl overflow-hidden relative shrink-0 border border-slate-200/60">
+                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                          {item.name}
+                        </div>
+                        <div className="text-[11px] text-slate-500 line-clamp-1">
+                          {item.description}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5 font-extrabold text-slate-900 text-xs sm:text-sm">
+                    £{item.price}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                      {item.source}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <a
+                      href={item.mcomUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-orange-600 font-bold text-xs hover:underline"
+                    >
+                      <span>Buy Now on MCOM</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <div className="flex justify-end gap-1.5">
+                      <button
+                        type="button"
+                        className="p-1.5 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50"
+                        aria-label="Edit product"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                        aria-label="Delete product"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Stacked List */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {filteredProducts.map((item) => (
+            <div key={item.id} className="p-3.5 space-y-2.5">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-xl overflow-hidden relative shrink-0 bg-slate-100">
+                  <Image src={item.image} alt={item.name} fill className="object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                      {item.source}
+                    </span>
+                    <span className="font-extrabold text-xs text-slate-900">£{item.price}</span>
+                  </div>
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900 truncate mt-0.5">
+                    {item.name}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+                <a
+                  href={item.mcomUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-orange-600 inline-flex items-center gap-1 hover:underline"
+                >
+                  <span>Buy Now on MCOM Mall</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(item.id)}
+                  className="text-slate-400 hover:text-red-600 p-1"
+                  aria-label="Remove product"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* STREAMLINED ADD PRODUCT MODAL (Per Meeting Directive: Name, Description, Price, Image, Buy Now MCOM Link) */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Add MCOM Mall Product"
+      >
+        <form className="space-y-3.5" onSubmit={handleAddProduct}>
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+              Product Name
+            </label>
+            <input
+              type="text"
+              required
+              value={newProd.name}
+              onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs font-bold"
+              placeholder="e.g. Cloud Core Hub X1"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+              Product Description
+            </label>
+            <textarea
+              rows={2}
+              value={newProd.description}
+              onChange={(e) => setNewProd({ ...newProd, description: e.target.value })}
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs font-medium resize-none"
+              placeholder="Concise description of the product..."
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Price (£)
+              </label>
+              <input
+                type="number"
+                required
+                value={newProd.price}
+                onChange={(e) => setNewProd({ ...newProd, price: e.target.value })}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs font-bold"
+                placeholder="199.00"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Image URL
+              </label>
+              <input
+                type="text"
+                value={newProd.image}
+                onChange={(e) => setNewProd({ ...newProd, image: e.target.value })}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs font-medium"
+                placeholder="/hero.webp"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+              MCOM Mall &ldquo;Buy Now&rdquo; Product Link
+            </label>
+            <input
+              type="url"
+              required
+              value={newProd.mcomUrl}
+              onChange={(e) => setNewProd({ ...newProd, mcomUrl: e.target.value })}
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs font-mono"
+              placeholder="https://mcommall.com/products/your-item"
+            />
+          </div>
+
+          <div className="pt-2.5 border-t border-slate-100 flex gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="flex-1 py-2 border border-slate-200 font-bold text-xs text-slate-600 hover:bg-slate-50 rounded-xl"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-orange-600 text-white py-2 rounded-xl font-bold text-xs hover:bg-orange-700 shadow-xs transition-colors"
+            >
+              Save Product
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
 }

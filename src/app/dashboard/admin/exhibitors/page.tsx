@@ -1,125 +1,150 @@
 "use client";
 
 import { useState } from "react";
-import Modal from "../../../component/Modal";
-import Tooltip from "../../../component/Tooltip";
+import Link from "next/link";
+import { Calendar, ArrowRight, ExternalLink, Search } from "lucide-react";
 
-// --- HELP ICONS ---
-const ShieldIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-7.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-);
+export default function ExhibitorDirectoryPage() {
+  const [searchTerm, setSearchTerm] = useState("");
 
-export default function ExhibitorQueuePage() {
-    const [isReviewOpen, setIsReviewOpen] = useState(false);
-    const [selectedExhibitor, setSelectedExhibitor] = useState<any>(null);
+  const exhibitors = [
+    {
+      id: 1,
+      name: "Urban Threads Co.",
+      owner: "Mark Riley",
+      tier: "Yearly Pro",
+      chsStatus: "CHS Verified",
+      eventsCount: 3,
+      joined: "Jan 26, 2026"
+    },
+    {
+      id: 2,
+      name: "EcoHome Solutions",
+      owner: "Sarah Lane",
+      tier: "PAYG",
+      chsStatus: "CHS Verified",
+      eventsCount: 1,
+      joined: "Jan 25, 2026"
+    },
+    {
+      id: 3,
+      name: "GamerSpace Tech",
+      owner: "Alex Chen",
+      tier: "Yearly Pro",
+      chsStatus: "CHS Verified",
+      eventsCount: 4,
+      joined: "Jan 26, 2026"
+    },
+    {
+      id: 4,
+      name: "Zenith Apparel",
+      owner: "David Wu",
+      tier: "PAYG",
+      chsStatus: "CHS Verified",
+      eventsCount: 2,
+      joined: "Jan 24, 2026"
+    },
+    {
+      id: 5,
+      name: "Aqua Marine Gear",
+      owner: "Linda Frost",
+      tier: "Yearly Pro",
+      chsStatus: "CHS Verified",
+      eventsCount: 5,
+      joined: "Jan 26, 2026"
+    }
+  ];
 
-    const exhibitors = [
-        { id: 1, name: "Urban Threads Co.", owner: "Mark Riley", tier: "Yearly Pro", date: "Jan 26, 2026", status: "Pending" },
-        { id: 2, name: "EcoHome Solutions", owner: "Sarah Lane", tier: "PAYG", date: "Jan 25, 2026", status: "Reviewing" },
-        { id: 3, name: "GamerSpace Tech", owner: "Alex Chen", tier: "Yearly Pro", date: "Jan 26, 2026", status: "Pending" },
-        { id: 4, name: "Zenith Apparel", owner: "David Wu", tier: "PAYG", date: "Jan 24, 2026", status: "Pending" },
-        { id: 5, name: "Aqua Marine Gear", owner: "Linda Frost", tier: "Yearly Pro", date: "Jan 26, 2026", status: "Pending" }
-    ];
+  const filtered = exhibitors.filter(
+    (e) =>
+      e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.owner.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    const handleReview = (ex: any) => {
-        setSelectedExhibitor(ex);
-        setIsReviewOpen(true);
-    };
-
-    return (
-        <div className="max-w-6xl space-y-10">
-
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Exhibitor Approval Queue</h1>
-                <p className="text-slate-500 font-medium">Verify credentials and branding compliance before booths go live.</p>
-            </div>
-
-            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                    <div className="flex gap-4">
-                        <button className="px-4 py-2 bg-white rounded-xl text-xs font-black uppercase text-orange-600 border border-orange-100 shadow-sm">All Pending (5)</button>
-                        <button className="px-4 py-2 text-xs font-black uppercase text-slate-400 hover:text-slate-600 transition-colors">Requires Follow-up</button>
-                    </div>
-                    <div className="text-xs font-bold text-slate-400 tracking-widest uppercase">Verified System Active</div>
-                </div>
-
-                <div className="divide-y divide-slate-100">
-                    {exhibitors.map((item) => (
-                        <div key={item.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors group">
-                            <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 rounded-[1.25rem] bg-orange-50 flex items-center justify-center text-orange-700 font-black text-xl border border-orange-100 group-hover:bg-orange-600 group-hover:text-white transition-all">
-                                    {item.name[0]}
-                                </div>
-                                <div>
-                                    <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight">{item.name}</h3>
-                                    <div className="flex items-center gap-3 text-xs font-bold text-slate-400 mt-0.5">
-                                        <span>Manager: {item.owner}</span>
-                                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                                        <span>Applied {item.date}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-12">
-                                <div className="text-center">
-                                    <div className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border mb-1 ${item.tier === 'Yearly Pro' ? 'bg-orange-50 border-orange-100 text-orange-700' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
-                                        {item.tier}
-                                    </div>
-                                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Pricing Plan</div>
-                                </div>
-
-                                <button
-                                    onClick={() => handleReview(item)}
-                                    className="bg-orange-600 text-white px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-slate-900/10"
-                                >
-                                    Review Booth
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <Modal
-                isOpen={isReviewOpen}
-                onClose={() => setIsReviewOpen(false)}
-                title={`Booth Review: ${selectedExhibitor?.name}`}
-            >
-                <div className="space-y-8">
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Compliance Checklist</h4>
-                        <div className="space-y-3">
-                            {[
-                                "Legal entity verified (KYC)",
-                                "Branding high-quality (no placeholders)",
-                                "Products comply with safety policy",
-                                "Return policy clearly stated"
-                            ].map((check, i) => (
-                                <div key={i} className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                                    <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500" defaultChecked={i < 2} />
-                                    {check}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <button
-                            onClick={() => setIsReviewOpen(false)}
-                            className="flex-1 bg-red-50 text-red-600 py-4 rounded-xl font-black uppercase text-xs hover:bg-red-100 transition-colors"
-                        >
-                            Reject Booth
-                        </button>
-                        <button
-                            onClick={() => setIsReviewOpen(false)}
-                            className="flex-1 bg-orange-600 text-white py-4 rounded-xl font-black uppercase text-xs shadow-xl shadow-orange-200 hover:bg-orange-700 transition-all"
-                        >
-                            Verify & Approve
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-
+  return (
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+            Active Exhibitor Booths
+          </h1>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+            Exhibitor onboarding and KYB are verified via CHS. To moderate submitted events, visit the Event Approval Queue.
+          </p>
         </div>
-    );
+        <Link
+          href="/dashboard/admin/approvals"
+          className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-sm w-fit shrink-0"
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>Event Approval Queue</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search exhibitor or manager..."
+          className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200/80 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-orange-500 shadow-2xs"
+        />
+      </div>
+
+      {/* Unified List Container (Full-Width Content, Colored Text instead of Pills) */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div className="divide-y divide-slate-100">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">
+                    {item.name}
+                  </h3>
+                  <span className="text-[11px] font-black uppercase tracking-wider text-emerald-600">
+                    {item.chsStatus}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mt-0.5">
+                  <span>Manager: {item.owner}</span>
+                  <span>•</span>
+                  <span>Synced {item.joined}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t border-slate-100 sm:border-0">
+                <div className="flex items-center gap-2 text-xs">
+                  <span
+                    className={`font-black uppercase tracking-wider ${
+                      item.tier === "Yearly Pro" ? "text-orange-600" : "text-slate-600"
+                    }`}
+                  >
+                    {item.tier}
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="font-bold text-slate-500">
+                    {item.eventsCount} {item.eventsCount === 1 ? "Event" : "Events"}
+                  </span>
+                </div>
+
+                <Link
+                  href="/dashboard/admin/businesses"
+                  className="inline-flex items-center gap-1.5 bg-slate-900 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-600 transition-all shrink-0"
+                >
+                  <span>View Profile</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

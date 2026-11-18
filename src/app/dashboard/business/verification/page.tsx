@@ -1,184 +1,228 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    QrCode, 
-    CheckCircle2, 
-    XCircle, 
-    Search, 
-    Users, 
-    Smartphone, 
-    RefreshCw, 
-    AlertCircle,
-    ArrowRight,
-    User
+import React, { useState } from "react";
+import {
+    QrCode,
+    CheckCircle2,
+    XCircle,
+    Users,
+    Ticket,
+    ShieldCheck,
+    Search,
 } from "lucide-react";
 
-export default function VerificationTerminalPage() {
-    const [scanMode, setScanMode] = useState(true);
-    const [ticketCode, setTicketCode] = useState("");
-    const [verifying, setVerifying] = useState(false);
-    const [lastScan, setLastScan] = useState<any>(null);
+export default function TicketVerificationPage() {
+    const [passCode, setPassCode] = useState("");
+    const [scanResult, setScanResult] = useState<{
+        valid: boolean;
+        code: string;
+        holder: string;
+        tier: string;
+        message: string;
+    } | null>(null);
 
-    const handleVerify = () => {
-        setVerifying(true);
-        // Mock verification delay
-        setTimeout(() => {
-            setVerifying(false);
-            setLastScan({
-                status: "Success",
-                user: "John Doe",
-                ticketType: "VIP NETWORKER",
-                id: ticketCode || "GBX-88219-X22",
-                timestamp: new Date().toLocaleTimeString()
-            });
-            setTicketCode("");
-        }, 1500);
+    const [scanHistory, setScanHistory] = useState([
+        {
+            code: "PASS-2026-8841",
+            holder: "Dr. Hannah Abbott",
+            tier: "VIP Executive Pass",
+            event: "Global Tech & AI Innovation Expo",
+            status: "Verified",
+            time: "4 mins ago",
+        },
+        {
+            code: "PASS-2026-7719",
+            holder: "Sophia Martinez",
+            tier: "MCOM Reward Gift Pass",
+            event: "Global Tech & AI Innovation Expo",
+            status: "Verified",
+            time: "18 mins ago",
+        },
+        {
+            code: "PASS-2026-1029",
+            holder: "Unknown Visitor",
+            tier: "Expired Single Day Pass",
+            event: "Winter Retail Showcase",
+            status: "Rejected",
+            time: "42 mins ago",
+        },
+        {
+            code: "PASS-2026-5530",
+            holder: "Liam Gallagher",
+            tier: "Standard Season Day Pass",
+            event: "Global Tech & AI Innovation Expo",
+            status: "Verified",
+            time: "1h ago",
+        },
+    ]);
+
+    const handleVerifyPass = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!passCode.trim()) return;
+        const normalized = passCode.trim().toUpperCase();
+        const isInvalid = normalized.includes("INVALID") || normalized.includes("EXP");
+
+        const result = {
+            valid: !isInvalid,
+            code: normalized,
+            holder: isInvalid ? "Unverified Holder" : "Verified Expo Attendee",
+            tier: isInvalid ? "Expired / Invalid Pass" : "Admin Cap-Compliant Event Pass",
+            message: isInvalid
+                ? "Pass rejected — expired or already used."
+                : "Access granted — Event Day Pass verified.",
+        };
+
+        setScanResult(result);
+        setScanHistory([
+            {
+                code: normalized,
+                holder: result.holder,
+                tier: result.tier,
+                event: "Global Tech & AI Innovation Expo",
+                status: result.valid ? "Verified" : "Rejected",
+                time: "Just now",
+            },
+            ...scanHistory,
+        ]);
+        setPassCode("");
     };
 
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Verification Terminal</h1>
-                    <p className="text-slate-500">Live entry control and ticket validation for active events.</p>
+        <div className="space-y-5 pb-12">
+            {/* Compact Header (No Decorative Status Pill) */}
+            <div className="pb-3 border-b border-slate-200/80">
+                <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+                    Ticket & Access Pass Verification
+                </h1>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                    Validate visitor QR codes, Season Passes, and MCOM Reward tickets at your booth or session gate.
+                </p>
+            </div>
+
+            {/* Horizontal-Scroll KPI Strip */}
+            <div>
+                <div className="flex lg:grid lg:grid-cols-4 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+                    {[
+                        { label: "Total Checked In", value: "289", sub: "Today's active session", icon: CheckCircle2, color: "text-emerald-600" },
+                        { label: "VIP Passes", value: "37", sub: "Priority consultation", icon: ShieldCheck, color: "text-orange-600" },
+                        { label: "MCOM Reward Passes", value: "65", sub: "Loyalty & gift passes", icon: Ticket, color: "text-purple-600" },
+                        { label: "Rejected Scans", value: "4", sub: "Duplicate or expired", icon: XCircle, color: "text-red-600" },
+                    ].map((stat, i) => (
+                        <div
+                            key={i}
+                            className="w-[42%] min-w-[144px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-sm"
+                        >
+                            <div className="flex items-center justify-between gap-1.5 mb-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+                                    {stat.label}
+                                </span>
+                                <stat.icon className={`w-3.5 h-3.5 shrink-0 ${stat.color}`} />
+                            </div>
+                            <p className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                                {stat.value}
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-medium mt-0.5 truncate">{stat.sub}</p>
+                        </div>
+                    ))}
                 </div>
-                <div className="flex items-center gap-4 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-sm font-bold uppercase tracking-wider">Systems Online: 4 Scanners Active</span>
+                <div className="flex items-center justify-center gap-1.5 mt-1.5 lg:hidden">
+                    <span className="w-4 h-1 rounded-full bg-orange-600" />
+                    <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+                    <span className="w-1.5 h-1 rounded-full bg-slate-300" />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                {/* Main Scanning Console */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
-                            <Smartphone className="w-40 h-40" />
-                        </div>
-
-                        <div className="relative z-10 max-w-xl mx-auto text-center space-y-8">
-                            <div className="flex justify-center">
-                                <div className="w-24 h-24 bg-orange-600 rounded-[2rem] flex items-center justify-center shadow-lg shadow-orange-600/20">
-                                    <QrCode className="w-12 h-12" />
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <h2 className="text-3xl font-black mb-2">Ready to Scan</h2>
-                                <p className="text-slate-400">Position the ticket QR code in front of the camera or enter the code manually below.</p>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                                        <input 
-                                            type="text" 
-                                            placeholder="Enter Passport ID (e.g. GBX-000...)"
-                                            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:border-orange-500 text-lg font-mono uppercase tracking-widest"
-                                            value={ticketCode}
-                                            onChange={(e) => setTicketCode(e.target.value)}
-                                        />
-                                    </div>
-                                    <button 
-                                        onClick={handleVerify}
-                                        disabled={!ticketCode || verifying}
-                                        className="px-8 bg-orange-600 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-700 transition-all disabled:opacity-50"
-                                    >
-                                        {verifying ? <RefreshCw className="w-6 h-6 animate-spin" /> : "Verify"}
-                                    </button>
-                                </div>
-                                <div className="flex justify-center gap-6">
-                                    <button onClick={() => setScanMode(true)} className={`text-xs font-bold uppercase tracking-widest pb-1 border-b-2 transition-all ${scanMode ? 'border-orange-500 text-white' : 'border-transparent text-slate-500'}`}>Camera Mode</button>
-                                    <button onClick={() => setScanMode(false)} className={`text-xs font-bold uppercase tracking-widest pb-1 border-b-2 transition-all ${!scanMode ? 'border-orange-500 text-white' : 'border-transparent text-slate-500'}`}>Manual Entry</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Last Action / Success Feedback */}
-                    {lastScan && (
-                        <div className={`bg-white rounded-[2.5rem] p-8 border-4 animate-in zoom-in-95 duration-300 ${
-                            lastScan.status === 'Success' ? 'border-emerald-500' : 'border-red-500'
-                        }`}>
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                                <div className="flex items-center gap-6">
-                                    <div className={`w-20 h-20 rounded-3xl flex items-center justify-center ${
-                                        lastScan.status === 'Success' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'
-                                    }`}>
-                                        {lastScan.status === 'Success' ? <CheckCircle2 className="w-10 h-10" /> : <XCircle className="w-10 h-10" />}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-black text-slate-900">{lastScan.status === 'Success' ? 'Access Granted' : 'Invalid Ticket'}</h3>
-                                        <div className="flex gap-4 mt-1">
-                                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">{lastScan.user}</span>
-                                            <span className="text-sm font-bold text-orange-600 uppercase tracking-wider">{lastScan.ticketType}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Passport ID</p>
-                                    <p className="text-lg font-mono font-bold text-slate-900">{lastScan.id}</p>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{lastScan.timestamp}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+            {/* Compact Pass Scanner Input Card */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <QrCode className="w-4 h-4 text-orange-600" /> Instant Pass Verification
+                    </h2>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                        Scanner Ready
+                    </span>
                 </div>
 
-                {/* Live Stats & Logs */}
-                <div className="space-y-8">
-                    {/* Capacity Widget */}
-                    <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-slate-900 uppercase tracking-tight">Zone Occupancy</h3>
-                            <Users className="w-5 h-5 text-orange-600" />
-                        </div>
-                        <div className="space-y-6">
-                            <div>
-                                <div className="flex justify-between text-sm font-bold mb-2">
-                                    <span className="text-slate-500">Virtual Hall A</span>
-                                    <span className="text-slate-900">842 / 5,000</span>
-                                </div>
-                                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-orange-500 rounded-full w-[16.8%]" />
-                                </div>
-                            </div>
-                            <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100">
-                                <p className="text-xs text-orange-700 leading-relaxed font-medium">
-                                    <AlertCircle className="w-3 h-3 inline mr-1" />
-                                    Crowd velocity is currently **Low**. Expected peak in 2 hours.
-                                </p>
-                            </div>
-                        </div>
+                <form onSubmit={handleVerifyPass} className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                            type="text"
+                            value={passCode}
+                            onChange={(e) => setPassCode(e.target.value)}
+                            placeholder="Scan QR or enter pass ID (e.g. PASS-2026-8841)..."
+                            className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-orange-500"
+                        />
                     </div>
+                    <button
+                        type="submit"
+                        className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 transition-colors shrink-0"
+                    >
+                        Verify Pass
+                    </button>
+                </form>
 
-                    {/* Recent Check-ins Log */}
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-slate-900 uppercase tracking-tight">Live Log</h3>
-                            <RefreshCw className="w-4 h-4 text-slate-300" />
+                {scanResult && (
+                    <div
+                        className={`p-3 rounded-xl border text-xs flex items-center justify-between ${
+                            scanResult.valid
+                                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                                : "bg-red-50 border-red-200 text-red-900"
+                        }`}
+                    >
+                        <div className="space-y-0.5">
+                            <p className="font-extrabold uppercase tracking-wider">
+                                {scanResult.code} • {scanResult.tier}
+                            </p>
+                            <p className="text-[11px]">{scanResult.message}</p>
                         </div>
-                        <div className="space-y-4">
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0">
-                                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
-                                        <User className="w-4 h-4 text-slate-300" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-xs font-bold text-slate-900">Sarah Johnson Checked-in</p>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">VIP Pass • 10:42:0{i}</p>
-                                    </div>
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                </div>
-                            ))}
-                        </div>
+                        <span
+                            className={`text-[10px] font-extrabold uppercase tracking-wider ${
+                                scanResult.valid ? "text-emerald-700" : "text-red-700"
+                            }`}
+                        >
+                            {scanResult.valid ? "VALID" : "REJECTED"}
+                        </span>
                     </div>
+                )}
+            </div>
+
+            {/* Clean 3-Line Scan Log */}
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm divide-y divide-slate-100">
+                <div className="p-3.5 sm:p-4 flex items-center justify-between">
+                    <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
+                        Recent Check-In Log
+                    </h2>
+                    <span className="text-[11px] font-bold text-slate-400">{scanHistory.length} scans</span>
                 </div>
 
+                {scanHistory.map((item, idx) => (
+                    <div key={idx} className="p-3.5 sm:p-4 hover:bg-slate-50/70 transition-colors space-y-1">
+                        {/* Line 1 */}
+                        <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider">
+                            <div className="flex items-center gap-1.5 truncate">
+                                <span className="text-slate-900 font-extrabold">{item.code}</span>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-orange-600">{item.tier}</span>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-slate-400">{item.time}</span>
+                            </div>
+                            <span
+                                className={`shrink-0 ${
+                                    item.status === "Verified" ? "text-emerald-600" : "text-red-600"
+                                }`}
+                            >
+                                {item.status}
+                            </span>
+                        </div>
+
+                        {/* Line 2 */}
+                        <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{item.holder}</p>
+
+                        {/* Line 3 */}
+                        <p className="text-[11px] text-slate-500 truncate">{item.event}</p>
+                    </div>
+                ))}
             </div>
         </div>
     );

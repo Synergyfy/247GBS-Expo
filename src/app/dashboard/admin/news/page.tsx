@@ -1,142 +1,253 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
-    Plus,
-    Search,
-    MoreVertical,
-    Eye,
-    Edit3,
-    Trash2,
-    TrendingUp,
-    Calendar,
-    Newspaper
+  Plus,
+  Search,
+  Eye,
+  Edit3,
+  Trash2,
+  TrendingUp,
+  Calendar,
+  Newspaper,
+  X
 } from "lucide-react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { NEWS_ITEMS } from "@/data/news";
 
 export default function NewsManagementPage() {
-    return (
-        <div className="max-w-7xl mx-auto pb-20">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2 uppercase">Platform News</h1>
-                    <p className="text-slate-500 font-medium italic">Manage and keep track of all editorial content publishing.</p>
-                </div>
-                <Link
-                    href="/dashboard/admin/news/create"
-                    className="flex items-center gap-2 px-8 py-4 bg-orange-600 text-white rounded-[2rem] font-bold hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 hover:scale-105"
-                >
-                    <Plus className="w-6 h-6" />
-                    Create New Story
-                </Link>
-            </div>
+  const [searchTerm, setSearchTerm] = useState("");
 
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-                {[
-                    { label: "Total Stories", value: "24", icon: Newspaper, color: "bg-blue-500" },
-                    { label: "Live Articles", value: "18", icon: Eye, color: "bg-green-500" },
-                    { label: "Drafts", value: "6", icon: Edit3, color: "bg-orange-500" },
-                    { label: "Total Views", value: "128K", icon: TrendingUp, color: "bg-purple-500" },
-                ].map((stat, i) => (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        key={i}
-                        className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6"
-                    >
-                        <div className={`w-14 h-14 ${stat.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
-                            <stat.icon className="w-7 h-7" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                            <p className="text-2xl font-black text-slate-900">{stat.value}</p>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+  const filteredNews = NEWS_ITEMS.filter(
+    (item) =>
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-            {/* Content Table */}
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-                    <div className="relative w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                        <input
-                            type="text"
-                            placeholder="Search by title, author, or category..."
-                            className="w-full pl-12 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-orange-500/50 outline-none text-sm transition-all shadow-inner"
-                        />
-                    </div>
-                </div>
+  const newsStats = [
+    { label: "Total Stories", value: "24", sub: "Editorial archive", icon: Newspaper, iconColor: "text-blue-600" },
+    { label: "Live Articles", value: "18", sub: "Publicly visible", icon: Eye, iconColor: "text-emerald-600" },
+    { label: "Drafts", value: "6", sub: "In editorial review", icon: Edit3, iconColor: "text-orange-600" },
+    { label: "Total Views", value: "128K", sub: "Platform impressions", icon: TrendingUp, iconColor: "text-purple-600" }
+  ];
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-slate-50/50">
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Story Info</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Engagement</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {NEWS_ITEMS.map((item, i) => (
-                                <motion.tr
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    key={item.id}
-                                    className="hover:bg-slate-50/80 transition-colors group"
-                                >
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-16 h-12 relative rounded-xl overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-500">
-                                                <Image src={item.image} alt={item.title} fill className="object-cover" />
-                                            </div>
-                                            <div className="max-w-xs">
-                                                <p className="font-bold text-slate-900 line-clamp-1">{item.title}</p>
-                                                <p className="text-[10px] text-slate-500 flex items-center gap-1 font-bold mt-1">
-                                                    <Calendar className="w-3 h-3 text-orange-600" /> Published {item.date}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className="bg-orange-50 text-orange-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-orange-100">
-                                            {item.category}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-black text-slate-900">4.2K</span>
-                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Impressions</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse" />
-                                            <span className="text-xs font-black text-slate-700 uppercase tracking-widest">Active</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all" title="View"><Eye className="w-5 h-5" /></button>
-                                            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Edit"><Edit3 className="w-5 h-5" /></button>
-                                            <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Delete"><Trash2 className="w-5 h-5" /></button>
-                                        </div>
-                                    </td>
-                                </motion.tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  return (
+    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">
+      {/* Header Area */}
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+            Platform News CMS
+          </h1>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+            Manage and publish editorial content for the Platform Pulse feed.
+          </p>
         </div>
-    );
+        <Link
+          href="/dashboard/admin/news/create"
+          className="inline-flex items-center gap-1 px-3 py-2 sm:px-4 sm:py-2.5 bg-orange-600 text-white rounded-xl font-bold text-[11px] sm:text-xs hover:bg-orange-700 transition-all shadow-sm w-fit shrink-0"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>New Story</span>
+        </Link>
+      </div>
+
+      {/* Horizontal Scroll KPI Strip on Mobile (Peeping Card + Dot Slider) */}
+      <div>
+        <div className="flex lg:grid lg:grid-cols-4 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+          {newsStats.map((stat, i) => {
+            const IconComponent = stat.icon;
+            return (
+              <div
+                key={i}
+                className="w-[42%] min-w-[144px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs"
+              >
+                <div className="flex items-center justify-between gap-1.5 mb-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                    {stat.label}
+                  </span>
+                  <IconComponent className={`w-3.5 h-3.5 ${stat.iconColor} shrink-0`} />
+                </div>
+                <p className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 leading-none">
+                  {stat.value}
+                </p>
+                <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">
+                  {stat.sub}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+        {/* Mobile Slider Dots Indicator */}
+        <div className="flex items-center justify-center gap-1.5 mt-2 lg:hidden">
+          <span className="w-4 h-1 rounded-full bg-orange-600" />
+          <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+          <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+        </div>
+      </div>
+
+      {/* Content Container (Desktop Table + Mobile Stacked Rows) */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="relative w-full sm:w-80 md:w-96">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by title or category..."
+              className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-orange-500 outline-none text-xs sm:text-sm font-medium transition-all"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-100">
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Story Info
+                </th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Category
+                </th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Impressions
+                </th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredNews.map((item) => (
+                <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-14 h-10 relative rounded-lg overflow-hidden shadow-2xs shrink-0">
+                        <Image src={item.image} alt={item.title} fill className="object-cover" />
+                      </div>
+                      <div className="max-w-xs min-w-0">
+                        <p className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                          {item.title}
+                        </p>
+                        <p className="text-[10px] text-slate-500 flex items-center gap-1 font-bold mt-0.5">
+                          <Calendar className="w-3 h-3 text-orange-600" /> {item.date}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider">
+                      {item.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-xs font-black text-slate-900">4.2K</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-xs font-black text-emerald-600 uppercase tracking-wider">
+                      Published
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/news/${item.id}`}
+                        className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
+                        title="View"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                      <button
+                        type="button"
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        title="Edit"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Stacked Articles List (Colored text category & status, no pills) */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {filteredNews.map((item) => (
+            <div key={item.id} className="p-4 space-y-2.5">
+              <div className="flex items-start gap-3">
+                <div className="w-16 h-12 relative rounded-xl overflow-hidden shrink-0">
+                  <Image src={item.image} alt={item.title} fill className="object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider">
+                      {item.category}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400">{item.date}</span>
+                  </div>
+                  <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 line-clamp-2 leading-snug">
+                    {item.title}
+                  </h3>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-emerald-600 uppercase text-[10px] tracking-wider">
+                    Published
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="font-bold text-slate-500">4.2K views</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Link
+                    href={`/news/${item.id}`}
+                    className="p-1.5 text-slate-500 hover:text-orange-600 bg-slate-100 rounded-lg"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </Link>
+                  <button
+                    type="button"
+                    className="p-1.5 text-slate-500 hover:text-blue-600 bg-slate-100 rounded-lg"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    className="p-1.5 text-slate-500 hover:text-red-600 bg-slate-100 rounded-lg"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

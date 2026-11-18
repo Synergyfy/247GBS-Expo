@@ -1,51 +1,85 @@
 "use client";
 
 import { useState } from "react";
-import { 
-    Gavel, 
-    Settings, 
-    Ticket, 
-    Percent, 
-    Clock, 
-    ShieldAlert, 
-    Save, 
-    Plus, 
-    Trash2,
-    CheckCircle2,
-    X,
-    Loader2,
-    Info,
-    ChevronDown,
-    Share2,
-    Gift,
-    Layers,
-    Globe
+import {
+  Settings,
+  Ticket,
+  Percent,
+  Clock,
+  ShieldAlert,
+  Save,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  X,
+  Loader2,
+  Info,
+  ChevronDown,
+  Share2,
+  Gift,
+  Layers,
+  Globe
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
 
 interface TicketTemplate {
-    name: string;
-    access: string;
-    priceRange: string;
-    status: string;
-    description?: string;
-    minPrice?: number;
-    maxPrice?: number;
+  name: string;
+  access: string;
+  priceRange: string;
+  status: string;
+  description?: string;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 export default function GovernancePage() {
-    const [activeTab, setActiveTab] = useState("parameters");
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    
-    const [templates, setTemplates] = useState<TicketTemplate[]>([
-        { name: "Standard Day Pass", access: "General", priceRange: "£0 - £50", status: "Active" },
-        { name: "VIP Experience", access: "Full Hall + Lounge", priceRange: "£99 - £500", status: "Active" },
-        { name: "Reward Pass", access: "Specific Booth", priceRange: "Gift Only", status: "Active" },
-    ]);
+  const [activeTab, setActiveTab] = useState("parameters");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-    const [newTemplate, setNewTemplate] = useState<TicketTemplate>({
+  const [templates, setTemplates] = useState<TicketTemplate[]>([
+    { name: "Standard Day Pass", access: "General", priceRange: "£0 - £50", status: "Active" },
+    { name: "VIP Experience", access: "Full Hall + Lounge", priceRange: "£99 - £500", status: "Active" },
+    { name: "Reward Pass", access: "Specific Booth", priceRange: "Gift Only", status: "Active" }
+  ]);
+
+  const [newTemplate, setNewTemplate] = useState<TicketTemplate>({
+    name: "",
+    access: "General Access",
+    priceRange: "",
+    status: "Active",
+    description: "",
+    minPrice: 0,
+    maxPrice: 0
+  });
+
+  const accessOptions = [
+    "General Access",
+    "Full Hall + Lounge",
+    "Specific Booth Only",
+    "Workshop Access",
+    "VIP Area + Networking",
+    "Premium All-Access"
+  ];
+
+  const handleCreateTemplate = () => {
+    if (!newTemplate.name || !newTemplate.access) return;
+
+    setIsSaving(true);
+    setTimeout(() => {
+      const rangeString =
+        newTemplate.minPrice === 0 && newTemplate.maxPrice === 0
+          ? "Gift Only"
+          : `£${newTemplate.minPrice} - £${newTemplate.maxPrice}`;
+
+      const templateToAdd = {
+        ...newTemplate,
+        priceRange: rangeString
+      };
+
+      setTemplates([...templates, templateToAdd]);
+      setNewTemplate({
         name: "",
         access: "General Access",
         priceRange: "",
@@ -53,458 +87,495 @@ export default function GovernancePage() {
         description: "",
         minPrice: 0,
         maxPrice: 0
-    });
+      });
+      setIsModalOpen(false);
+      setIsSaving(false);
+    }, 800);
+  };
 
-    const accessOptions = [
-        "General Access",
-        "Full Hall + Lounge",
-        "Specific Booth Only",
-        "Workshop Access",
-        "VIP Area + Networking",
-        "Premium All-Access"
-    ];
+  const handleDeleteTemplate = (index: number) => {
+    setTemplates(templates.filter((_, i) => i !== index));
+  };
 
-    const handleCreateTemplate = () => {
-        if (!newTemplate.name || !newTemplate.access) return;
-        
-        setIsSaving(true);
-        setTimeout(() => {
-            const rangeString = newTemplate.minPrice === 0 && newTemplate.maxPrice === 0 
-                ? "Gift Only" 
-                : `£${newTemplate.minPrice} - £${newTemplate.maxPrice}`;
-            
-            const templateToAdd = {
-                ...newTemplate,
-                priceRange: rangeString
-            };
-
-            setTemplates([...templates, templateToAdd]);
-            setNewTemplate({ name: "", access: "General Access", priceRange: "", status: "Active", description: "", minPrice: 0, maxPrice: 0 });
-            setIsModalOpen(false);
-            setIsSaving(false);
-        }, 1000);
-    };
-
-    const handleDeleteTemplate = (index: number) => {
-        setTemplates(templates.filter((_, i) => i !== index));
-    };
-
-    return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Governance Console</h1>
-                    <p className="text-slate-500">Configure global platform rules, commission structures, and ecosystem partners.</p>
-                </div>
-                <button className="flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all">
-                    <Save className="w-5 h-5" /> Save Global Changes
-                </button>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-8 border-b border-slate-200 overflow-x-auto">
-                {[
-                    { id: "parameters", label: "System Parameters", icon: <Settings className="w-4 h-4" /> },
-                    { id: "templates", label: "Ticket Templates", icon: <Ticket className="w-4 h-4" /> },
-                    { id: "financial", label: "Commission & Tax", icon: <Percent className="w-4 h-4" /> },
-                    { id: "ecosystem", label: "Ecosystem & API", icon: <Share2 className="w-4 h-4" /> },
-                    { id: "policies", label: "SLA & Policies", icon: <ShieldAlert className="w-4 h-4" /> },
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
-                        }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                        {activeTab === tab.id && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-600 rounded-t-full" />
-                        )}
-                    </button>
-                ))}
-            </div>
-
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                
-                {/* SYSTEM PARAMETERS */}
-                {activeTab === "parameters" && (
-                    <div className="space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                                    <Clock className="w-5 h-5 text-orange-600" /> Redemption & Expiry
-                                </h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Default Refund Window (Hours)</label>
-                                        <input type="number" defaultValue={48} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Ticket Validity Post-Event (Days)</label>
-                                        <input type="number" defaultValue={30} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                                    <Gift className="w-5 h-5 text-orange-600" /> Reward & Loyalty Ratios
-                                </h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Points per £1 Spent</label>
-                                        <input type="number" defaultValue={10} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-black uppercase text-slate-400 mb-2">Redemption Value (Points per £1)</label>
-                                        <input type="number" defaultValue={100} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6 md:col-span-2">
-                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                                    <ShieldAlert className="w-5 h-5 text-orange-600" /> Access & Security
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-900">Enforce MFA for Admins</p>
-                                            <p className="text-xs text-slate-500">Require multi-factor for all roles</p>
-                                        </div>
-                                        <div className="w-12 h-6 bg-orange-600 rounded-full relative cursor-pointer">
-                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-900">Geo-Fencing Validation</p>
-                                            <p className="text-xs text-slate-500">Restrict verification by IP location</p>
-                                        </div>
-                                        <div className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
-                                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* TICKET TEMPLATES & CATEGORIES */}
-                {activeTab === "templates" && (
-                    <div className="space-y-8">
-                        {/* Event Categories Section */}
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2 mb-6">
-                                <Layers className="w-5 h-5 text-orange-600" /> Event & Product Categories
-                            </h3>
-                            <div className="flex flex-wrap gap-3">
-                                {["Tech & Innovation", "Fashion & Apparel", "Home & Living", "Gaming & Esports", "Food & Beverage"].map((cat, i) => (
-                                    <div key={i} className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl">
-                                        <span className="text-sm font-bold text-slate-700">{cat}</span>
-                                        <button className="text-slate-400 hover:text-red-500"><X className="w-3 h-3" /></button>
-                                    </div>
-                                ))}
-                                <button className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-300 transition-all text-sm font-bold">
-                                    <Plus className="w-3 h-3" /> Add Category
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Templates Grid */}
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                                    <Ticket className="w-5 h-5 text-orange-600" /> Global Ticket Templates
-                                </h3>
-                                <button 
-                                    onClick={() => setIsModalOpen(true)}
-                                    className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all text-sm"
-                                >
-                                    <Plus className="w-4 h-4" /> Create Template
-                                </button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {templates.map((temp, i) => (
-                                    <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:border-orange-200 transition-all group relative">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                                                <Ticket className="w-5 h-5" />
-                                            </div>
-                                            <span className="text-[10px] font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded-md uppercase tracking-widest">{temp.status}</span>
-                                        </div>
-                                        <h4 className="font-bold text-slate-900 mb-1">{temp.name}</h4>
-                                        <p className="text-xs text-slate-500 font-medium mb-4">Access: {temp.access}</p>
-                                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{temp.priceRange}</span>
-                                            <div className="flex gap-2">
-                                                <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><Settings className="w-4 h-4" /></button>
-                                                <button 
-                                                    onClick={() => handleDeleteTemplate(i)}
-                                                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* FINANCIAL */}
-                {activeTab === "financial" && (
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="p-8 border-b border-slate-100">
-                            <h3 className="font-bold text-lg text-slate-900 uppercase tracking-tight">Fee & Tax Configuration</h3>
-                        </div>
-                        <div className="p-8 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="space-y-4">
-                                    <label className="block text-xs font-black uppercase text-slate-400 tracking-widest">Platform Commission (%)</label>
-                                    <div className="relative">
-                                        <input type="number" defaultValue={10} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
-                                        <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <label className="block text-xs font-black uppercase text-slate-400 tracking-widest">Partner/Affiliate Share (%)</label>
-                                    <div className="relative">
-                                        <input type="number" defaultValue={5} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
-                                        <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <label className="block text-xs font-black uppercase text-slate-400 tracking-widest">Global VAT/Tax Rate (%)</label>
-                                    <div className="relative">
-                                        <input type="number" defaultValue={7.5} className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none" />
-                                        <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="p-6 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-4">
-                                <ShieldAlert className="w-6 h-6 text-orange-600 shrink-0 mt-1" />
-                                <div>
-                                    <p className="text-sm font-bold text-orange-900 uppercase tracking-widest mb-1">Impact Warning</p>
-                                    <p className="text-xs text-orange-700 leading-relaxed font-medium">
-                                        Changing commission rates will apply to all **new transactions** immediately. Payouts for existing held funds will be calculated based on the rate active at the time of sale.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* ECOSYSTEM & API */}
-                {activeTab === "ecosystem" && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Partner Integrations */}
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2 mb-6">
-                                <Globe className="w-5 h-5 text-orange-600" /> Partner Integrations
-                            </h3>
-                            <div className="space-y-4">
-                                {[
-                                    { name: "Stripe Connect", type: "Payment", status: "Active" },
-                                    { name: "Salesforce CRM", type: "Data Sync", status: "Active" },
-                                    { name: "HubSpot", type: "Marketing", status: "Paused" },
-                                    { name: "Slack Alerts", type: "Notification", status: "Active" }
-                                ].map((partner, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700">
-                                                {partner.name[0]}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-900 text-sm">{partner.name}</h4>
-                                                <p className="text-xs text-slate-500">{partner.type}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md ${partner.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
-                                                {partner.status}
-                                            </span>
-                                            <button className="text-slate-400 hover:text-orange-600"><Settings className="w-4 h-4" /></button>
-                                        </div>
-                                    </div>
-                                ))}
-                                <button className="w-full py-3 mt-2 border border-dashed border-slate-300 rounded-xl text-slate-500 font-bold text-sm hover:border-orange-400 hover:text-orange-600 transition-all">
-                                    + Connect New Partner
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* API Access */}
-                        <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-xl text-white">
-                            <h3 className="font-bold text-lg flex items-center gap-2 mb-6">
-                                <Share2 className="w-5 h-5 text-orange-400" /> API Access Control
-                            </h3>
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-black uppercase text-slate-400 mb-2">Global Rate Limit (Req/Min)</label>
-                                    <input type="number" defaultValue={5000} className="w-full px-4 py-3 bg-white/10 border border-white/10 rounded-xl text-white font-mono focus:border-orange-500 outline-none" />
-                                </div>
-                                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="text-sm font-bold">Public API Key</span>
-                                        <span className="text-xs text-orange-400 cursor-pointer hover:underline">Regenerate</span>
-                                    </div>
-                                    <div className="font-mono text-xs text-slate-400 break-all">
-                                        pk_live_51Msz...234xS
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-slate-300">Allow External Webhooks</span>
-                                        <div className="w-10 h-5 bg-emerald-500 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-slate-300">Sandbox Mode</span>
-                                        <div className="w-10 h-5 bg-slate-600 rounded-full relative"><div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* POLICIES (Placeholder) */}
-                {activeTab === "policies" && (
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 p-20 text-center">
-                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <ShieldAlert className="w-10 h-10 text-slate-300" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2 uppercase tracking-tight">Legal & SLA Standards</h3>
-                        <p className="text-slate-500 max-w-sm mx-auto font-medium">Manage platform terms, exhibitor SLAs, and privacy standards here.</p>
-                    </div>
-                )}
-
-            </div>
-
-            {/* CREATE TEMPLATE MODAL */}
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title="Create Ticket Template"
-            >
-                <div className="space-y-6">
-                    <div className="space-y-5">
-                        {/* Template Name */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <label className="block text-xs font-black uppercase text-slate-700 tracking-widest">Template Name <span className="text-orange-600">*</span></label>
-                                <Tooltip content="The public name of the ticket tier (e.g. VIP Pass, Student Discount)">
-                                    <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                </Tooltip>
-                            </div>
-                            <input 
-                                type="text" 
-                                placeholder="e.g. Early Bird Access"
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
-                                value={newTemplate.name}
-                                onChange={(e) => setNewTemplate({...newTemplate, name: e.target.value})}
-                            />
-                            <p className="mt-1.5 text-[10px] text-slate-400 font-medium">Keep it short and descriptive for the marketplace.</p>
-                        </div>
-
-                        {/* Access Level */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <label className="block text-xs font-black uppercase text-slate-700 tracking-widest">Access Level <span className="text-orange-600">*</span></label>
-                                <Tooltip content="Determines what areas of the expo the holder can enter.">
-                                    <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                </Tooltip>
-                            </div>
-                            <div className="relative">
-                                <select 
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900 appearance-none cursor-pointer"
-                                    value={newTemplate.access}
-                                    onChange={(e) => setNewTemplate({...newTemplate, access: e.target.value})}
-                                >
-                                    {accessOptions.map(opt => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                            </div>
-                        </div>
-
-                        {/* Price Range */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <label className="block text-xs font-black uppercase text-slate-700 tracking-widest">Suggested Price Range</label>
-                                <Tooltip content="Set the minimum and maximum price boundaries for this template.">
-                                    <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                </Tooltip>
-                            </div>
-                            <div className="flex gap-4 items-center">
-                                <div className="flex-1 relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">£</span>
-                                    <input 
-                                        type="number" 
-                                        placeholder="Min"
-                                        className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
-                                        value={newTemplate.minPrice}
-                                        onChange={(e) => setNewTemplate({...newTemplate, minPrice: Number(e.target.value)})}
-                                    />
-                                </div>
-                                <div className="text-slate-300 font-bold">—</div>
-                                <div className="flex-1 relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">£</span>
-                                    <input 
-                                        type="number" 
-                                        placeholder="Max"
-                                        className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
-                                        value={newTemplate.maxPrice}
-                                        onChange={(e) => setNewTemplate({...newTemplate, maxPrice: Number(e.target.value)})}
-                                    />
-                                </div>
-                            </div>
-                            <p className="mt-1.5 text-[10px] text-slate-400 font-medium">Leave at 0 for 'Gift Only' / Reward templates.</p>
-                        </div>
-
-                        {/* Description */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <label className="block text-xs font-black uppercase text-slate-700 tracking-widest">Internal Description</label>
-                                <Tooltip content="Explain the purpose of this template for other admins.">
-                                    <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                </Tooltip>
-                            </div>
-                            <textarea 
-                                placeholder="Purpose of this ticket tier..."
-                                rows={3}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium text-slate-900 resize-none"
-                                value={newTemplate.description}
-                                onChange={(e) => setNewTemplate({...newTemplate, description: e.target.value})}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 pt-4 border-t border-slate-100">
-                        <button 
-                            onClick={() => setIsModalOpen(false)}
-                            className="flex-1 py-3 px-6 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            onClick={handleCreateTemplate}
-                            disabled={!newTemplate.name || !newTemplate.access || isSaving}
-                            className="flex-1 py-3 px-6 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all flex justify-center items-center gap-2 disabled:opacity-50"
-                        >
-                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Create Template <CheckCircle2 className="w-4 h-4" /></>}
-                        </button>
-                    </div>
-                </div>
-            </Modal>
+  return (
+    <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+            Platform Governance
+          </h1>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+            Configure global platform rules, ticket pricing templates, and ecosystem integrations.
+          </p>
         </div>
-    );
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm hover:bg-orange-700 shadow-md transition-all w-fit shrink-0"
+        >
+          <Save className="w-4 h-4" />
+          <span>Save Global Changes</span>
+        </button>
+      </div>
+
+      {/* Horizontal Scrollable Tabs */}
+      <div className="flex gap-4 sm:gap-7 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+        {[
+          { id: "parameters", label: "System Parameters", icon: <Settings className="w-4 h-4" /> },
+          { id: "templates", label: "Ticket Templates", icon: <Ticket className="w-4 h-4" /> },
+          { id: "financial", label: "Commission & Tax", icon: <Percent className="w-4 h-4" /> },
+          { id: "ecosystem", label: "Ecosystem & API", icon: <Share2 className="w-4 h-4" /> },
+          { id: "policies", label: "SLA & Policies", icon: <ShieldAlert className="w-4 h-4" /> }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`pb-3 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all relative flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+              activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
+            }`}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+            {activeTab === tab.id && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600 rounded-t-full" />
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div>
+        {/* SYSTEM PARAMETERS (Flattened, No Nested Double Boxes) */}
+        {activeTab === "parameters" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                <Clock className="w-4 h-4 text-orange-600" /> Redemption & Expiry
+              </h3>
+              <div className="space-y-3.5">
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                    Default Refund Window (Hours)
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue={48}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:border-orange-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                    Ticket Validity Post-Event (Days)
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue={30}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:border-orange-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                <Gift className="w-4 h-4 text-orange-600" /> MCOM Reward & Loyalty Ratios
+              </h3>
+              <div className="space-y-3.5">
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                    Points per £1 Spent
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue={10}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:border-orange-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                    Redemption Value (Points per £1)
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue={100}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:border-orange-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs md:col-span-2">
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+                <ShieldAlert className="w-4 h-4 text-orange-600" /> Access & Security Controls
+              </h3>
+              <div className="divide-y divide-slate-100">
+                <div className="flex items-center justify-between py-3.5">
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-900">
+                      Enforce MFA for Admins
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Require multi-factor authentication for all administrative roles
+                    </p>
+                  </div>
+                  <div className="w-11 h-6 bg-orange-600 rounded-full relative cursor-pointer shrink-0">
+                    <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-xs" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-3.5">
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-900">
+                      Geo-Fencing Validation
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Restrict live verification terminals by authorized IP location
+                    </p>
+                  </div>
+                  <div className="w-11 h-6 bg-slate-200 rounded-full relative cursor-pointer shrink-0">
+                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-xs" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TICKET TEMPLATES & CATEGORIES */}
+        {activeTab === "templates" && (
+          <div className="space-y-5 sm:space-y-6">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs">
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2 mb-3.5">
+                <Layers className="w-4 h-4 text-orange-600" /> Event & Product Categories
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Tech & Innovation",
+                  "Fashion & Apparel",
+                  "Home & Living",
+                  "Gaming & Esports",
+                  "Food & Beverage"
+                ].map((cat, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl"
+                  >
+                    <span className="text-xs font-bold text-slate-700">{cat}</span>
+                    <button type="button" className="text-slate-400 hover:text-red-500">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-300 transition-all text-xs font-bold"
+                >
+                  <Plus className="w-3 h-3" /> Add Category
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
+                  <Ticket className="w-4 h-4 text-orange-600" /> Global Ticket Templates & Pricing Caps
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 bg-slate-900 text-white px-4 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all text-xs w-fit"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Create Template
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {templates.map((temp, i) => (
+                  <div
+                    key={i}
+                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:border-orange-200 transition-all"
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">
+                        {temp.status}
+                      </span>
+                      <Ticket className="w-4 h-4 text-orange-600 shrink-0" />
+                    </div>
+                    <h4 className="font-extrabold text-slate-900 text-sm mb-0.5">{temp.name}</h4>
+                    <p className="text-xs text-slate-500 font-medium mb-3">Access: {temp.access}</p>
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                      <span className="text-xs font-black text-orange-600 uppercase tracking-wider">
+                        Cap: {temp.priceRange}
+                      </span>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          className="p-1.5 text-slate-400 hover:text-slate-700 transition-colors"
+                        >
+                          <Settings className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTemplate(i)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FINANCIAL */}
+        {activeTab === "financial" && (
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs p-4 sm:p-6 space-y-5">
+            <h3 className="font-extrabold text-sm sm:text-base text-slate-900 uppercase tracking-tight pb-3 border-b border-slate-100">
+              Fee & Tax Configuration
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                  Platform Commission (%)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    defaultValue={10}
+                    className="w-full pl-3.5 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:border-orange-500 outline-none"
+                  />
+                  <Percent className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                  Partner/Affiliate Share (%)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    defaultValue={5}
+                    className="w-full pl-3.5 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:border-orange-500 outline-none"
+                  />
+                  <Percent className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                  Global VAT/Tax Rate (%)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    defaultValue={20}
+                    className="w-full pl-3.5 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:border-orange-500 outline-none"
+                  />
+                  <Percent className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex items-start gap-3 text-xs">
+              <ShieldAlert className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+              <p className="text-slate-600 leading-relaxed font-medium">
+                <strong className="text-slate-900">Impact Notice:</strong> Changing commission rates applies to all new transactions immediately. Payouts for held escrow funds use the rate active at the time of sale.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ECOSYSTEM & API (Flattened Rows, No Nested Double Boxes) */}
+        {activeTab === "ecosystem" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs">
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+                <Globe className="w-4 h-4 text-orange-600" /> Ecosystem & Central Solution Sync
+              </h3>
+              <div className="divide-y divide-slate-100">
+                {[
+                  { name: "Central Hub Solution (CHS)", type: "Identity & KYB Sync", status: "Active" },
+                  { name: "MCOM Mall", type: "Product Auto-Import", status: "Active" },
+                  { name: "MCOM Rewards", type: "Loyalty & Pass Sync", status: "Active" },
+                  { name: "Stripe Connect", type: "Escrow & Payouts", status: "Active" }
+                ].map((partner, i) => (
+                  <div key={i} className="flex items-center justify-between py-3">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                        {partner.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 truncate">{partner.type}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
+                        {partner.status}
+                      </span>
+                      <button type="button" className="p-1 text-slate-400 hover:text-orange-600">
+                        <Settings className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl sm:rounded-3xl text-white shadow-lg space-y-4">
+              <h3 className="font-extrabold text-sm sm:text-base flex items-center gap-2 pb-3 border-b border-white/10">
+                <Share2 className="w-4 h-4 text-orange-400" /> API Access Control
+              </h3>
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                  Global Rate Limit (Req/Min)
+                </label>
+                <input
+                  type="number"
+                  defaultValue={5000}
+                  className="w-full px-3.5 py-2.5 bg-white/10 border border-white/10 rounded-xl text-white text-sm font-mono focus:border-orange-500 outline-none"
+                />
+              </div>
+              <div className="py-3 border-y border-white/10">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs font-bold">Public API Key</span>
+                  <span className="text-[11px] text-orange-400 cursor-pointer hover:underline font-bold">
+                    Regenerate
+                  </span>
+                </div>
+                <div className="font-mono text-xs text-slate-400 break-all">
+                  pk_live_51Msz...234xS
+                </div>
+              </div>
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-medium">Allow CHS Webhooks</span>
+                  <div className="w-10 h-5 bg-emerald-500 rounded-full relative">
+                    <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-medium">Sandbox Mode</span>
+                  <div className="w-10 h-5 bg-slate-600 rounded-full relative">
+                    <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* POLICIES */}
+        {activeTab === "policies" && (
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-8 sm:p-12 text-center">
+            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <ShieldAlert className="w-7 h-7 text-orange-600" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 mb-1 uppercase tracking-tight">
+              Legal & SLA Standards
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto font-medium">
+              Platform terms, exhibitor SLAs, and UK GDPR standards are enforced across all halls.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* CREATE TEMPLATE MODAL */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Create Ticket Template"
+      >
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider">
+                Template Name <span className="text-orange-600">*</span>
+              </label>
+              <Tooltip content="The public name of the ticket tier (e.g. VIP Pass)">
+                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+              </Tooltip>
+            </div>
+            <input
+              type="text"
+              placeholder="e.g. VIP All-Access"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500"
+              value={newTemplate.name}
+              onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
+              Access Level <span className="text-orange-600">*</span>
+            </label>
+            <div className="relative">
+              <select
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500 appearance-none"
+                value={newTemplate.access}
+                onChange={(e) => setNewTemplate({ ...newTemplate, access: e.target.value })}
+              >
+                {accessOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
+              Allowed Price Cap Range (£)
+            </label>
+            <div className="flex gap-2.5 items-center">
+              <input
+                type="number"
+                placeholder="Min"
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500"
+                value={newTemplate.minPrice}
+                onChange={(e) =>
+                  setNewTemplate({ ...newTemplate, minPrice: Number(e.target.value) })
+                }
+              />
+              <span className="text-slate-400 font-bold">—</span>
+              <input
+                type="number"
+                placeholder="Max Cap"
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500"
+                value={newTemplate.maxPrice}
+                onChange={(e) =>
+                  setNewTemplate({ ...newTemplate, maxPrice: Number(e.target.value) })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2.5 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="flex-1 py-2.5 rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-50 border border-slate-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateTemplate}
+              disabled={!newTemplate.name || !newTemplate.access || isSaving}
+              className="flex-1 py-2.5 bg-orange-600 text-white rounded-xl font-bold text-xs hover:bg-orange-700 shadow-md flex justify-center items-center gap-1.5 disabled:opacity-50"
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <span>Create Template</span>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
 }

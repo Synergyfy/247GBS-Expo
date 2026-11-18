@@ -1,334 +1,357 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Plus, 
-    ArrowRight, 
-    ArrowLeft, 
-    Check, 
-    Upload, 
-    Calendar, 
-    Clock, 
-    Ticket, 
-    ShoppingBag, 
-    Layout, 
-    Globe,
-    Monitor,
-    MapPin,
-    Users,
-    Briefcase,
-    ShieldCheck,
-    Loader2,
-    Info
-} from "lucide-react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import Tooltip from "@/app/component/Tooltip";
+import { useRouter } from "next/navigation";
+import {
+    ArrowLeft,
+    Calendar,
+    Ticket,
+    ShieldCheck,
+    CheckCircle2,
+    AlertCircle,
+    Sparkles,
+} from "lucide-react";
 
-const WIZARD_STEPS = [
-    "Event Type",
-    "Venue Format",
-    "Basic Details",
-    "Schedule",
-    "Ticket Config",
-    "Bundles",
-    "Review"
+const ADMIN_TICKET_TEMPLATES = [
+    {
+        id: "tpl-general",
+        name: "Standard Season Day Pass Template",
+        minPrice: 0,
+        maxPrice: 50,
+        defaultPrice: 25,
+        commission: "10% Admin Split",
+        description: "Admin-approved general booth & keynote access template. Capped at £50 maximum.",
+    },
+    {
+        id: "tpl-vip",
+        name: "VIP Executive Workshop Template",
+        minPrice: 50,
+        maxPrice: 250,
+        defaultPrice: 120,
+        commission: "8% Admin Split",
+        description: "Includes 1-on-1 consultation room access & MCOM voucher perk. Capped at £250 maximum.",
+    },
+    {
+        id: "tpl-reward",
+        name: "MCOM Loyalty Reward Pass (Gift Only)",
+        minPrice: 0,
+        maxPrice: 0,
+        defaultPrice: 0,
+        commission: "0% Fee • Loyalty Gift",
+        description: "Complimentary pass distributed via MCOM Rewards and sales referral links.",
+    },
 ];
 
-export default function CreateEventWizard() {
-    const [step, setStep] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
+export default function CreateEventPage() {
+    const router = useRouter();
+    const [step, setStep] = useState(1);
+    const [title, setTitle] = useState("");
+    const [category, setCategory] = useState("Technology & AI");
+    const [eventDate, setEventDate] = useState("2026-04-18");
+    const [capacity, setCapacity] = useState("300");
+    const [selectedTemplateId, setSelectedTemplateId] = useState("tpl-general");
+    const [ticketPrice, setTicketPrice] = useState<number>(25);
+    const [rewardQuota, setRewardQuota] = useState("50");
+    const [submitted, setSubmitted] = useState(false);
 
-    // Form State
-    const [eventType, setEventType] = useState("expo");
-    const [format, setFormat] = useState("virtual");
-    const [details, setDetails] = useState({ title: "", description: "" });
-    const [tickets, setTickets] = useState<any[]>([
-        { id: "1", name: "General Access", price: "0", quantity: "1000", rules: "Non-refundable" }
-    ]);
+    const activeTemplate =
+        ADMIN_TICKET_TEMPLATES.find((t) => t.id === selectedTemplateId) || ADMIN_TICKET_TEMPLATES[0];
 
-    const handleNext = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setStep(prev => Math.min(prev + 1, WIZARD_STEPS.length - 1));
-        }, 500);
+    const isPriceValid =
+        ticketPrice >= activeTemplate.minPrice && ticketPrice <= activeTemplate.maxPrice;
+
+    const handleTemplateSelect = (tplId: string) => {
+        const tpl = ADMIN_TICKET_TEMPLATES.find((t) => t.id === tplId);
+        setSelectedTemplateId(tplId);
+        if (tpl) {
+            setTicketPrice(tpl.defaultPrice);
+        }
     };
-    
-    const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
 
-    const handleSubmit = () => {
-        setLoading(true);
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!isPriceValid) return;
+        setSubmitted(true);
         setTimeout(() => {
-            setLoading(false);
-            setIsSubmitted(true);
+            router.push("/dashboard/business/events");
         }, 1500);
     };
 
-    const addTicketTier = () => {
-        setTickets([...tickets, { id: Date.now().toString(), name: "New Tier", price: "0", quantity: "100", rules: "" }]);
-    };
-
-    const updateTicket = (id: string, field: string, val: string) => {
-        setTickets(tickets.map(t => t.id === id ? { ...t, [field]: val } : t));
-    };
-
-    if (isSubmitted) {
-        return (
-            <div className="max-w-2xl mx-auto text-center py-20 animate-in zoom-in-95 duration-500">
-                <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8">
-                    <Check className="w-12 h-12" />
-                </div>
-                <h1 className="text-4xl font-black text-slate-900 mb-4">Submitted for Review</h1>
-                <p className="text-lg text-slate-600 mb-12">
-                    Your event <strong>{details.title}</strong> has been sent to the admin team. 
-                    The approval pipeline status is now: <span className="text-orange-600 font-bold uppercase tracking-widest text-sm ml-2 underline">Under Review</span>
-                </p>
-                <Link href="/dashboard/business/events" className="inline-flex items-center gap-2 bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-xl">
-                    Back to Event Manager <ArrowRight className="w-5 h-5" />
-                </Link>
-            </div>
-        );
-    }
-
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-20">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <Link href="/dashboard/business/events" className="flex items-center gap-2 text-slate-500 hover:text-orange-600 font-bold transition-colors">
-                    <ArrowLeft className="w-5 h-5" /> Back to Events
+        <div className="max-w-3xl mx-auto space-y-5 pb-12">
+            {/* Compact Header */}
+            <div className="pb-3 border-b border-slate-200/80">
+                <Link
+                    href="/dashboard/business/events"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-orange-600 uppercase tracking-wider mb-1 transition-colors"
+                >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back to My Events
                 </Link>
-                <div className="text-right">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Step {step + 1} of {WIZARD_STEPS.length}</p>
-                    <h2 className="text-lg font-bold text-slate-900">{WIZARD_STEPS[step]}</h2>
-                </div>
+                <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+                    Create Booth Event (Admin Template Guided)
+                </h1>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                    Select an Admin-configured ticket template to guarantee season price-cap compliance.
+                </p>
             </div>
 
-            {/* Progress Bar */}
-            <div className="flex gap-2 h-1.5">
-                {WIZARD_STEPS.map((_, i) => (
-                    <div key={i} className={`flex-1 rounded-full transition-all duration-500 ${i <= step ? 'bg-orange-600' : 'bg-slate-200'}`} />
+            {/* Sleek Segmented Stepper */}
+            <div className="p-1 bg-slate-100 rounded-xl flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider">
+                {[
+                    { num: 1, short: "Details", full: "1. Event Details" },
+                    { num: 2, short: "Templates", full: "2. Ticket Templates" },
+                    { num: 3, short: "Review", full: "3. Review & Submit" },
+                ].map((s) => (
+                    <button
+                        key={s.num}
+                        type="button"
+                        onClick={() => setStep(s.num)}
+                        className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all truncate ${
+                            step === s.num
+                                ? "bg-white text-orange-600 shadow-xs font-extrabold"
+                                : step > s.num
+                                ? "text-emerald-700 font-bold hover:text-emerald-800"
+                                : "text-slate-500 hover:text-slate-800"
+                        }`}
+                    >
+                        <span className="sm:hidden">{s.num}. {s.short}</span>
+                        <span className="hidden sm:inline">{s.full}</span>
+                    </button>
                 ))}
             </div>
 
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden relative">
-                <div className="p-8 md:p-16">
-                    <AnimatePresence mode="wait">
-                        {/* STEP 0: EVENT TYPE */}
-                        {step === 0 && (
-                            <motion.div key="step0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
-                                <div className="text-center max-w-xl mx-auto">
-                                    <h1 className="text-3xl font-black text-slate-900 mb-3 uppercase tracking-tight">What are you hosting?</h1>
-                                    <p className="text-slate-500">Select the template that best fits your event structure.</p>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {[
-                                        { id: "expo", label: "Digital Expo", icon: <Layout /> },
-                                        { id: "workshop", label: "Workshop", icon: <Briefcase /> },
-                                        { id: "webinar", label: "Webinar", icon: <Monitor /> },
-                                        { id: "panel", label: "Panel", icon: <Users /> },
-                                    ].map((t) => (
-                                        <div key={t.id} onClick={() => setEventType(t.id)} className={`p-6 rounded-3xl border-2 cursor-pointer transition-all text-center ${eventType === t.id ? "border-orange-600 bg-orange-50" : "border-slate-50 hover:border-orange-200"}`}>
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 ${eventType === t.id ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-400"}`}>
-                                                {t.icon}
-                                            </div>
-                                            <span className="font-bold text-slate-900 text-sm">{t.label}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
+            {submitted ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center space-y-2">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                    <h2 className="text-sm font-extrabold text-slate-900 uppercase">
+                        Event Submitted to Admin Approval Queue
+                    </h2>
+                    <p className="text-xs text-slate-600">
+                        Your event &quot;{title || "New Booth Showcase"}&quot; uses the{" "}
+                        <strong>{activeTemplate.name}</strong> (£{ticketPrice}) and is compliant with Season Pass caps.
+                    </p>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
+                    {step === 1 && (
+                        <div className="space-y-4">
+                            <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <Calendar className="w-4 h-4 text-orange-600" /> Step 1: Event Schedule & Scope
+                            </h2>
 
-                        {/* STEP 1: FORMAT */}
-                        {step === 1 && (
-                            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-                                <div className="text-center max-w-xl mx-auto">
-                                    <h1 className="text-3xl font-black text-slate-900 mb-3 uppercase tracking-tight">Venue Format</h1>
-                                    <p className="text-slate-500">How will users attend your event?</p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {[
-                                        { id: "virtual", label: "Virtual", desc: "100% Digital", icon: <Monitor /> },
-                                        { id: "physical", label: "Physical", desc: "On-site Venue", icon: <MapPin /> },
-                                        { id: "hybrid", label: "Hybrid", desc: "Both Formats", icon: <Globe /> },
-                                    ].map((f) => (
-                                        <div key={f.id} onClick={() => setFormat(f.id)} className={`p-8 rounded-[2.5rem] border-2 cursor-pointer transition-all ${format === f.id ? "border-orange-600 bg-orange-50 shadow-xl" : "border-slate-50 bg-slate-50/50 hover:border-orange-200"}`}>
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${format === f.id ? "bg-orange-600 text-white" : "bg-white text-slate-400 border border-slate-100"}`}>
-                                                {f.icon}
-                                            </div>
-                                            <h3 className="text-xl font-bold text-slate-900 mb-1">{f.label}</h3>
-                                            <p className="text-slate-500 text-sm">{f.desc}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                    Event / Session Title
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="e.g. Live AI Product Launch & Q&A"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                />
+                            </div>
 
-                        {/* STEP 2: BASIC DETAILS */}
-                        {step === 2 && (
-                            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid md:grid-cols-2 gap-12">
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Title</label>
-                                                <Tooltip content="The public name of your event">
-                                                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                </Tooltip>
-                                            </div>
-                                            <input type="text" placeholder="Symposium 2026" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Description</label>
-                                                <Tooltip content="A short summary of what attendees can expect">
-                                                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                </Tooltip>
-                                            </div>
-                                            <textarea rows={5} placeholder="What is the main value of this event?" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Banner (Media)</label>
-                                            <Tooltip content="High-quality image for event promotion">
-                                                <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                            </Tooltip>
-                                        </div>
-                                        <div className="border-4 border-dashed border-slate-100 rounded-[3rem] h-64 flex flex-col items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer group">
-                                            <Upload className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
-                                            <p className="font-black text-sm uppercase">Upload Visuals</p>
-                                        </div>
-                                    </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Sector Category
+                                    </label>
+                                    <select
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500"
+                                    >
+                                        <option>Technology & AI</option>
+                                        <option>FinTech & Banking</option>
+                                        <option>Retail & MCOM Commerce</option>
+                                        <option>Clean Energy</option>
+                                    </select>
                                 </div>
-                            </motion.div>
-                        )}
 
-                        {/* STEP 3: SCHEDULE */}
-                        {step === 3 && (
-                            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid md:grid-cols-2 gap-8">
-                                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Calendar className="text-orange-600" /> Key Dates</h3>
-                                            <Tooltip content="Start and end dates for your event">
-                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                            </Tooltip>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
-                                            <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
-                                        </div>
-                                    </div>
-                                    <div className="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Clock className="text-orange-600" /> Sessions</h3>
-                                            <Tooltip content="Manage individual sessions or workshops">
-                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                            </Tooltip>
-                                        </div>
-                                        <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold hover:border-orange-500 hover:text-orange-600 transition-all flex items-center justify-center gap-2">
-                                            <Plus className="w-5 h-5" /> Add New Session
-                                        </button>
-                                    </div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Event Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={eventDate}
+                                        onChange={(e) => setEventDate(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
                                 </div>
-                            </motion.div>
-                        )}
 
-                        {/* STEP 4: TICKET CUSTOMIZATION */}
-                        {step === 4 && (
-                            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-2xl font-black text-slate-900 uppercase">Tier Configuration</h3>
-                                    <button onClick={addTicketTier} className="text-orange-600 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
-                                        <Plus className="w-4 h-4" /> New Tier
-                                    </button>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Max Attendee Capacity
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={capacity}
+                                        onChange={(e) => setCapacity(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
                                 </div>
-                                <div className="space-y-4">
-                                    {tickets.map(t => (
-                                        <div key={t.id} className="p-8 rounded-[2.5rem] bg-slate-50 border border-slate-200 grid md:grid-cols-4 gap-6 relative group">
-                                            <div className="md:col-span-2">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</span>
-                                                    <Tooltip content="Name of the ticket tier (e.g., VIP, General)">
-                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                    </Tooltip>
-                                                </div>
-                                                <input type="text" value={t.name} onChange={(e) => updateTicket(t.id, 'name', e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Price</span>
-                                                    <Tooltip content="Cost per ticket">
-                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                    </Tooltip>
-                                                </div>
-                                                <input type="number" placeholder="Price £" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stock</span>
-                                                    <Tooltip content="Number of tickets available">
-                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                    </Tooltip>
-                                                </div>
-                                                <input type="number" placeholder="Stock" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
-                                            </div>
-                                            <div className="md:col-span-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Advanced: Sale window & Access Rules</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
+                            </div>
 
-                        {/* STEP 5: BUNDLES */}
-                        {step === 5 && (
-                            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="text-center py-12">
-                                <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                    <ShoppingBag />
-                                </div>
-                                <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase">Bundled Products</h2>
-                                <p className="text-slate-500 mb-10">Attach your existing inventory to these tickets.</p>
-                                <button className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-orange-600 transition-all flex items-center gap-2 mx-auto shadow-lg">
-                                    <Plus /> Browse Inventory
+                            <div className="flex justify-end pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(2)}
+                                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700"
+                                >
+                                    Next: Choose Admin Ticket Template →
                                 </button>
-                            </motion.div>
-                        )}
+                            </div>
+                        </div>
+                    )}
 
-                        {/* STEP 6: REVIEW */}
-                        {step === 6 && (
-                            <motion.div key="step6" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-                                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                    <ShieldCheck />
-                                </div>
-                                <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase">Ready for Admin Review</h2>
-                                <p className="text-slate-500 max-w-md mx-auto mb-10">Once submitted, your event enters the approval pipeline. You will be notified via email upon approval.</p>
-                                <div className="max-w-sm mx-auto p-6 bg-slate-50 rounded-3xl border border-slate-100 text-left space-y-3">
-                                    <div className="flex justify-between text-sm"><span>Type:</span> <span className="font-bold uppercase">{eventType}</span></div>
-                                    <div className="flex justify-between text-sm"><span>Format:</span> <span className="font-bold uppercase">{format}</span></div>
-                                    <div className="flex justify-between text-sm"><span>Tickets:</span> <span className="font-bold">{tickets.length} Tiers</span></div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                    {step === 2 && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Ticket className="w-4 h-4 text-orange-600" /> Step 2: Select Admin Ticket Template
+                                </h2>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                                    Price Cap Enforced
+                                </span>
+                            </div>
 
-                {/* Footer Actions */}
-                <div className="p-8 md:p-12 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-                    <button onClick={handleBack} disabled={step === 0} className="text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-900 disabled:opacity-0 transition-all">
-                        Back
-                    </button>
-                    <button 
-                        onClick={step === WIZARD_STEPS.length - 1 ? handleSubmit : handleNext} 
-                        className="bg-orange-600 text-white px-12 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-orange-700 shadow-xl shadow-orange-600/20 flex items-center gap-3 transition-all active:scale-95"
-                    >
-                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : (
-                            step === WIZARD_STEPS.length - 1 ? "Submit for Approval" : <>Next Step <ArrowRight className="w-4 h-4" /></>
-                        )}
-                    </button>
-                </div>
-            </div>
+                            <div className="space-y-2.5">
+                                {ADMIN_TICKET_TEMPLATES.map((tpl) => {
+                                    const selected = tpl.id === selectedTemplateId;
+                                    return (
+                                        <div
+                                            key={tpl.id}
+                                            onClick={() => handleTemplateSelect(tpl.id)}
+                                            className={`p-3.5 rounded-xl border cursor-pointer transition-all space-y-1 ${
+                                                selected
+                                                    ? "border-orange-600 bg-orange-50/40"
+                                                    : "border-slate-200 hover:border-slate-300"
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider">
+                                                <span className="text-orange-600 truncate">{tpl.commission}</span>
+                                                <span className="text-slate-900 shrink-0 whitespace-nowrap">
+                                                    {tpl.maxPrice === 0 ? "Free Pass (£0 Cap)" : `Cap: £${tpl.minPrice}–£${tpl.maxPrice}`}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs sm:text-sm font-extrabold text-slate-900">
+                                                {tpl.name}
+                                            </p>
+                                            <p className="text-[11px] text-slate-500">{tpl.description}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Your Ticket Price (£{activeTemplate.minPrice} – £{activeTemplate.maxPrice} Cap)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={activeTemplate.minPrice}
+                                        max={activeTemplate.maxPrice}
+                                        value={ticketPrice}
+                                        onChange={(e) => setTicketPrice(Number(e.target.value))}
+                                        disabled={activeTemplate.maxPrice === 0}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 disabled:bg-slate-100"
+                                    />
+                                    {!isPriceValid && (
+                                        <p className="text-[11px] font-bold text-red-600 flex items-center gap-1 mt-1">
+                                            <AlertCircle className="w-3.5 h-3.5" /> Price cannot exceed Admin cap of £
+                                            {activeTemplate.maxPrice}.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        MCOM Rewards Complimentary Allocation
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={rewardQuota}
+                                        onChange={(e) => setRewardQuota(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(1)}
+                                    className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                                >
+                                    ← Back
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!isPriceValid}
+                                    onClick={() => setStep(3)}
+                                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 disabled:opacity-50"
+                                >
+                                    Next: Review & Submit →
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-4">
+                            <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Step 3: Compliance Summary
+                            </h2>
+
+                            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">Event Title:</span>
+                                    <span className="font-bold text-slate-900">{title || "Live AI Product Showcase"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">Date & Capacity:</span>
+                                    <span className="font-bold text-slate-900">{eventDate} • {capacity} Passes</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">Admin Template:</span>
+                                    <span className="font-bold text-orange-600">{activeTemplate.name}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">Ticket Price:</span>
+                                    <span className="font-extrabold text-emerald-600">
+                                        £{ticketPrice} (Within £{activeTemplate.maxPrice} Admin Cap)
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">MCOM Rewards Gift Quota:</span>
+                                    <span className="font-bold text-slate-900">{rewardQuota} Passes</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(2)}
+                                    className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                                >
+                                    ← Back
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-emerald-700"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" /> Submit to Admin Queue
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </form>
+            )}
         </div>
     );
 }

@@ -1,152 +1,192 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    MessageSquare, 
-    Plus, 
-    Search, 
-    Filter, 
-    Clock, 
-    CheckCircle2, 
-    AlertCircle, 
-    ChevronRight,
-    ArrowLeft,
-    User,
-    Gavel
-} from "lucide-react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, Plus, CheckCircle2 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 
-export default function SupportTicketsPage() {
-    const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
+export default function BusinessSupportTicketsPage() {
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [subject, setSubject] = useState("");
+    const [category, setCategory] = useState("MCOM Mall Product Sync");
+    const [priority, setPriority] = useState("Normal");
+
     const [tickets, setTickets] = useState([
-        { id: "SPT-1024", subject: "Refund for Order #GBX-221", type: "Refund Dispute", status: "In Arbitration", priority: "High", time: "2 hours ago" },
-        { id: "SPT-1023", subject: "API Integration Error", type: "Technical Support", status: "Resolved", priority: "Medium", time: "1 day ago" },
-        { id: "SPT-1022", subject: "Booth Banner Upload Failed", type: "General Inquiry", status: "Open", priority: "Low", time: "2 days ago" },
+        {
+            id: "SUP-409",
+            subject: "Request Custom VIP Price Cap for Q3 Enterprise Summit",
+            category: "Admin Ticket Templates",
+            priority: "High Priority",
+            status: "In Progress",
+            updated: "35 mins ago",
+        },
+        {
+            id: "SUP-388",
+            subject: "MCOM Mall Auto-Import Image Resolution Check",
+            category: "MCOM Mall Product Sync",
+            priority: "Normal",
+            status: "Resolved",
+            updated: "2 days ago",
+        },
+        {
+            id: "SUP-352",
+            subject: "CHS Verified KYB Badge Refresh on Booth Banner",
+            category: "CHS Branding Sync",
+            priority: "Normal",
+            status: "Resolved",
+            updated: "1 week ago",
+        },
     ]);
 
+    const handleCreateTicket = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!subject.trim()) return;
+        setTickets([
+            {
+                id: `SUP-${410 + tickets.length}`,
+                subject: subject.trim(),
+                category,
+                priority,
+                status: "Open",
+                updated: "Just now",
+            },
+            ...tickets,
+        ]);
+        setSubject("");
+        setIsCreateOpen(false);
+    };
+
+    const getStatusColor = (status: string) => {
+        if (status === "Resolved") return "text-emerald-600";
+        if (status === "In Progress") return "text-orange-600";
+        return "text-blue-600";
+    };
+
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <Link href="/dashboard/business/support" className="flex items-center gap-2 text-slate-500 hover:text-orange-600 font-bold transition-colors">
-                        <ArrowLeft className="w-4 h-4" /> Back to Support
+        <div className="space-y-5 pb-12">
+            {/* Compact Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-200/80">
+                <div>
+                    <Link
+                        href="/dashboard/business/support"
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-orange-600 uppercase tracking-wider mb-1 transition-colors"
+                    >
+                        <ArrowLeft className="w-3.5 h-3.5" /> Back to Support Center
                     </Link>
-                    <div>
-                        <h1 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Resolution Center</h1>
-                        <p className="text-slate-500 text-lg">Track and manage your support requests and customer disputes.</p>
-                    </div>
+                    <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+                        My Support Tickets
+                    </h1>
+                    <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                        Track technical inquiries and Admin template escalation requests.
+                    </p>
                 </div>
-                <button 
-                    onClick={() => setIsNewTicketModalOpen(true)}
-                    className="px-8 py-4 bg-orange-600 text-white font-bold rounded-2xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/20 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+
+                <button
+                    onClick={() => setIsCreateOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-600 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-700 transition-all self-start sm:self-auto"
                 >
-                    <Plus className="w-4 h-4" /> Open New Ticket
+                    <Plus className="w-3.5 h-3.5" /> New Support Ticket
                 </button>
             </div>
 
-            {/* Arbitration Banner (13.2) */}
-            <div className="bg-blue-50 border border-blue-100 p-6 rounded-[2rem] flex items-center gap-6 shadow-sm">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm shrink-0">
-                    <Gavel className="w-7 h-7" />
-                </div>
-                <div className="flex-1">
-                    <h4 className="font-bold text-blue-900 uppercase tracking-tight">Arbitration Notice</h4>
-                    <p className="text-sm text-blue-700 font-medium">You have <span className="font-bold">1 active case</span> in the Arbitration stage. Final decisions will be made by the platform admin within 48 hours.</p>
-                </div>
-                <button className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all">Review Case</button>
-            </div>
-
-            {/* Tickets Table */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/30">
-                    <h2 className="text-xl font-bold text-slate-900">Support History</h2>
-                    <div className="flex gap-2">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input type="text" placeholder="Search tickets..." className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-1 focus:ring-orange-500" />
+            {/* Clean 3-Line Support Tickets List */}
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm divide-y divide-slate-100">
+                {tickets.map((t) => (
+                    <div
+                        key={t.id}
+                        className="p-3.5 sm:p-4 hover:bg-slate-50/70 transition-colors space-y-1"
+                    >
+                        <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider">
+                            <div className="flex items-center gap-1.5 truncate">
+                                <span className="text-slate-900 font-extrabold">{t.id}</span>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-orange-600">{t.category}</span>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-slate-400">{t.updated}</span>
+                            </div>
+                            <span className={`shrink-0 ${getStatusColor(t.status)}`}>{t.status}</span>
                         </div>
-                        <button className="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-orange-600 transition-colors"><Filter className="w-5 h-5" /></button>
-                    </div>
-                </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-50">
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">ID & Subject</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Priority</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Updated</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {tickets.map((ticket) => (
-                                <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-8 py-6">
-                                        <p className="text-xs font-mono font-bold text-slate-400 mb-1">{ticket.id}</p>
-                                        <p className="font-bold text-slate-900 text-sm">{ticket.subject}</p>
-                                    </td>
-                                    <td className="px-8 py-6 text-sm font-medium text-slate-600">{ticket.type}</td>
-                                    <td className="px-8 py-6">
-                                        <span className={`text-[10px] font-black uppercase ${
-                                            ticket.priority === 'High' ? 'text-red-600' : 
-                                            ticket.priority === 'Medium' ? 'text-orange-600' : 'text-blue-600'
-                                        }`}>
-                                            {ticket.priority}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                            ticket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 
-                                            ticket.status === 'In Arbitration' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
-                                        }`}>
-                                            {ticket.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6 text-sm font-bold text-slate-400">{ticket.time}</td>
-                                    <td className="px-8 py-6 text-right">
-                                        <button className="text-slate-300 group-hover:text-orange-600 transition-colors">
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        <p className="text-xs sm:text-sm font-bold text-slate-900">{t.subject}</p>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-500">
+                            <span>Priority: <strong className="text-slate-700">{t.priority}</strong></span>
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
+                                <CheckCircle2 className="w-3 h-3" /> Assigned to Exhibitor Desk
+                            </span>
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            {/* New Ticket Modal */}
-            <Modal isOpen={isNewTicketModalOpen} onClose={() => setIsNewTicketModalOpen(false)} title="Open Support Ticket">
-                <form className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Reason for Contact</label>
-                        <select className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 font-bold">
-                            <option>Technical Issue</option>
-                            <option>Payment / Settlement Dispute</option>
-                            <option>Customer Refund Dispute</option>
-                            <option>Account Suspension Appeal</option>
-                            <option>Other</option>
-                        </select>
+            <Modal
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                title="Open Exhibitor Support Ticket"
+            >
+                <form onSubmit={handleCreateTicket} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                            Subject
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                            placeholder="Describe what you need help with..."
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                        />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Subject</label>
-                        <input type="text" placeholder="Summary of the issue" className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                Topic
+                            </label>
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500"
+                            >
+                                <option>MCOM Mall Product Sync</option>
+                                <option>CHS Branding Sync</option>
+                                <option>Admin Ticket Templates</option>
+                                <option>Payouts & Settlement</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                Priority
+                            </label>
+                            <select
+                                value={priority}
+                                onChange={(e) => setPriority(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500"
+                            >
+                                <option>Normal</option>
+                                <option>High Priority</option>
+                                <option>Urgent (Live Event)</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Detailed Description</label>
-                        <textarea rows={4} placeholder="Please provide all relevant details..." className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 resize-none" />
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => setIsCreateOpen(false)}
+                            className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700"
+                        >
+                            Submit Ticket
+                        </button>
                     </div>
-
-                    <button type="button" onClick={() => setIsNewTicketModalOpen(false)} className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-orange-600 transition-all shadow-lg uppercase tracking-widest text-xs">
-                        Submit Ticket
-                    </button>
                 </form>
             </Modal>
         </div>
