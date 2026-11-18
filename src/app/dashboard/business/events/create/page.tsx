@@ -15,7 +15,11 @@ import {
     UserPlus,
     X,
     Building2,
-    Search
+    Search,
+    Globe,
+    MapPin,
+    Video,
+    Clock
 } from "lucide-react";
 
 const ADMIN_TICKET_TEMPLATES = [
@@ -68,7 +72,13 @@ export default function CreateEventPage() {
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [title, setTitle] = useState("");
+    const [format, setFormat] = useState<"virtual" | "physical" | "hybrid">("virtual");
     const [eventDate, setEventDate] = useState("2026-04-18");
+    const [startTime, setStartTime] = useState("10:00");
+    const [endTime, setEndTime] = useState("12:00");
+    const [virtualLink, setVirtualLink] = useState("https://meet.google.com/abc-defg-hij");
+    const [physicalVenue, setPhysicalVenue] = useState("ExCeL London, Hall 4, Royal Victoria Dock");
+    const [physicalSpaces, setPhysicalSpaces] = useState("150");
     const [capacity, setCapacity] = useState("300");
     const [selectedTemplateId, setSelectedTemplateId] = useState("tpl-general");
     const [ticketPrice, setTicketPrice] = useState<number>(25);
@@ -234,13 +244,76 @@ export default function CreateEventPage() {
                         <div className="space-y-4">
                             <div className="pb-3 border-b border-slate-100">
                                 <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                                    <Calendar className="w-4 h-4 text-orange-600" /> Event Schedule & Scope
+                                    <Calendar className="w-4 h-4 text-orange-600" /> Event Schedule & Format
                                 </h2>
                                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                                    Set the session title, event date, and visitor attendee capacity.
+                                    Choose attendance format (virtual, physical, or hybrid), schedule times, and capacity.
                                 </p>
                             </div>
 
+                            {/* Event Format Selection */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                                    Attendance Format
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    {[
+                                        {
+                                            id: "virtual" as const,
+                                            label: "Virtual Event",
+                                            sub: "Google Meet / Livestream",
+                                            icon: Video,
+                                        },
+                                        {
+                                            id: "physical" as const,
+                                            label: "Physical Venue",
+                                            sub: "In-Person Stage or Booth",
+                                            icon: MapPin,
+                                        },
+                                        {
+                                            id: "hybrid" as const,
+                                            label: "Hybrid Event",
+                                            sub: "Venue + Online Stream",
+                                            icon: Globe,
+                                        },
+                                    ].map((f) => {
+                                        const isSelected = format === f.id;
+                                        const Icon = f.icon;
+                                        return (
+                                            <button
+                                                key={f.id}
+                                                type="button"
+                                                onClick={() => setFormat(f.id)}
+                                                className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center sm:flex-col sm:items-start gap-2.5 ${
+                                                    isSelected
+                                                        ? "border-orange-500 bg-orange-50/50 shadow-2xs"
+                                                        : "border-slate-200 hover:border-slate-300 bg-white"
+                                                }`}
+                                            >
+                                                <div
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                                        isSelected
+                                                            ? "bg-orange-600 text-white"
+                                                            : "bg-slate-100 text-slate-500"
+                                                    }`}
+                                                >
+                                                    <Icon className="w-4 h-4" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="text-xs font-extrabold text-slate-900 leading-tight">
+                                                        {f.label}
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                                                        {f.sub}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Title */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                                     Event / Session Title
@@ -255,7 +328,8 @@ export default function CreateEventPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Schedule & Times */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                                         Event Date
@@ -270,15 +344,108 @@ export default function CreateEventPage() {
 
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        Max Attendee Capacity
+                                        Start Time
                                     </label>
                                     <input
-                                        type="number"
-                                        value={capacity}
-                                        onChange={(e) => setCapacity(e.target.value)}
+                                        type="time"
+                                        value={startTime}
+                                        onChange={(e) => setStartTime(e.target.value)}
                                         className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
                                     />
                                 </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        End Time
+                                    </label>
+                                    <input
+                                        type="time"
+                                        value={endTime}
+                                        onChange={(e) => setEndTime(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Conditional Format Fields: Virtual / Meet Link */}
+                            {(format === "virtual" || format === "hybrid") && (
+                                <div className="p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-xl space-y-2">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900">
+                                        <Video className="w-3.5 h-3.5 text-blue-600" /> Online Joining / Meeting Link
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                            Google Meet / Zoom / Livestream URL
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={virtualLink}
+                                            onChange={(e) => setVirtualLink(e.target.value)}
+                                            placeholder="https://meet.google.com/abc-defg-hij"
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                        />
+                                        <p className="text-[10px] text-slate-500">
+                                            Registered attendees receive this joining link in their pass confirmation.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Conditional Format Fields: Physical Venue & Space Capacity */}
+                            {(format === "physical" || format === "hybrid") && (
+                                <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-3">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                                        <MapPin className="w-3.5 h-3.5 text-amber-600" /> Physical Venue & Seating
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="space-y-1 sm:col-span-2">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                                Venue Name & Address
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={physicalVenue}
+                                                onChange={(e) => setPhysicalVenue(e.target.value)}
+                                                placeholder="e.g. ExCeL London, Hall 4, Royal Victoria Dock, E16 1XL"
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                                Physical Space / Seating Capacity
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={physicalSpaces}
+                                                onChange={(e) => setPhysicalSpaces(e.target.value)}
+                                                placeholder="150"
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                                Check-in Terminal Mode
+                                            </label>
+                                            <select className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500">
+                                                <option>QR Scanner Terminal Active</option>
+                                                <option>Manual Door List Check-in</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Max Total Passes */}
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                    Total Attendee Ticket Cap
+                                </label>
+                                <input
+                                    type="number"
+                                    value={capacity}
+                                    onChange={(e) => setCapacity(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                />
                             </div>
 
                             <div className="flex justify-end pt-2">
@@ -553,8 +720,40 @@ export default function CreateEventPage() {
                                     <span className="font-bold text-slate-900">{title || "Live AI Product Showcase"}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">Date & Capacity:</span>
-                                    <span className="font-bold text-slate-900">{eventDate} • {capacity} Passes</span>
+                                    <span className="text-slate-500">Format:</span>
+                                    <span className="font-bold uppercase text-orange-600">
+                                        {format === "virtual"
+                                            ? "Virtual (Online Stream / Meet)"
+                                            : format === "physical"
+                                            ? "Physical (In-Person Venue)"
+                                            : "Hybrid (Venue + Livestream)"}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">Date & Time:</span>
+                                    <span className="font-bold text-slate-900">
+                                        {eventDate} ({startTime} - {endTime})
+                                    </span>
+                                </div>
+                                {(format === "virtual" || format === "hybrid") && (
+                                    <div className="flex justify-between">
+                                        <span className="text-slate-500">Online Link:</span>
+                                        <span className="font-medium text-blue-600 truncate max-w-[200px]">
+                                            {virtualLink || "Google Meet Link"}
+                                        </span>
+                                    </div>
+                                )}
+                                {(format === "physical" || format === "hybrid") && (
+                                    <div className="flex justify-between">
+                                        <span className="text-slate-500">Venue & Spaces:</span>
+                                        <span className="font-bold text-slate-900">
+                                            {physicalVenue} ({physicalSpaces} seats)
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">Total Capacity:</span>
+                                    <span className="font-bold text-slate-900">{capacity} Passes</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-slate-500">Invited Co-Hosts:</span>

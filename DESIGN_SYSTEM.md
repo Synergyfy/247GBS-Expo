@@ -97,3 +97,4 @@ This document defines the strict UI and UX craft standards for all front-facing 
 1. Test every form, modal, and drawer at **360px width** (typical standard mobile viewport).
 2. Elements must NEVER cause horizontal scroll or force text into jagged 1-word-per-line wrapping.
 3. Form controls (inputs, dropdowns, buttons) should default to `w-full` on mobile and grid columns on tablet/desktop (`grid grid-cols-1 sm:grid-cols-2`).
+
