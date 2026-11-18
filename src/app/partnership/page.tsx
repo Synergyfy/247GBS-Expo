@@ -151,14 +151,16 @@ export default function PartnershipPage() {
                 Traditional trade shows are restricted by venue costs and 3-day windows. Our digital expo removes those barriers, giving your brand a permanent high-converting booth 365 days a year.
               </p>
               
-              <div className="grid grid-cols-2 gap-3 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                 {benefits.map((benefit, i) => (
-                  <div key={i} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 text-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center mb-2">
+                  <div key={i} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-100 flex items-start gap-3 sm:block">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 text-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 sm:mb-2">
                       {benefit.icon}
                     </div>
-                    <h3 className="text-xs sm:text-base font-bold mb-1 text-slate-900">{benefit.title}</h3>
-                    <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">{benefit.description}</p>
+                    <div>
+                      <h3 className="text-xs sm:text-base font-bold mb-0.5 sm:mb-1 text-slate-900">{benefit.title}</h3>
+                      <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">{benefit.description}</p>
+                    </div>
                   </div>
                 ))}
               </div>
