@@ -38,11 +38,17 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "Explore Events", href: "/tickets" },
-    { name: "National Expo", href: "/events/national" },
-    { name: "Platform Events", href: "/events/platform-led" },
-    { name: "Business Events", href: "/events/business-led" },
-    { name: "Host an Event", href: "/exhibit" },
+    {
+      name: "Events",
+      href: "#",
+      dropdown: [
+        { name: "National", href: "/events/national" },
+        { name: "Platform-led", href: "/events/platform-led" },
+        { name: "Business-led", href: "/events/business-led" },
+      ],
+    },
+    { name: "Exhibit & Partner", href: "/partnership" },
+    { name: "Galleries", href: "/galleries" },
   ];
 
   return (
@@ -68,16 +74,37 @@ export default function Navbar() {
               </div>
             </Link>
 
-            {/* Desktop Nav (Storyline §10 Alignment) */}
-            <div className="hidden lg:flex items-center gap-4 xl:gap-6">
+            {/* Desktop Nav */}
+            <div className="hidden lg:flex items-center gap-6">
               {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="text-xs xl:text-sm font-bold text-slate-700 hover:text-orange-600 transition-colors whitespace-nowrap"
-                >
-                  {link.name}
-                </Link>
+                <div key={link.name} className="relative group">
+                  {link.dropdown ? (
+                    <>
+                      <button className="flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors">
+                        {link.name}
+                        <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform" />
+                      </button>
+                      <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                        {link.dropdown.map((item) => (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            className="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors font-medium"
+                          >
+                            {item.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  )}
+                </div>
               ))}
             </div>
 
