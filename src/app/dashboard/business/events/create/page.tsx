@@ -8,6 +8,7 @@ import {
     Calendar,
     Ticket,
     ShieldCheck,
+    Check,
     CheckCircle2,
     AlertCircle,
     Sparkles,
@@ -191,18 +192,18 @@ export default function CreateEventPage() {
                                         isCurrent
                                             ? "bg-orange-600 text-white ring-4 ring-orange-100 shadow-sm"
                                             : isCompleted
-                                            ? "bg-emerald-600 text-white shadow-2xs"
+                                            ? "bg-orange-600 text-white shadow-2xs"
                                             : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                                     }`}
                                 >
-                                    {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : s.num}
+                                    {isCompleted ? <Check className="w-4 h-4 stroke-[2.5]" /> : s.num}
                                 </div>
                                 <span
                                     className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mt-1.5 transition-colors hidden sm:block ${
                                         isCurrent
                                             ? "text-orange-600 font-extrabold"
                                             : isCompleted
-                                            ? "text-emerald-700 font-bold"
+                                            ? "text-slate-900 font-bold"
                                             : "text-slate-400 group-hover:text-slate-600"
                                     }`}
                                 >
