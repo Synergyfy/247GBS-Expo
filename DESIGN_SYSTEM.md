@@ -32,6 +32,12 @@ This document defines the strict UI and UX craft standards for all front-facing 
    - Wizard and form action buttons must use standard, concise labels such as `Continue →`, `Next →`, `Back`, or `Submit for Approval`.
    - Never chain the full target step title onto navigation buttons (e.g. `Next: Review & Submit →` or `Next: Select Package →`), which causes ugly text wrapping and redundant UI noise.
 
+7. **NO Squeezing Section Headers with Auxiliary Badges (Never Let Small Items Steal 50% Space):**
+   - Section and form headers must give primary typography (title + description) **100% full horizontal width** to breathe naturally.
+   - **Never** use `flex justify-between` to stick small auxiliary status pills or tags (e.g. `Price Cap Enforced`, `Optional`) to the right of section headers on small viewports.
+   - An auxiliary badge placed side-by-side on a mobile screen eats 40–50% of the available width, crunching the main title and forcing the description into a cramped, awkward 3-line wrap.
+   - If secondary metadata is necessary, place it inline with the title (e.g. `Title (optional)`) or embed it naturally within the description copy below—never as an opposing float that starves primary headings.
+
 ---
 
 ## 2. Multi-Step Wizard & Stepper Standards
