@@ -124,7 +124,7 @@ export default function ReportingHubPage() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-[10px] font-black uppercase tracking-wider text-blue-600">
-                    CHS Synced
+                    SLA Verified
                   </span>
                   <Briefcase className="w-4 h-4 text-blue-600 shrink-0" />
                 </div>

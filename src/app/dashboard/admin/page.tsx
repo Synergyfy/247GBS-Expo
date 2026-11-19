@@ -23,7 +23,7 @@ export default function AdminOverview() {
       label: "Active Exhibitors",
       value: "842",
       icon: <Users className="w-3.5 h-3.5 text-orange-600 shrink-0" />,
-      sub: "CHS verified booths"
+      sub: "Verified booths"
     },
     {
       label: "Event Approvals",
@@ -164,13 +164,13 @@ export default function AdminOverview() {
         <div className="bg-orange-600 rounded-2xl p-4 sm:p-5 text-white relative overflow-hidden shadow-md">
           <div className="relative z-10 flex flex-col h-full">
             <h3 className="text-orange-100 text-[11px] font-bold uppercase tracking-wider mb-2">
-              Server Health & CHS Sync
+              Server & System Health
             </h3>
 
             <div className="divide-y divide-orange-500/60 flex-1">
               {[
                 { label: "Live Streams", val: "Operational" },
-                { label: "CHS Identity Sync", val: "Connected" },
+                { label: "Identity Sync", val: "Connected" },
                 { label: "Payment Gateway", val: "Operational" },
                 { label: "Content CDN", val: "92% Load" },
                 { label: "API Latency", val: "42ms" }

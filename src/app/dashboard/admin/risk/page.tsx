@@ -244,7 +244,7 @@ export default function RiskFraudPage() {
             <div className="divide-y divide-slate-100">
               {[
                 {
-                  category: "Business Entity (CHS Synced)",
+                  category: "Business Entity (KYB Verified)",
                   factors: ["Credit Score", "Years in Operation", "Complaint Ratio"],
                   score: 85
                 },

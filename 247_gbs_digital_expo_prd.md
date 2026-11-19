@@ -1,6 +1,14 @@
 # PRODUCT REQUIREMENTS DOCUMENT (PRD)
 ## 247GBS DIGITAL EXPO
 
+> **CRITICAL ARCHITECTURAL DIRECTIVE (STORYLINE COMPLIANCE):**
+> This document is strictly governed by [DEVELOPER_STORYLINE_PLATFORM_REQUIREMENTS.md](./DEVELOPER_STORYLINE_PLATFORM_REQUIREMENTS.md).
+> Any clause in this or older PRDs referencing multi-tier MLM structures, complex digital booth builders, standalone AI marketing tools, or secondary marketplace engines (WarriorPlus-style) is **superseded and deprecated**.
+> The platform objective is a straightforward, unified event creation, discovery, and administration system supporting:
+> 1. National Expo (Admin)
+> 2. Platform-led Events (Admin)
+> 3. Business-led Events (Business)
+
 ---
 
 ## 1. Product Purpose

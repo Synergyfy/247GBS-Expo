@@ -221,7 +221,7 @@ export default function CustomerDashboard() {
               Featured Exhibitor Booths
             </h2>
             <p className="text-[11px] text-slate-500 font-medium">
-              Top CHS-verified exhibitors with live demos & MCOM Mall products
+              Top verified exhibitors with live demos & MCOM Mall products
             </p>
           </div>
           <Link

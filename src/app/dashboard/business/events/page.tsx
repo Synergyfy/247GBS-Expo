@@ -14,13 +14,21 @@ import {
     Settings,
     QrCode,
     ChevronDown,
+    Building2,
+    UserPlus,
+    X,
 } from "lucide-react";
+import Modal from "@/app/component/Modal";
 
 export default function BusinessEventsPage() {
     const [activeFilter, setActiveFilter] = useState("all");
     const [showPipelineInfo, setShowPipelineInfo] = useState(false);
+    const [inviteModalEvent, setInviteModalEvent] = useState<any | null>(null);
+    const [partnerOrg, setPartnerOrg] = useState("Apex Logistics UK");
+    const [partnerRole, setPartnerRole] = useState("Co-Host & Logistics Sponsor");
+    const [inviteSentToast, setInviteSentToast] = useState("");
 
-    const events = [
+    const [events, setEvents] = useState([
         {
             id: "evt-1",
             title: "Global Tech & AI Innovation Expo 2026",
@@ -33,6 +41,10 @@ export default function BusinessEventsPage() {
             capacity: 500,
             revenue: "£8,450",
             priceRange: "£0 – £120 (Admin Cap Compliant)",
+            partners: [
+                { name: "Apex Logistics UK", role: "Co-Host & Logistics Sponsor", status: "Accepted" },
+                { name: "Skyline Media Group", role: "Keynote Media Partner", status: "Accepted" },
+            ]
         },
         {
             id: "evt-2",
@@ -46,6 +58,9 @@ export default function BusinessEventsPage() {
             capacity: 300,
             revenue: "£0",
             priceRange: "£25 – £95 (Admin Cap Compliant)",
+            partners: [
+                { name: "EcoTech Clean Solutions", role: "Live Demo Contributor", status: "Pending Acceptance" }
+            ]
         },
         {
             id: "evt-3",
@@ -59,8 +74,29 @@ export default function BusinessEventsPage() {
             capacity: 1000,
             revenue: "£0",
             priceRange: "£0 – £50 (General Pass Template)",
+            partners: []
         },
-    ];
+    ]);
+
+    const handleSendPartnerInvite = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!inviteModalEvent) return;
+        setEvents(events.map(evt => {
+            if (evt.id === inviteModalEvent.id) {
+                return {
+                    ...evt,
+                    partners: [
+                        ...evt.partners,
+                        { name: partnerOrg, role: partnerRole, status: "Pending Acceptance" }
+                    ]
+                };
+            }
+            return evt;
+        }));
+        setInviteSentToast(`Invitation sent to ${partnerOrg} for ${inviteModalEvent.title}`);
+        setInviteModalEvent(null);
+        setTimeout(() => setInviteSentToast(""), 3500);
+    };
 
     const filteredEvents = events.filter((e) => {
         if (activeFilter === "all") return true;
@@ -204,6 +240,29 @@ export default function BusinessEventsPage() {
                             </span>
                         </div>
 
+                        {/* Co-Host / Partner Businesses Badges (Storyline §4.4) */}
+                        {event.partners && event.partners.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                    Co-Hosts & Partners:
+                                </span>
+                                {event.partners.map((p, idx) => (
+                                    <span
+                                        key={idx}
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                            p.status === "Accepted"
+                                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                                        }`}
+                                    >
+                                        <Building2 className="w-3 h-3" />
+                                        <span>{p.name}</span>
+                                        <span className="text-[9px] opacity-75">({p.role} • {p.status})</span>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
                         {/* Line 3: Metrics + Compact Action Buttons */}
                         <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
@@ -219,6 +278,15 @@ export default function BusinessEventsPage() {
                             </div>
 
                             <div className="flex items-center justify-end gap-2 shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => setInviteModalEvent(event)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 hover:border-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
+                                    title="Invite Co-Hosting Business Partner"
+                                >
+                                    <UserPlus className="w-3.5 h-3.5" />
+                                    <span>Invite Partner</span>
+                                </button>
                                 <Link
                                     href="/dashboard/business/events/tickets"
                                     className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 hover:border-orange-500 hover:text-orange-600 transition-colors"
@@ -268,6 +336,76 @@ export default function BusinessEventsPage() {
                     </div>
                 )}
             </div>
+
+            {/* In-Event Partner Invitation Modal (Storyline §4.4) */}
+            <Modal
+                isOpen={!!inviteModalEvent}
+                onClose={() => setInviteModalEvent(null)}
+                title={`Invite Partner to "${inviteModalEvent?.title}"`}
+            >
+                <form onSubmit={handleSendPartnerInvite} className="space-y-4 pt-2">
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                        Send an invitation to another registered business in the Expo network to co-host, demo products, or bundle promotions in this session.
+                    </p>
+
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">
+                            Select Business
+                        </label>
+                        <select
+                            value={partnerOrg}
+                            onChange={(e) => setPartnerOrg(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-medium outline-none focus:border-orange-500"
+                        >
+                            <option value="Apex Logistics UK">Apex Logistics UK (Supply Chain & Fulfillment)</option>
+                            <option value="Beauty Bar UK">Beauty Bar UK (Retail & Cosmetics)</option>
+                            <option value="EcoTech Clean Solutions">EcoTech Clean Solutions (CleanTech)</option>
+                            <option value="Skyline Media Group">Skyline Media Group (Digital PR)</option>
+                            <option value="HealthHub Innovations">HealthHub Innovations (MedTech)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">
+                            Partner Role / Contribution
+                        </label>
+                        <select
+                            value={partnerRole}
+                            onChange={(e) => setPartnerRole(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-medium outline-none focus:border-orange-500"
+                        >
+                            <option value="Co-Host & Logistics Sponsor">Co-Host & Logistics Sponsor</option>
+                            <option value="Guest Speaker / Presenter">Guest Speaker / Presenter</option>
+                            <option value="Live Product Demonstration">Live Product Demonstration</option>
+                            <option value="Bundle Deal Contributor">Bundle Deal Contributor</option>
+                        </select>
+                    </div>
+
+                    <div className="pt-2 flex gap-2 border-t border-slate-100">
+                        <button
+                            type="button"
+                            onClick={() => setInviteModalEvent(null)}
+                            className="flex-1 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold text-xs hover:bg-slate-50 cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-xl font-bold text-xs shadow-xs cursor-pointer"
+                        >
+                            Send Invitation
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Toast Feedback */}
+            {inviteSentToast && (
+                <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-bold flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-bottom-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{inviteSentToast}</span>
+                </div>
+            )}
         </div>
     );
 }

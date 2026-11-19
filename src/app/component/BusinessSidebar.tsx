@@ -179,7 +179,7 @@ export default function BusinessSidebar({ isOpen, setIsOpen }: SidebarProps) {
             <div className="text-left overflow-hidden min-w-0">
               <div className="text-xs font-bold text-white truncate">Acme Corp</div>
               <div className="text-[10px] text-orange-200 font-bold uppercase truncate">
-                CHS Verified • PRO
+                Verified Partner • PRO
               </div>
             </div>
           )}

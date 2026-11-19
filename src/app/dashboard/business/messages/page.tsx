@@ -118,14 +118,14 @@ export default function BusinessMessagesPage() {
                 <div>
                     <div className="flex items-center gap-2">
                         <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
-                            CHS Live Booth Chat & AI Concierge
+                            Live Booth Chat & AI Concierge
                         </h1>
                         <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600">
-                            • CHS Connected
+                            • Online
                         </span>
                     </div>
                     <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
-                        Real-time visitor inquiries synced with Central Hub Solution (CHS) messaging and AI auto-replies.
+                        Real-time visitor inquiries and AI auto-replies.
                     </p>
                 </div>
 
@@ -203,8 +203,8 @@ export default function BusinessMessagesPage() {
                             </p>
                             <p className="text-[11px] text-slate-500 truncate">{activeThread.context}</p>
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 shrink-0 flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> CHS Synced
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 shrink-0 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
                         </span>
                     </div>
 

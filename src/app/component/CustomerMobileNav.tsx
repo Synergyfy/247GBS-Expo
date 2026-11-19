@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, LogOut, ChevronRight } from "lucide-react";
+import { clearStoredUser } from "@/lib/auth";
 import {
   CUSTOMER_NAV_GROUPS,
   CUSTOMER_MOBILE_PRIMARY_TABS,
@@ -125,71 +126,78 @@ export default function CustomerMobileNav() {
               </button>
             </div>
 
-            {/* Grouped Links */}
+            {/* Grouped Links (Filtered to exclude primary navbar tabs) */}
             <div className="p-4 overflow-y-auto space-y-4">
-              {CUSTOMER_NAV_GROUPS.map((group) => {
-                const GroupIcon = group.icon;
-                return (
-                  <div key={group.id} className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      <GroupIcon className="w-3.5 h-3.5 text-orange-600" />
-                      <span>{group.label}</span>
-                    </div>
-                    <div className="bg-slate-50/80 rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden">
-                      {group.items.map((item) => {
-                        const ItemIcon = item.icon;
-                        const active = isCustomerRouteActive(pathname, item.href);
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setDrawerOpen(false)}
-                            className={`flex items-center justify-between px-3.5 py-2.5 text-xs font-bold transition-colors ${
-                              active
-                                ? "bg-orange-600 text-white"
-                                : "text-slate-700 hover:bg-slate-100"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <ItemIcon
-                                className={`w-4 h-4 shrink-0 ${
-                                  active ? "text-white" : "text-orange-600"
-                                }`}
-                              />
-                              <span className="truncate">{item.label}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {item.badge && (
-                                <span
-                                  className={`text-[9px] font-black uppercase ${
-                                    active ? "text-orange-100" : "text-red-600"
+              {(() => {
+                const primaryHrefs = new Set(CUSTOMER_MOBILE_PRIMARY_TABS.map((tab) => tab.href));
+                return CUSTOMER_NAV_GROUPS.map((group) => {
+                  const GroupIcon = group.icon;
+                  const nonDuplicateItems = group.items.filter((item) => !primaryHrefs.has(item.href));
+                  if (nonDuplicateItems.length === 0) return null;
+
+                  return (
+                    <div key={group.id} className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <GroupIcon className="w-3.5 h-3.5 text-orange-600" />
+                        <span>{group.label}</span>
+                      </div>
+                      <div className="bg-slate-50/80 rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden">
+                        {nonDuplicateItems.map((item) => {
+                          const ItemIcon = item.icon;
+                          const active = isCustomerRouteActive(pathname, item.href);
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={() => setDrawerOpen(false)}
+                              className={`flex items-center justify-between px-3.5 py-2.5 text-xs font-bold transition-colors ${
+                                active
+                                  ? "bg-orange-600 text-white"
+                                  : "text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <ItemIcon
+                                  className={`w-4 h-4 shrink-0 ${
+                                    active ? "text-white" : "text-orange-600"
                                   }`}
-                                >
-                                  {item.badge}
-                                </span>
-                              )}
-                              <ChevronRight
-                                className={`w-3.5 h-3.5 ${
-                                  active ? "text-white" : "text-slate-400"
-                                }`}
-                              />
-                            </div>
-                          </Link>
-                        );
-                      })}
+                                />
+                                <span className="truncate">{item.label}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {item.badge && (
+                                  <span
+                                    className={`text-[9px] font-black uppercase ${
+                                      active ? "text-orange-100" : "text-red-600"
+                                    }`}
+                                  >
+                                    {item.badge}
+                                  </span>
+                                )}
+                                <ChevronRight
+                                  className={`w-3.5 h-3.5 ${
+                                    active ? "text-white" : "text-slate-400"
+                                  }`}
+                                />
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
 
               {/* Logout Button */}
               <button
                 type="button"
                 onClick={() => {
                   setDrawerOpen(false);
+                  clearStoredUser();
                   router.push("/");
                 }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition-colors cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>

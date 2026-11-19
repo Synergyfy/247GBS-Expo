@@ -271,7 +271,7 @@ export default function MyTicketsPage() {
             <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl relative overflow-hidden">
               <div className="relative z-10">
                 <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">
-                  CHS Authenticated Pass
+                  Authenticated Digital Pass
                 </span>
                 <h3 className="text-xs sm:text-sm font-bold">{selectedTicket.event}</h3>
                 <p className="text-orange-400 font-bold tracking-wider text-[10px] uppercase mb-4">

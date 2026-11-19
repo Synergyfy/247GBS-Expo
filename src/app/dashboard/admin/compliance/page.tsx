@@ -19,13 +19,13 @@ export default function ComplianceHubPage() {
   const [activeTab, setActiveTab] = useState("sync");
 
   const complianceItems = [
-    { name: "Global Tech Corp", type: "CHS Identity Sync", date: "12m ago", status: "Verified" },
+    { name: "Global Tech Corp", type: "Identity Verification", date: "12m ago", status: "Verified" },
     { name: "Urban Threads Co.", type: "Event Content Audit", date: "2h ago", status: "Reviewing" },
     { name: "Apex Financial", type: "UK Sanction Check", date: "5h ago", status: "Cleared" }
   ];
 
   const stats = [
-    { label: "CHS Synced Users", val: "124.2K", sub: "Verified accounts", icon: <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" /> },
+    { label: "Verified Accounts", val: "124.2K", sub: "Active users", icon: <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" /> },
     { label: "Event Compliance", val: "100%", sub: "Moderated listings", icon: <FileCheck className="w-4 h-4 text-orange-600 shrink-0" /> },
     { label: "Flagged Entities", val: "3", sub: "Under review", icon: <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" /> }
   ];
@@ -39,7 +39,7 @@ export default function ComplianceHubPage() {
             Compliance Checks
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-            Monitor CHS identity synchronization, regulatory screening, and UK GDPR standards.
+            Monitor identity synchronization, regulatory screening, and UK GDPR standards.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -63,7 +63,7 @@ export default function ComplianceHubPage() {
       {/* Horizontal Scrollable Tabs */}
       <div className="flex gap-5 sm:gap-8 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
         {[
-          { id: "sync", label: "CHS Verification Sync", icon: <UserCheck className="w-4 h-4" /> },
+          { id: "sync", label: "Identity Verification Sync", icon: <UserCheck className="w-4 h-4" /> },
           { id: "screening", label: "Sanction Screening", icon: <ShieldCheck className="w-4 h-4" /> },
           { id: "data", label: "Data Protection & GDPR", icon: <Lock className="w-4 h-4" /> }
         ].map((tab) => (
