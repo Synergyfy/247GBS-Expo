@@ -24,6 +24,10 @@ This document defines the strict UI and UX craft standards for all front-facing 
    - Never put full step labels (`1. Event Details`, `2. Co-Hosts & Partners`, `3. Ticket Templates`, `4. Review & Submit`) inside tight horizontal buttons that collapse into `2. Partn...`.
    - Use a numbered timeline stepper (`(1) ──── (2) ──── (3) ──── (4)`) with the active step title displayed clearly below or above.
 
+5. **NO Artificial Box Wrappers or Colored Double Containers for Conditional Fields:**
+   - Conditional inputs must blend seamlessly as standard form controls (`space-y-1` with standard text labels and inputs) directly inside the parent form flow.
+   - Never wrap conditional fields in isolated alert boxes, tinted background cards (`bg-amber-50`, `bg-blue-50`), or nested bordered containers that make them look foreign or disconnected from the rest of the form.
+
 ---
 
 ## 2. Multi-Step Wizard & Stepper Standards

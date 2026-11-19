@@ -369,49 +369,39 @@ export default function CreateEventPage() {
 
                             {/* Conditional Format Fields: Virtual / Meet Link */}
                             {(format === "virtual" || format === "hybrid") && (
-                                <div className="p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-xl space-y-2">
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900">
-                                        <Video className="w-3.5 h-3.5 text-blue-600" /> Online Joining / Meeting Link
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                                            Google Meet / Zoom / Livestream URL
-                                        </label>
-                                        <input
-                                            type="url"
-                                            value={virtualLink}
-                                            onChange={(e) => setVirtualLink(e.target.value)}
-                                            placeholder="https://meet.google.com/abc-defg-hij"
-                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500"
-                                        />
-                                        <p className="text-[10px] text-slate-500">
-                                            Registered attendees receive this joining link in their pass confirmation.
-                                        </p>
-                                    </div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Online Joining Link (Google Meet / Zoom / Livestream)
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={virtualLink}
+                                        onChange={(e) => setVirtualLink(e.target.value)}
+                                        placeholder="https://meet.google.com/abc-defg-hij"
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
                                 </div>
                             )}
 
                             {/* Conditional Format Fields: Physical Venue & Space Capacity */}
                             {(format === "physical" || format === "hybrid") && (
-                                <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-3">
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
-                                        <MapPin className="w-3.5 h-3.5 text-amber-600" /> Physical Venue & Seating
+                                <>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                            Physical Venue Name & Address
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={physicalVenue}
+                                            onChange={(e) => setPhysicalVenue(e.target.value)}
+                                            placeholder="e.g. ExCeL London, Hall 4, Royal Victoria Dock, E16 1XL"
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                        />
                                     </div>
+
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div className="space-y-1 sm:col-span-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                                                Venue Name & Address
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={physicalVenue}
-                                                onChange={(e) => setPhysicalVenue(e.target.value)}
-                                                placeholder="e.g. ExCeL London, Hall 4, Royal Victoria Dock, E16 1XL"
-                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500"
-                                            />
-                                        </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                                                 Physical Space / Seating Capacity
                                             </label>
                                             <input
@@ -419,20 +409,21 @@ export default function CreateEventPage() {
                                                 value={physicalSpaces}
                                                 onChange={(e) => setPhysicalSpaces(e.target.value)}
                                                 placeholder="150"
-                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
                                             />
                                         </div>
+
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                                                 Check-in Terminal Mode
                                             </label>
-                                            <select className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-orange-500">
+                                            <select className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500">
                                                 <option>QR Scanner Terminal Active</option>
                                                 <option>Manual Door List Check-in</option>
                                             </select>
                                         </div>
                                     </div>
-                                </div>
+                                </>
                             )}
 
                             {/* Max Total Passes */}
