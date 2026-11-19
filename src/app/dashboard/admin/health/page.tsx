@@ -1,130 +1,221 @@
 "use client";
 
 import { useState } from "react";
-import { 
-    Activity, 
-    Database, 
-    Globe, 
-    Cpu, 
-    RefreshCw, 
-    CheckCircle2, 
-    AlertCircle, 
-    Terminal, 
-    History,
-    Download,
-    BarChart
+import {
+  Activity,
+  Database,
+  Globe,
+  Cpu,
+  Terminal,
+  History,
+  Download
 } from "lucide-react";
 
 export default function SystemHealthPage() {
-    const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("overview");
 
-    return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">System Health & Audits</h1>
-                    <p className="text-slate-500">Monitor infrastructure performance, API latency, and immutable audit trails.</p>
-                </div>
-                <div className="flex gap-3">
-                    <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold hover:bg-slate-50 flex items-center gap-2 shadow-sm">
-                        <Terminal className="w-4 h-4" /> Live Console
-                    </button>
-                    <button className="bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-orange-700 shadow-lg shadow-orange-200 flex items-center gap-2 transition-all">
-                        <Download className="w-4 h-4" /> Export Logs
-                    </button>
-                </div>
-            </div>
+  const healthStats = [
+    {
+      label: "API Latency",
+      value: "42ms",
+      statusText: "Optimal",
+      statusColor: "text-emerald-600",
+      icon: Activity,
+      iconColor: "text-emerald-600"
+    },
+    {
+      label: "DB Clusters",
+      value: "Healthy",
+      statusText: "99.99% Uptime",
+      statusColor: "text-emerald-600",
+      icon: Database,
+      iconColor: "text-emerald-600"
+    },
+    {
+      label: "CHS Gateway",
+      value: "Active",
+      statusText: "Primary Connected",
+      statusColor: "text-emerald-600",
+      icon: Globe,
+      iconColor: "text-emerald-600"
+    },
+    {
+      label: "CPU Load",
+      value: "14%",
+      statusText: "Stable",
+      statusColor: "text-blue-600",
+      icon: Cpu,
+      iconColor: "text-blue-600"
+    }
+  ];
 
-            {/* Tabs */}
-            <div className="flex gap-8 border-b border-slate-200">
-                {[
-                    { id: "overview", label: "Health Overview", icon: <Activity className="w-4 h-4" /> },
-                    { id: "audits", label: "Audit Trails", icon: <History className="w-4 h-4" /> },
-                    { id: "infrastructure", label: "Infrastructure", icon: <Database className="w-4 h-4" /> },
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 ${
-                            activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
-                        }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                        {activeTab === tab.id && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-600 rounded-t-full" />
-                        )}
-                    </button>
-                ))}
-            </div>
-
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                
-                {activeTab === "overview" && (
-                    <div className="space-y-8">
-                        {/* Real-time Health Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            {[
-                                { label: "API Latency", val: "42ms", status: "Optimal", color: "emerald", icon: <Activity /> },
-                                { label: "DB Clusters", val: "Healthy", status: "99.99% Uptime", color: "emerald", icon: <Database /> },
-                                { label: "Gateway Status", val: "Operational", status: "Primary Active", color: "emerald", icon: <Globe /> },
-                                { label: "CPU Load", val: "14%", status: "Stable", color: "blue", icon: <Cpu /> },
-                            ].map((stat, i) => (
-                                <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm group hover:shadow-md transition-all">
-                                    <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center mb-4`}>
-                                        {stat.icon}
-                                    </div>
-                                    <h3 className="text-2xl font-black text-slate-900">{stat.val}</h3>
-                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">{stat.label}</p>
-                                    <div className="flex items-center gap-1.5 mt-4">
-                                        <div className={`w-1.5 h-1.5 rounded-full bg-${stat.color}-500`} />
-                                        <span className={`text-[10px] font-bold uppercase text-${stat.color}-600`}>{stat.status}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Audit Trail Preview (Brief) */}
-                        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden">
-                            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
-                                <h3 className="text-lg font-bold text-white uppercase tracking-tight">Real-Time Audit Log</h3>
-                                <div className="flex items-center gap-2 text-orange-500 text-xs font-black animate-pulse">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500" />
-                                    LIVE STREAM
-                                </div>
-                            </div>
-                            <div className="p-4 md:p-8 font-mono text-sm space-y-3">
-                                {[
-                                    { time: "15:42:01", role: "ADMIN-01", action: "Release Settlement", target: "Global Tech", status: "LOGGED" },
-                                    { time: "15:40:12", role: "SYS-AUTO", action: "Sanction Check", target: "Urban Threads", status: "PASSED" },
-                                    { time: "15:38:45", role: "ADMIN-04", action: "Template Update", target: "VIP Pass", status: "ENFORCED" },
-                                    { time: "15:35:22", role: "ADMIN-01", action: "KYC Approval", target: "Jane Doe", status: "VERIFIED" },
-                                ].map((log, i) => (
-                                    <div key={i} className="flex gap-4 text-slate-400 group cursor-default hover:text-white transition-colors">
-                                        <span className="text-slate-600 shrink-0">[{log.time}]</span>
-                                        <span className="text-orange-500 font-bold shrink-0">{log.role}</span>
-                                        <span className="flex-1 truncate">{log.action} for {log.target}</span>
-                                        <span className="text-emerald-500 font-bold shrink-0">{log.status}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* PLACEHOLDERS for detailed views */}
-                {activeTab !== "overview" && (
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 p-20 text-center">
-                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <History className="w-10 h-10 text-slate-300" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2 uppercase tracking-tight">Module Config: {activeTab}</h3>
-                        <p className="text-slate-500 max-w-sm mx-auto font-medium">Deep forensic tools and regional infrastructure monitoring are active.</p>
-                    </div>
-                )}
-
-            </div>
+  return (
+    <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+            System Health & Telemetry
+          </h1>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+            Monitor infrastructure performance, API latency, and CHS cluster connectivity.
+          </p>
         </div>
-    );
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            className="bg-white border border-slate-200/80 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs"
+          >
+            <Terminal className="w-3.5 h-3.5 text-slate-500" />
+            <span>Live Console</span>
+          </button>
+          <button
+            type="button"
+            className="bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-orange-700 shadow-sm inline-flex items-center gap-1.5"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Logs</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Horizontal Scrollable Tabs */}
+      <div className="flex gap-5 sm:gap-8 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+        {[
+          { id: "overview", label: "Health Overview", icon: <Activity className="w-4 h-4" /> },
+          { id: "audits", label: "Audit Stream", icon: <History className="w-4 h-4" /> },
+          { id: "infrastructure", label: "Infrastructure", icon: <Database className="w-4 h-4" /> }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`pb-3 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all relative flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+              activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
+            }`}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+            {activeTab === tab.id && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600 rounded-t-full" />
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div>
+        {activeTab === "overview" && (
+          <div className="space-y-5 sm:space-y-6">
+            {/* Horizontal Scroll Health Cards on Mobile (Peeping Card + Dot Slider) */}
+            <div>
+              <div className="flex lg:grid lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+                {healthStats.map((stat, i) => {
+                  const IconComponent = stat.icon;
+                  return (
+                    <div
+                      key={i}
+                      className="w-[42%] min-w-[144px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between gap-1.5 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+                          {stat.label}
+                        </span>
+                        <IconComponent className={`w-3.5 h-3.5 ${stat.iconColor} shrink-0`} />
+                      </div>
+                      <h3 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 leading-none">
+                        {stat.value}
+                      </h3>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mt-1 truncate ${stat.statusColor}`}>
+                        {stat.statusText}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Mobile Slider Dots Indicator */}
+              <div className="flex items-center justify-center gap-1.5 mt-2 lg:hidden">
+                <span className="w-4 h-1 rounded-full bg-orange-600" />
+                <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+                <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+              </div>
+            </div>
+
+            {/* Real-Time Audit Log Stream */}
+            <div className="bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-800 shadow-lg overflow-hidden">
+              <div className="p-4 sm:p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <h3 className="text-sm sm:text-base font-extrabold text-white uppercase tracking-tight">
+                  Real-Time Telemetry Stream
+                </h3>
+                <span className="text-orange-400 text-[10px] font-black uppercase tracking-wider">
+                  Live Stream
+                </span>
+              </div>
+              <div className="p-4 sm:p-6 font-mono text-xs divide-y divide-white/10">
+                {[
+                  {
+                    time: "15:42:01",
+                    role: "ADMIN-01",
+                    action: "Release Settlement",
+                    target: "Global Tech",
+                    status: "LOGGED"
+                  },
+                  {
+                    time: "15:40:12",
+                    role: "SYS-AUTO",
+                    action: "CHS Identity Sync",
+                    target: "Urban Threads",
+                    status: "PASSED"
+                  },
+                  {
+                    time: "15:38:45",
+                    role: "ADMIN-04",
+                    action: "Template Update",
+                    target: "VIP Pass",
+                    status: "ENFORCED"
+                  },
+                  {
+                    time: "15:35:22",
+                    role: "ADMIN-01",
+                    action: "Event Approved",
+                    target: "Tech Symposium",
+                    status: "PUBLISHED"
+                  }
+                ].map((log, i) => (
+                  <div
+                    key={i}
+                    className="py-2.5 flex flex-wrap items-center justify-between gap-2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-slate-500 shrink-0">[{log.time}]</span>
+                      <span className="text-orange-400 font-bold shrink-0">{log.role}</span>
+                      <span className="truncate">
+                        {log.action} • {log.target}
+                      </span>
+                    </div>
+                    <span className="text-emerald-400 font-bold text-[10px] shrink-0">
+                      {log.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab !== "overview" && (
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-8 sm:p-14 text-center">
+            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <History className="w-6 h-6 text-orange-600" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 mb-1 uppercase tracking-tight">
+              Module Telemetry: {activeTab}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto font-medium">
+              Deep forensic tools and regional infrastructure clusters are online and reporting healthy status.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

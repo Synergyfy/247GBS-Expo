@@ -3,217 +3,344 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { QrCode, Ticket, Calendar, Wallet, Zap, ShieldCheck } from "lucide-react";
+import {
+  QrCode,
+  Ticket,
+  Calendar,
+  Wallet,
+  ShieldCheck,
+  Play,
+  ArrowRight,
+  ChevronRight
+} from "lucide-react";
 import Modal from "@/app/component/Modal";
 
-// --- ICONS ---
-const PlayIcon = ({ className = "w-10 h-10" }: { className?: string }) => (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-);
+const FEATURED_BOOTHS = [
+  {
+    id: "101",
+    code: "BOOTH A-101",
+    name: "TechFlow Solutions",
+    tags: "SaaS • Cloud Infrastructure",
+    desc: "Enterprise-grade cloud architecture and AI deployment tools for modern startups.",
+    image: "/main_stage_banner.png"
+  },
+  {
+    id: "102",
+    code: "BOOTH A-102",
+    name: "FutureTech Systems",
+    tags: "Edge Computing • Security",
+    desc: "Zero-downtime global node synchronization and automated threat protection.",
+    image: "/hero.webp"
+  },
+  {
+    id: "103",
+    code: "BOOTH B-204",
+    name: "GreenGrid Energy",
+    tags: "CleanTech • Smart Microgrids",
+    desc: "Commercial solar storage and real-time energy telemetry for retail hubs.",
+    image: "/ideal.png"
+  }
+];
 
 export default function CustomerDashboard() {
-    const [showPassport, setShowPassport] = useState(false);
+  const [showPassport, setShowPassport] = useState(false);
 
-    return (
-        <>
-            {/* WELCOME BANNER */}
-            <div className="relative rounded-3xl overflow-hidden bg-orange-600 text-white p-10 mb-12 shadow-2xl">
-                <div className="absolute inset-0 opacity-40">
-                    <Image
-                        src="/main_stage_banner.png"
-                        alt="Main Stage"
-                        fill
-                        className="object-cover"
-                    />
-                </div>
-                <div className="relative z-10 max-w-2xl">
-                    <div className="inline-block bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 animate-pulse">LIVE NOW</div>
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4">Effectiveness of AI in modern businesses</h1>
-                    <p className="text-slate-300 text-lg mb-8">Join keynote speaker Sarah Johnson on the Main Stage discussing the future of digital retail.</p>
-                    <div className="flex gap-4">
-                        <button className="bg-white text-slate-900 px-6 py-3 rounded-full font-bold hover:bg-slate-100 transition-colors flex items-center gap-2">
-                            <PlayIcon className="w-5 h-5" /> Watch Stream
-                        </button>
-                        <button className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 py-3 rounded-full font-semibold hover:bg-white/20 transition-colors">
-                            View Schedule
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* DASHBOARD GRID */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                
-                {/* 1. DIGITAL PASSPORT WIDGET */}
-                <div 
-                    onClick={() => setShowPassport(true)}
-                    className="bg-slate-900 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl flex flex-col justify-between group cursor-pointer hover:shadow-2xl transition-all hover:scale-[1.02]"
-                >
-                    <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <QrCode className="w-32 h-32" />
-                    </div>
-                    <div>
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="bg-orange-600 text-[10px] font-black tracking-[0.2em] px-2 py-0.5 rounded uppercase inline-block">
-                                Active Pass
-                            </div>
-                            <Ticket className="w-6 h-6 text-orange-500" />
-                        </div>
-                        <h3 className="text-2xl font-bold mb-1">John Doe</h3>
-                        <p className="text-slate-400 text-sm font-mono tracking-wider">VIP ACCESS • GBX-88219</p>
-                    </div>
-                    <div className="mt-8">
-                        <button 
-                            className="w-full bg-white text-slate-900 py-3 rounded-xl font-bold hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-2"
-                        >
-                            <QrCode className="w-4 h-4" /> View Entry QR
-                        </button>
-                    </div>
-                </div>
-
-                {/* 2. WALLET WIDGET */}
-                <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl flex flex-col justify-between">
-                    <div className="absolute -right-10 -bottom-20 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-2 opacity-90">
-                            <Wallet className="w-5 h-5" />
-                            <span className="font-bold text-sm uppercase tracking-wider">Expo Wallet</span>
-                        </div>
-                        <div className="text-4xl font-bold mb-1">£1,250.00</div>
-                        <div className="text-orange-100 text-xs">+£500.00 this week</div>
-                    </div>
-                    <div className="flex gap-3 mt-6 relative z-10">
-                        <button className="flex-1 bg-white/20 hover:bg-white/30 py-3 rounded-xl font-medium transition-colors text-sm backdrop-blur-sm">History</button>
-                        <button className="flex-1 bg-white text-orange-600 py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-sm">Top Up</button>
-                    </div>
-                </div>
-
-                {/* 3. SCHEDULE WIDGET */}
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-orange-600" />
-                            <h3 className="font-bold text-lg text-slate-900">Up Next</h3>
-                        </div>
-                        <Link href="/dashboard/customer/schedule" className="text-xs font-bold text-orange-600 hover:underline">View Full</Link>
-                    </div>
-                    <div className="space-y-4 flex-1">
-                        {[
-                            { time: "11:30 AM", title: "Networking: Tech Founders", status: "Starting in 10m" },
-                            { time: "02:00 PM", title: "Design Systems Workshop", status: "Registered" },
-                        ].map((event, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <div className="bg-white text-slate-900 font-bold px-3 py-2 rounded-lg text-xs text-center border border-slate-200 shadow-sm min-w-[70px]">
-                                    {event.time}
-                                </div>
-                                <div>
-                                    <div className="font-bold text-sm text-slate-900 line-clamp-1">{event.title}</div>
-                                    <div className={`text-xs font-medium ${i === 0 ? 'text-orange-600 animate-pulse' : 'text-slate-500'}`}>{event.status}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* FEATURED BOOTHS CAROUSEL */}
-            <section className="mb-12">
-                <div className="flex justify-between items-end mb-6">
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Featured Booths</h2>
-                        <p className="text-slate-500">Top exhibitors chosen for you</p>
-                    </div>
-                    <a href="/dashboard/customer/booths" className="text-orange-600 font-semibold hover:underline">View All</a>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
-                            <div className="h-48 rounded-xl bg-slate-200 relative mb-4 overflow-hidden">
-                                <Image
-                                    src={`https://images.unsplash.com/photo-15567407${i}-e83484fce328?q=80&w=400&auto=format&fit=crop`}
-                                    alt="Booth"
-                                    fill
-                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md text-slate-900">
-                                    BOOTH A-{100 + i}
-                                </div>
-                            </div>
-                            <h3 className="font-bold text-lg text-slate-900 mb-1">TechFlow Solutions</h3>
-                            <p className="text-slate-500 text-sm mb-4 line-clamp-2">Providing enterprise-grade cloud architecture for modern startups.</p>
-                            <div className="flex items-center justify-between border-t border-slate-50 pt-4">
-                                <div className="flex gap-2 text-xs font-medium text-slate-600">
-                                    <span className="bg-slate-100 px-2 py-1 rounded">SaaS</span>
-                                    <span className="bg-slate-100 px-2 py-1 rounded">Cloud</span>
-                                </div>
-                                <Link href="/dashboard/customer/booths/101" className="text-orange-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* PASSPORT MODAL */}
-            <Modal
-                isOpen={showPassport}
-                onClose={() => setShowPassport(false)}
-                title="My Digital Passport"
+  return (
+    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">
+      {/* COMPACT WELCOME / LIVE STAGE BANNER */}
+      <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white p-4 sm:p-6 shadow-md">
+        <div className="absolute inset-0 opacity-35">
+          <Image
+            src="/main_stage_banner.png"
+            alt="Main Stage"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="relative z-10 max-w-xl space-y-2">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+            <span className="text-red-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              Live Keynote
+            </span>
+            <span className="text-slate-400">•</span>
+            <span className="text-orange-300">Main Stage</span>
+          </div>
+          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold tracking-tight uppercase leading-snug">
+            Effectiveness of AI in Modern Businesses
+          </h1>
+          <p className="text-slate-300 text-[11px] sm:text-xs leading-relaxed">
+            Join keynote speaker Sarah Johnson on the Main Stage discussing the future of digital retail and MCOM commerce.
+          </p>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Link
+              href="/dashboard/customer/events/spring2026/lobby"
+              className="bg-orange-600 text-white px-3.5 py-2 rounded-xl font-bold text-[11px] hover:bg-orange-700 transition-colors inline-flex items-center gap-1.5 shadow-sm"
             >
-                <div className="relative bg-[#1a1a1a] text-white p-8 rounded-[32px] overflow-hidden shadow-2xl border border-white/10 mx-auto">
-                    {/* Decorative Elements */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/40 to-orange-900/40 opacity-50" />
-                    <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <Zap className="w-40 h-40" />
-                    </div>
-                    
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-8">
-                            <div>
-                                <div className="bg-orange-600 text-[10px] font-black tracking-[0.2em] px-2 py-0.5 rounded uppercase mb-2 inline-block">
-                                    Official Entry Pass
-                                </div>
-                                <h3 className="text-2xl font-black tracking-tighter">247GBS EXPO</h3>
-                            </div>
-                            <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center bg-white/5 backdrop-blur-sm">
-                                <ShieldCheck className="w-6 h-6 text-orange-500" />
-                            </div>
-                        </div>
+              <Play className="w-3.5 h-3.5 fill-white" />
+              <span>Watch Stream</span>
+            </Link>
+            <Link
+              href="/dashboard/customer/schedule"
+              className="bg-white/10 backdrop-blur-xs text-white border border-white/15 px-3.5 py-2 rounded-xl font-bold text-[11px] hover:bg-white/20 transition-colors"
+            >
+              View Schedule
+            </Link>
+          </div>
+        </div>
+      </div>
 
-                        <div className="mb-8">
-                            <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Pass Holder</p>
-                            <p className="text-xl font-bold tracking-tight">John Doe</p>
-                        </div>
+      {/* 100% FULL-WIDTH VERTICAL STACK ON MOBILE (LG GRID) */}
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-3 sm:gap-4">
+        {/* 1. DIGITAL PASSPORT WIDGET */}
+        <div
+          onClick={() => setShowPassport(true)}
+          className="w-full bg-slate-900 rounded-2xl p-4 text-white relative overflow-hidden shadow-sm flex flex-col justify-between cursor-pointer hover:shadow-md transition-all"
+        >
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">
+                Active Season Pass
+              </span>
+              <Ticket className="w-4 h-4 text-orange-500 shrink-0" />
+            </div>
+            <h3 className="text-sm sm:text-base font-extrabold">John Doe</h3>
+            <p className="text-slate-400 text-[11px] font-mono mt-0.5">
+              VIP ACCESS • GBX-88219-X22
+            </p>
+          </div>
+          <button
+            type="button"
+            className="w-full mt-3.5 bg-white text-slate-900 py-2 rounded-xl font-bold text-[11px] hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-1.5"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span>View Entry QR & Code</span>
+          </button>
+        </div>
 
-                        <div className="grid grid-cols-2 gap-8 mb-8">
-                            <div>
-                                <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Access Tier</p>
-                                <p className="font-bold text-orange-500">VIP ACCESS</p>
-                            </div>
-                            <div>
-                                <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Event</p>
-                                <p className="font-bold uppercase tracking-tighter text-xs mt-0.5">Global Innovation Fair</p>
-                            </div>
-                        </div>
+        {/* 2. EXPO WALLET WIDGET */}
+        <div className="w-full bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-4 text-white relative overflow-hidden shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span className="font-bold text-[10px] uppercase tracking-wider text-orange-100">
+                Pass & MCOM Wallet
+              </span>
+              <Wallet className="w-4 h-4 text-orange-100 shrink-0" />
+            </div>
+            <div className="text-base sm:text-xl font-extrabold leading-tight">
+              £1,250.00
+            </div>
+            <div className="text-orange-100 text-[10px] font-medium mt-0.5">
+              +£500.00 added • 850 MCOM Pts
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3.5">
+            <Link
+              href="/dashboard/customer/rewards"
+              className="flex-1 bg-white/15 hover:bg-white/25 py-2 rounded-xl font-bold text-[11px] text-center transition-colors"
+            >
+              History
+            </Link>
+            <Link
+              href="/dashboard/customer/tickets"
+              className="flex-1 bg-white text-orange-600 py-2 rounded-xl font-bold text-[11px] text-center shadow-xs"
+            >
+              My Passes
+            </Link>
+          </div>
+        </div>
 
-                        <div className="flex flex-col items-center justify-center pt-8 border-t border-white/10">
-                            <div className="bg-white p-3 rounded-2xl mb-4">
-                                {/* Fake QR Code */}
-                                <div className="grid grid-cols-6 gap-0.5 w-32 h-32">
-                                    {[...Array(36)].map((_, i) => (
-                                        <div key={i} className={`w-full h-full ${Math.random() > 0.5 ? 'bg-black' : 'bg-transparent'}`} />
-                                    ))}
-                                </div>
-                            </div>
-                            <p className="text-[10px] text-slate-500 font-bold tracking-widest mb-1 uppercase">Scan at entry</p>
-                            <p className="text-sm font-mono font-bold tracking-tighter">GBX-88219-X22</p>
-                        </div>
-                    </div>
+        {/* 3. UP NEXT SCHEDULE WIDGET */}
+        <div className="w-full bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-center mb-2.5">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-orange-600" />
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
+                    Up Next
+                  </h3>
                 </div>
-                <p className="text-center text-xs text-slate-400 mt-4 max-w-xs mx-auto">
-                    This QR code is unique to your identity. Do not share it. Valid for one entry per day.
+                <Link
+                  href="/dashboard/customer/schedule"
+                  className="text-[11px] font-bold text-orange-600 hover:underline"
+                >
+                  Full Agenda
+                </Link>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {[
+                  {
+                    time: "11:30 AM",
+                    title: "Networking: Tech Founders",
+                    status: "Starting in 10m",
+                    live: true
+                  },
+                  {
+                    time: "02:00 PM",
+                    title: "Design Systems Workshop",
+                    status: "Registered",
+                    live: false
+                  }
+                ].map((event, i) => (
+                  <Link
+                    key={i}
+                    href="/dashboard/customer/schedule"
+                    className="py-2 flex items-center justify-between gap-2 group"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs text-slate-900 truncate group-hover:text-orange-600">
+                        {event.title}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-semibold mt-0.5">
+                        <span className="text-slate-500">{event.time}</span>
+                        <span className="text-slate-300">•</span>
+                        <span
+                          className={
+                            event.live
+                              ? "text-orange-600 font-bold"
+                              : "text-emerald-600 font-bold"
+                          }
+                        >
+                          {event.status}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {/* FEATURED BOOTHS — Horizontal Scroll on Mobile with Peeping Card + Dot Indicator */}
+      <section className="space-y-3">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-tight">
+              Featured Exhibitor Booths
+            </h2>
+            <p className="text-[11px] text-slate-500 font-medium">
+              Top verified exhibitors with live demos & MCOM Mall products
+            </p>
+          </div>
+          <Link
+            href="/dashboard/customer/booths"
+            className="text-orange-600 text-[11px] font-bold hover:underline inline-flex items-center gap-1 shrink-0"
+          >
+            <span>View All</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div>
+          <div className="flex md:grid md:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+            {FEATURED_BOOTHS.map((booth) => (
+              <Link
+                key={booth.id}
+                href={`/dashboard/customer/booths/${booth.id}`}
+                className="w-[76%] min-w-[235px] sm:w-[260px] md:w-auto shrink-0 snap-start bg-white rounded-2xl p-3 sm:p-4 shadow-2xs border border-slate-200/80 hover:shadow-md transition-all group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="h-32 sm:h-36 rounded-xl bg-slate-200 relative mb-2.5 overflow-hidden">
+                    <Image
+                      src={booth.image}
+                      alt={booth.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                    <span className="text-orange-600">{booth.code}</span>
+                    <span className="text-emerald-600">Live Booth</span>
+                  </div>
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-orange-600 transition-colors">
+                    {booth.name}
+                  </h3>
+                  <p className="text-slate-500 text-[11px] mt-0.5 line-clamp-2 leading-relaxed">
+                    {booth.desc}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 mt-3 text-[11px]">
+                  <span className="font-semibold text-slate-500 truncate">{booth.tags}</span>
+                  <span className="text-orange-600 font-bold shrink-0 inline-flex items-center gap-0.5">
+                    Visit <ArrowRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          {/* Mobile Slider Dots Indicator */}
+          <div className="flex items-center justify-center gap-1.5 mt-2 md:hidden">
+            <span className="w-3.5 h-1 rounded-full bg-orange-600" />
+            <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+            <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+          </div>
+        </div>
+      </section>
+
+      {/* COMPACT DIGITAL PASSPORT MODAL */}
+      <Modal
+        isOpen={showPassport}
+        onClose={() => setShowPassport(false)}
+        title="My Digital Passport"
+      >
+        <div className="space-y-3">
+          <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl relative overflow-hidden border border-white/10">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider block">
+                  Official Entry Pass
+                </span>
+                <h3 className="text-sm sm:text-base font-extrabold tracking-tight">
+                  247GBS DIGITAL EXPO
+                </h3>
+              </div>
+              <ShieldCheck className="w-5 h-5 text-orange-500 shrink-0" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs mb-4 pb-3 border-b border-white/10">
+              <div>
+                <p className="text-slate-400 text-[9px] uppercase font-bold tracking-wider">
+                  Pass Holder
                 </p>
-            </Modal>
-        </>
-    );
+                <p className="font-bold text-xs sm:text-sm">John Doe</p>
+              </div>
+              <div>
+                <p className="text-slate-400 text-[9px] uppercase font-bold tracking-wider">
+                  Access Tier
+                </p>
+                <p className="font-bold text-xs sm:text-sm text-orange-400">VIP All-Season</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center justify-center">
+              <div className="bg-white p-2.5 rounded-xl mb-2.5">
+                <div className="grid grid-cols-6 gap-0.5 w-24 h-24">
+                  {[...Array(36)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-full h-full ${
+                        i % 2 === 0 || i % 5 === 0 ? "bg-slate-900" : "bg-transparent"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="text-[9px] text-slate-400 font-bold tracking-widest uppercase">
+                Event Access Code
+              </p>
+              <p className="text-xs font-mono font-bold text-orange-400 mt-0.5">
+                GBX-88219-X22
+              </p>
+            </div>
+          </div>
+          <p className="text-center text-[11px] text-slate-500">
+            Use code <strong>GBX-88219-X22</strong> to unlock live event lobbies or scan QR at physical venues.
+          </p>
+        </div>
+      </Modal>
+    </div>
+  );
 }

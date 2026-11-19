@@ -7,16 +7,25 @@ import {
   TrendingUp, 
   Search,
   Calendar,
-  Tag
+  Tag,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import { NEWS_ITEMS } from "@/data/news";
-import { useState } from "react";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function NewsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+function NewsContent() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("q") || searchParams.get("search") || "";
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || searchParams.get("search");
+    if (q !== null && q !== undefined) setSearchTerm(q);
+  }, [searchParams]);
 
   const filteredNews = NEWS_ITEMS.filter(item => 
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,10 +60,19 @@ export default function NewsPage() {
                 <input 
                   type="text" 
                   placeholder="Search articles or topics..." 
-                  className="w-full pl-9 pr-4 py-2 sm:py-2.5 bg-white rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 text-xs sm:text-sm shadow-xs"
+                  className="w-full pl-9 pr-9 py-2 sm:py-2.5 bg-white rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 text-xs sm:text-sm shadow-xs"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -118,9 +136,20 @@ export default function NewsPage() {
           </div>
 
           {filteredNews.length === 0 && (
-            <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              <h3 className="text-base font-bold text-slate-900 mb-1">No articles found</h3>
-              <p className="text-xs text-slate-500">Try adjusting your search query.</p>
+            <div className="text-center py-12 px-4 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 max-w-md mx-auto my-4">
+              <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Search className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1">No Articles Found</h3>
+              <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                No stories match &ldquo;{searchTerm}&rdquo;. Try another keyword or clear your filter.
+              </p>
+              <button
+                onClick={() => setSearchTerm("")}
+                className="px-5 py-2 bg-orange-600 text-white rounded-full text-xs font-bold hover:bg-orange-700 transition-all shadow-xs active:scale-95"
+              >
+                Clear Search Filter
+              </button>
             </div>
           )}
         </div>
@@ -148,5 +177,13 @@ export default function NewsPage() {
 
       <Footer />
     </main>
+  );
+}
+
+export default function NewsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <NewsContent />
+    </Suspense>
   );
 }

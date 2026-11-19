@@ -1,334 +1,821 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Plus, 
-    ArrowRight, 
-    ArrowLeft, 
-    Check, 
-    Upload, 
-    Calendar, 
-    Clock, 
-    Ticket, 
-    ShoppingBag, 
-    Layout, 
-    Globe,
-    Monitor,
-    MapPin,
-    Users,
-    Briefcase,
-    ShieldCheck,
-    Loader2,
-    Info
-} from "lucide-react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import Tooltip from "@/app/component/Tooltip";
+import { useRouter } from "next/navigation";
+import {
+    ArrowLeft,
+    Calendar,
+    Ticket,
+    ShieldCheck,
+    Check,
+    CheckCircle2,
+    AlertCircle,
+    Sparkles,
+    Users,
+    UserPlus,
+    X,
+    Building2,
+    Search,
+    Globe,
+    MapPin,
+    Video,
+    Clock
+} from "lucide-react";
 
-const WIZARD_STEPS = [
-    "Event Type",
-    "Venue Format",
-    "Basic Details",
-    "Schedule",
-    "Ticket Config",
-    "Bundles",
-    "Review"
+const ADMIN_TICKET_TEMPLATES = [
+    {
+        id: "tpl-general",
+        name: "Standard Season Day Pass Template",
+        minPrice: 0,
+        maxPrice: 50,
+        defaultPrice: 25,
+        commission: "10% Admin Split",
+        description: "Admin-approved general booth & keynote access template. Capped at £50 maximum.",
+    },
+    {
+        id: "tpl-vip",
+        name: "VIP Executive Workshop Template",
+        minPrice: 50,
+        maxPrice: 250,
+        defaultPrice: 120,
+        commission: "8% Admin Split",
+        description: "Includes 1-on-1 consultation room access & MCOM voucher perk. Capped at £250 maximum.",
+    },
+    {
+        id: "tpl-reward",
+        name: "MCOM Loyalty Reward Pass (Gift Only)",
+        minPrice: 0,
+        maxPrice: 0,
+        defaultPrice: 0,
+        commission: "0% Fee • Loyalty Gift",
+        description: "Complimentary pass distributed via MCOM Rewards and sales referral links.",
+    },
 ];
 
-export default function CreateEventWizard() {
-    const [step, setStep] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
+interface InvitedPartner {
+    id: string;
+    name: string;
+    category: string;
+    role: string;
+    status: "Pending Acceptance" | "Accepted";
+}
 
-    // Form State
-    const [eventType, setEventType] = useState("expo");
-    const [format, setFormat] = useState("virtual");
-    const [details, setDetails] = useState({ title: "", description: "" });
-    const [tickets, setTickets] = useState<any[]>([
-        { id: "1", name: "General Access", price: "0", quantity: "1000", rules: "Non-refundable" }
+const AVAILABLE_PARTNERS = [
+    { id: "p1", name: "Apex Logistics UK", category: "Supply Chain & Fulfillment" },
+    { id: "p2", name: "Beauty Bar UK", category: "Retail & Cosmetics" },
+    { id: "p3", name: "EcoTech Clean Solutions", category: "Sustainability & CleanTech" },
+    { id: "p4", name: "Skyline Media Group", category: "Digital Marketing & PR" },
+    { id: "p5", name: "HealthHub Innovations", category: "Wellness & MedTech" },
+];
+
+export default function CreateEventPage() {
+    const router = useRouter();
+    const [step, setStep] = useState(1);
+    const [title, setTitle] = useState("");
+    const [format, setFormat] = useState<"virtual" | "physical" | "hybrid">("virtual");
+    const [eventDate, setEventDate] = useState("2026-04-18");
+    const [startTime, setStartTime] = useState("10:00");
+    const [endTime, setEndTime] = useState("12:00");
+    const [virtualLink, setVirtualLink] = useState("https://meet.google.com/abc-defg-hij");
+    const [physicalVenue, setPhysicalVenue] = useState("ExCeL London, Hall 4, Royal Victoria Dock");
+    const [physicalSpaces, setPhysicalSpaces] = useState("150");
+    const [capacity, setCapacity] = useState("300");
+    const [selectedTemplateId, setSelectedTemplateId] = useState("tpl-general");
+    const [ticketPrice, setTicketPrice] = useState<number>(25);
+    const [rewardQuota, setRewardQuota] = useState("50");
+    const [submitted, setSubmitted] = useState(false);
+
+    // Business Partnership Workflow (Storyline §4.4)
+    const [partnerSearch, setPartnerSearch] = useState("");
+    const [selectedPartnerId, setSelectedPartnerId] = useState(AVAILABLE_PARTNERS[0].id);
+    const [partnerRole, setPartnerRole] = useState("Co-Host");
+    const [invitedPartners, setInvitedPartners] = useState<InvitedPartner[]>([
+        {
+            id: "p1",
+            name: "Apex Logistics UK",
+            category: "Supply Chain & Fulfillment",
+            role: "Co-Host & Logistics Sponsor",
+            status: "Pending Acceptance"
+        }
     ]);
 
-    const handleNext = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setStep(prev => Math.min(prev + 1, WIZARD_STEPS.length - 1));
-        }, 500);
+    const handleAddPartner = () => {
+        const p = AVAILABLE_PARTNERS.find((item) => item.id === selectedPartnerId);
+        if (!p) return;
+        if (invitedPartners.some((item) => item.id === p.id)) return;
+        setInvitedPartners([
+            ...invitedPartners,
+            {
+                id: p.id,
+                name: p.name,
+                category: p.category,
+                role: partnerRole,
+                status: "Pending Acceptance"
+            }
+        ]);
     };
-    
-    const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
 
-    const handleSubmit = () => {
-        setLoading(true);
+    const handleRemovePartner = (id: string) => {
+        setInvitedPartners(invitedPartners.filter((p) => p.id !== id));
+    };
+
+    const activeTemplate =
+        ADMIN_TICKET_TEMPLATES.find((t) => t.id === selectedTemplateId) || ADMIN_TICKET_TEMPLATES[0];
+
+    const isPriceValid =
+        ticketPrice >= activeTemplate.minPrice && ticketPrice <= activeTemplate.maxPrice;
+
+    const handleTemplateSelect = (tplId: string) => {
+        const tpl = ADMIN_TICKET_TEMPLATES.find((t) => t.id === tplId);
+        setSelectedTemplateId(tplId);
+        if (tpl) {
+            setTicketPrice(tpl.defaultPrice);
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!isPriceValid) return;
+        setSubmitted(true);
         setTimeout(() => {
-            setLoading(false);
-            setIsSubmitted(true);
+            router.push("/dashboard/business/events");
         }, 1500);
     };
 
-    const addTicketTier = () => {
-        setTickets([...tickets, { id: Date.now().toString(), name: "New Tier", price: "0", quantity: "100", rules: "" }]);
-    };
-
-    const updateTicket = (id: string, field: string, val: string) => {
-        setTickets(tickets.map(t => t.id === id ? { ...t, [field]: val } : t));
-    };
-
-    if (isSubmitted) {
-        return (
-            <div className="max-w-2xl mx-auto text-center py-20 animate-in zoom-in-95 duration-500">
-                <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8">
-                    <Check className="w-12 h-12" />
-                </div>
-                <h1 className="text-4xl font-black text-slate-900 mb-4">Submitted for Review</h1>
-                <p className="text-lg text-slate-600 mb-12">
-                    Your event <strong>{details.title}</strong> has been sent to the admin team. 
-                    The approval pipeline status is now: <span className="text-orange-600 font-bold uppercase tracking-widest text-sm ml-2 underline">Under Review</span>
-                </p>
-                <Link href="/dashboard/business/events" className="inline-flex items-center gap-2 bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-xl">
-                    Back to Event Manager <ArrowRight className="w-5 h-5" />
-                </Link>
-            </div>
-        );
-    }
-
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-20">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <Link href="/dashboard/business/events" className="flex items-center gap-2 text-slate-500 hover:text-orange-600 font-bold transition-colors">
-                    <ArrowLeft className="w-5 h-5" /> Back to Events
+        <div className="max-w-3xl mx-auto space-y-5 pb-12">
+            {/* Compact Header */}
+            <div className="pb-3 border-b border-slate-200/80">
+                <Link
+                    href="/dashboard/business/events"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-orange-600 uppercase tracking-wider mb-1 transition-colors"
+                >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back to My Events
                 </Link>
-                <div className="text-right">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Step {step + 1} of {WIZARD_STEPS.length}</p>
-                    <h2 className="text-lg font-bold text-slate-900">{WIZARD_STEPS[step]}</h2>
+                <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+                    Create Event
+                </h1>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                    Configure your event details, schedule, and ticket template for Expo visitors.
+                </p>
+            </div>
+
+            {/* Elegant Numbered Timeline Stepper (No Text Truncation) */}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 shadow-2xs">
+                <div className="flex items-center justify-between relative max-w-lg mx-auto">
+                    {/* Timeline Connector Track & Fill (Contained within track bounds) */}
+                    <div className="absolute left-4 right-4 top-4 -translate-y-1/2 h-0.5 bg-slate-200 z-0 overflow-hidden">
+                        <div
+                            className="h-full bg-orange-600 transition-all duration-300"
+                            style={{ width: `${((step - 1) / 3) * 100}%` }}
+                        />
+                    </div>
+
+                    {[
+                        { num: 1, title: "Schedule" },
+                        { num: 2, title: "Partners" },
+                        { num: 3, title: "Tickets" },
+                        { num: 4, title: "Review" },
+                    ].map((s) => {
+                        const isCompleted = step > s.num;
+                        const isCurrent = step === s.num;
+
+                        return (
+                            <button
+                                key={s.num}
+                                type="button"
+                                onClick={() => setStep(s.num)}
+                                className="relative z-10 flex flex-col items-center group cursor-pointer"
+                            >
+                                <div
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                                        isCurrent
+                                            ? "bg-orange-600 text-white ring-4 ring-orange-100 shadow-sm"
+                                            : isCompleted
+                                            ? "bg-orange-600 text-white shadow-2xs"
+                                            : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
+                                    }`}
+                                >
+                                    {isCompleted ? <Check className="w-4 h-4 stroke-[2.5]" /> : s.num}
+                                </div>
+                                <span
+                                    className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mt-1.5 transition-colors hidden sm:block ${
+                                        isCurrent
+                                            ? "text-orange-600 font-extrabold"
+                                            : isCompleted
+                                            ? "text-slate-900 font-bold"
+                                            : "text-slate-400 group-hover:text-slate-600"
+                                    }`}
+                                >
+                                    {s.title}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Mobile Active Step Indicator Banner (Zero truncation) */}
+                <div className="sm:hidden mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                        Step {step} of 4
+                    </span>
+                    <span className="font-extrabold text-orange-600 uppercase tracking-tight text-xs">
+                        {step === 1 && "1. Event Schedule & Scope"}
+                        {step === 2 && "2. Co-Hosts & Partners"}
+                        {step === 3 && "3. Ticket Pricing & Templates"}
+                        {step === 4 && "4. Review & Confirmation"}
+                    </span>
                 </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="flex gap-2 h-1.5">
-                {WIZARD_STEPS.map((_, i) => (
-                    <div key={i} className={`flex-1 rounded-full transition-all duration-500 ${i <= step ? 'bg-orange-600' : 'bg-slate-200'}`} />
-                ))}
-            </div>
+            {submitted ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center space-y-2">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                    <h2 className="text-sm font-extrabold text-slate-900 uppercase">
+                        Event Submitted to Admin Approval Queue
+                    </h2>
+                    <p className="text-xs text-slate-600">
+                        Your event &quot;{title || "New Booth Showcase"}&quot; uses the{" "}
+                        <strong>{activeTemplate.name}</strong> (£{ticketPrice}) and is compliant with Season Pass caps.
+                    </p>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
+                    {step === 1 && (
+                        <div className="space-y-4">
+                            <div className="pb-3 border-b border-slate-100">
+                                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Calendar className="w-4 h-4 text-orange-600" /> Event Schedule & Format
+                                </h2>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    Choose attendance format (virtual, physical, or hybrid), schedule times, and capacity.
+                                </p>
+                            </div>
 
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden relative">
-                <div className="p-8 md:p-16">
-                    <AnimatePresence mode="wait">
-                        {/* STEP 0: EVENT TYPE */}
-                        {step === 0 && (
-                            <motion.div key="step0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
-                                <div className="text-center max-w-xl mx-auto">
-                                    <h1 className="text-3xl font-black text-slate-900 mb-3 uppercase tracking-tight">What are you hosting?</h1>
-                                    <p className="text-slate-500">Select the template that best fits your event structure.</p>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {/* Event Format Selection */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                                    Attendance Format
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                                     {[
-                                        { id: "expo", label: "Digital Expo", icon: <Layout /> },
-                                        { id: "workshop", label: "Workshop", icon: <Briefcase /> },
-                                        { id: "webinar", label: "Webinar", icon: <Monitor /> },
-                                        { id: "panel", label: "Panel", icon: <Users /> },
-                                    ].map((t) => (
-                                        <div key={t.id} onClick={() => setEventType(t.id)} className={`p-6 rounded-3xl border-2 cursor-pointer transition-all text-center ${eventType === t.id ? "border-orange-600 bg-orange-50" : "border-slate-50 hover:border-orange-200"}`}>
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 ${eventType === t.id ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-400"}`}>
-                                                {t.icon}
-                                            </div>
-                                            <span className="font-bold text-slate-900 text-sm">{t.label}</span>
-                                        </div>
-                                    ))}
+                                        {
+                                            id: "virtual" as const,
+                                            label: "Virtual Event",
+                                            sub: "Google Meet / Livestream",
+                                            icon: Video,
+                                        },
+                                        {
+                                            id: "physical" as const,
+                                            label: "Physical Venue",
+                                            sub: "In-Person Stage or Booth",
+                                            icon: MapPin,
+                                        },
+                                        {
+                                            id: "hybrid" as const,
+                                            label: "Hybrid Event",
+                                            sub: "Venue + Online Stream",
+                                            icon: Globe,
+                                        },
+                                    ].map((f) => {
+                                        const isSelected = format === f.id;
+                                        const Icon = f.icon;
+                                        return (
+                                            <button
+                                                key={f.id}
+                                                type="button"
+                                                onClick={() => setFormat(f.id)}
+                                                className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center sm:flex-col sm:items-start gap-2.5 ${
+                                                    isSelected
+                                                        ? "border-orange-500 bg-orange-50/50 shadow-2xs"
+                                                        : "border-slate-200 hover:border-slate-300 bg-white"
+                                                }`}
+                                            >
+                                                <div
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                                        isSelected
+                                                            ? "bg-orange-600 text-white"
+                                                            : "bg-slate-100 text-slate-500"
+                                                    }`}
+                                                >
+                                                    <Icon className="w-4 h-4" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="text-xs font-extrabold text-slate-900 leading-tight">
+                                                        {f.label}
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                                                        {f.sub}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                            </motion.div>
-                        )}
+                            </div>
 
-                        {/* STEP 1: FORMAT */}
-                        {step === 1 && (
-                            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-                                <div className="text-center max-w-xl mx-auto">
-                                    <h1 className="text-3xl font-black text-slate-900 mb-3 uppercase tracking-tight">Venue Format</h1>
-                                    <p className="text-slate-500">How will users attend your event?</p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {[
-                                        { id: "virtual", label: "Virtual", desc: "100% Digital", icon: <Monitor /> },
-                                        { id: "physical", label: "Physical", desc: "On-site Venue", icon: <MapPin /> },
-                                        { id: "hybrid", label: "Hybrid", desc: "Both Formats", icon: <Globe /> },
-                                    ].map((f) => (
-                                        <div key={f.id} onClick={() => setFormat(f.id)} className={`p-8 rounded-[2.5rem] border-2 cursor-pointer transition-all ${format === f.id ? "border-orange-600 bg-orange-50 shadow-xl" : "border-slate-50 bg-slate-50/50 hover:border-orange-200"}`}>
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${format === f.id ? "bg-orange-600 text-white" : "bg-white text-slate-400 border border-slate-100"}`}>
-                                                {f.icon}
-                                            </div>
-                                            <h3 className="text-xl font-bold text-slate-900 mb-1">{f.label}</h3>
-                                            <p className="text-slate-500 text-sm">{f.desc}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
+                            {/* Title */}
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                    Event / Session Title
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="e.g. Live AI Product Launch & Q&A"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                />
+                            </div>
 
-                        {/* STEP 2: BASIC DETAILS */}
-                        {step === 2 && (
-                            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid md:grid-cols-2 gap-12">
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Title</label>
-                                                <Tooltip content="The public name of your event">
-                                                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                </Tooltip>
-                                            </div>
-                                            <input type="text" placeholder="Symposium 2026" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold" />
+                            {/* Schedule & Times */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Event Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={eventDate}
+                                        onChange={(e) => setEventDate(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Start Time
+                                    </label>
+                                    <input
+                                        type="time"
+                                        value={startTime}
+                                        onChange={(e) => setStartTime(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        End Time
+                                    </label>
+                                    <input
+                                        type="time"
+                                        value={endTime}
+                                        onChange={(e) => setEndTime(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Conditional Format Fields: Virtual / Meet Link */}
+                            {(format === "virtual" || format === "hybrid") && (
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Online Joining Link (Google Meet / Zoom / Livestream)
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={virtualLink}
+                                        onChange={(e) => setVirtualLink(e.target.value)}
+                                        placeholder="https://meet.google.com/abc-defg-hij"
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Conditional Format Fields: Physical Venue & Space Capacity */}
+                            {(format === "physical" || format === "hybrid") && (
+                                <>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                            Physical Venue Name & Address
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={physicalVenue}
+                                            onChange={(e) => setPhysicalVenue(e.target.value)}
+                                            placeholder="e.g. ExCeL London, Hall 4, Royal Victoria Dock, E16 1XL"
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                                Physical Space / Seating Capacity
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={physicalSpaces}
+                                                onChange={(e) => setPhysicalSpaces(e.target.value)}
+                                                placeholder="150"
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                            />
                                         </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Description</label>
-                                                <Tooltip content="A short summary of what attendees can expect">
-                                                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                </Tooltip>
-                                            </div>
-                                            <textarea rows={5} placeholder="What is the main value of this event?" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none" />
+
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                                Check-in Terminal Mode
+                                            </label>
+                                            <select className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500">
+                                                <option>QR Scanner Terminal Active</option>
+                                                <option>Manual Door List Check-in</option>
+                                            </select>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Banner (Media)</label>
-                                            <Tooltip content="High-quality image for event promotion">
-                                                <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                            </Tooltip>
-                                        </div>
-                                        <div className="border-4 border-dashed border-slate-100 rounded-[3rem] h-64 flex flex-col items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer group">
-                                            <Upload className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
-                                            <p className="font-black text-sm uppercase">Upload Visuals</p>
-                                        </div>
+                                </>
+                            )}
+
+                            {/* Max Total Passes */}
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                    Total Attendee Ticket Cap
+                                </label>
+                                <input
+                                    type="number"
+                                    value={capacity}
+                                    onChange={(e) => setCapacity(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                                />
+                            </div>
+
+                            <div className="flex justify-end pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(2)}
+                                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 cursor-pointer"
+                                >
+                                    Continue →
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-4">
+                            <div className="pb-3 border-b border-slate-100">
+                                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Users className="w-4 h-4 text-orange-600" /> Co-Hosts & Partners <span className="text-[10px] font-bold text-slate-400 lowercase font-normal">(optional)</span>
+                                </h2>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    Invite registered businesses to co-host, demo products, or bundle promotions.
+                                </p>
+                            </div>
+
+                            {/* Partner Invite Input Card */}
+                            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3">
+                                <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                    <UserPlus className="w-3.5 h-3.5 text-orange-600" /> Add Co-Hosting Partner
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">
+                                            Search Registered Business
+                                        </label>
+                                        <select
+                                            value={selectedPartnerId}
+                                            onChange={(e) => setSelectedPartnerId(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-orange-500"
+                                        >
+                                            {AVAILABLE_PARTNERS.map((p) => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name} ({p.category})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">
+                                            Contribution Role
+                                        </label>
+                                        <select
+                                            value={partnerRole}
+                                            onChange={(e) => setPartnerRole(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-orange-500"
+                                        >
+                                            <option value="Co-Host & Logistics Sponsor">Co-Host & Logistics Sponsor</option>
+                                            <option value="Guest Speaker / Presenter">Guest Speaker / Presenter</option>
+                                            <option value="Live Product Demonstration">Live Product Demonstration</option>
+                                            <option value="Bundle Deal Contributor">Bundle Deal Contributor</option>
+                                        </select>
                                     </div>
                                 </div>
-                            </motion.div>
-                        )}
 
-                        {/* STEP 3: SCHEDULE */}
-                        {step === 3 && (
-                            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid md:grid-cols-2 gap-8">
-                                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Calendar className="text-orange-600" /> Key Dates</h3>
-                                            <Tooltip content="Start and end dates for your event">
-                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                            </Tooltip>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
-                                            <input type="date" className="p-4 bg-white border border-slate-200 rounded-2xl" />
-                                        </div>
-                                    </div>
-                                    <div className="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <h3 className="font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight"><Clock className="text-orange-600" /> Sessions</h3>
-                                            <Tooltip content="Manage individual sessions or workshops">
-                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                                            </Tooltip>
-                                        </div>
-                                        <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold hover:border-orange-500 hover:text-orange-600 transition-all flex items-center justify-center gap-2">
-                                            <Plus className="w-5 h-5" /> Add New Session
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* STEP 4: TICKET CUSTOMIZATION */}
-                        {step === 4 && (
-                            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-2xl font-black text-slate-900 uppercase">Tier Configuration</h3>
-                                    <button onClick={addTicketTier} className="text-orange-600 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
-                                        <Plus className="w-4 h-4" /> New Tier
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={handleAddPartner}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                                    >
+                                        <UserPlus className="w-3.5 h-3.5" /> Send Invitation
                                     </button>
                                 </div>
-                                <div className="space-y-4">
-                                    {tickets.map(t => (
-                                        <div key={t.id} className="p-8 rounded-[2.5rem] bg-slate-50 border border-slate-200 grid md:grid-cols-4 gap-6 relative group">
-                                            <div className="md:col-span-2">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</span>
-                                                    <Tooltip content="Name of the ticket tier (e.g., VIP, General)">
-                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                    </Tooltip>
+                            </div>
+
+                            {/* Active Invitations List (Redesigned 2-Tier Mobile Layout, Zero Truncation) */}
+                            <div className="space-y-2.5">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                                    Invited Session Partners ({invitedPartners.length})
+                                </label>
+
+                                {invitedPartners.length === 0 ? (
+                                    <div className="p-4 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
+                                        No partner businesses invited. You can host this event solo or add partners above.
+                                    </div>
+                                ) : (
+                                    invitedPartners.map((partner) => (
+                                        <div
+                                            key={partner.id}
+                                            className="p-3.5 bg-white border border-slate-200/90 rounded-xl shadow-2xs space-y-2.5"
+                                        >
+                                            {/* Tier 1: Icon, Full Business Name, and Remove Action */}
+                                            <div className="flex items-start justify-between gap-2.5">
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                                                        <Building2 className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">
+                                                            {partner.name}
+                                                        </h4>
+                                                        <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                                                            {partner.category}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <input type="text" value={t.name} onChange={(e) => updateTicket(t.id, 'name', e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemovePartner(partner.id)}
+                                                    className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                                                    title="Remove partner"
+                                                    aria-label="Remove partner"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
                                             </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Price</span>
-                                                    <Tooltip content="Cost per ticket">
-                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                    </Tooltip>
+
+                                            {/* Tier 2: Role & Status Badges with Full Responsive Width */}
+                                            <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                                                <div className="text-[11px] font-bold text-slate-600">
+                                                    Role: <span className="text-orange-600 font-extrabold">{partner.role}</span>
                                                 </div>
-                                                <input type="number" placeholder="Price £" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
+                                                <span className="text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                                    {partner.status}
+                                                </span>
                                             </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stock</span>
-                                                    <Tooltip content="Number of tickets available">
-                                                        <Info className="w-3 h-3 text-slate-400 cursor-help" />
-                                                    </Tooltip>
-                                                </div>
-                                                <input type="number" placeholder="Stock" className="w-full p-3 rounded-xl border border-slate-200 font-bold" />
-                                            </div>
-                                            <div className="md:col-span-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Advanced: Sale window & Access Rules</div>
                                         </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
+                                    ))
+                                )}
+                            </div>
 
-                        {/* STEP 5: BUNDLES */}
-                        {step === 5 && (
-                            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="text-center py-12">
-                                <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                    <ShoppingBag />
-                                </div>
-                                <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase">Bundled Products</h2>
-                                <p className="text-slate-500 mb-10">Attach your existing inventory to these tickets.</p>
-                                <button className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-orange-600 transition-all flex items-center gap-2 mx-auto shadow-lg">
-                                    <Plus /> Browse Inventory
+                            <div className="flex items-center justify-between pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(1)}
+                                    className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 cursor-pointer"
+                                >
+                                    ← Back
                                 </button>
-                            </motion.div>
-                        )}
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(3)}
+                                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 cursor-pointer"
+                                >
+                                    Continue →
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
-                        {/* STEP 6: REVIEW */}
-                        {step === 6 && (
-                            <motion.div key="step6" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-                                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                    <ShieldCheck />
-                                </div>
-                                <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase">Ready for Admin Review</h2>
-                                <p className="text-slate-500 max-w-md mx-auto mb-10">Once submitted, your event enters the approval pipeline. You will be notified via email upon approval.</p>
-                                <div className="max-w-sm mx-auto p-6 bg-slate-50 rounded-3xl border border-slate-100 text-left space-y-3">
-                                    <div className="flex justify-between text-sm"><span>Type:</span> <span className="font-bold uppercase">{eventType}</span></div>
-                                    <div className="flex justify-between text-sm"><span>Format:</span> <span className="font-bold uppercase">{format}</span></div>
-                                    <div className="flex justify-between text-sm"><span>Tickets:</span> <span className="font-bold">{tickets.length} Tiers</span></div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                    {step === 3 && (
+                        <div className="space-y-4">
+                            <div className="pb-3 border-b border-slate-100">
+                                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Ticket className="w-4 h-4 text-orange-600" /> Ticket Pricing & Templates
+                                </h2>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    Select an Admin-approved template and set pricing within the season cap.
+                                </p>
+                            </div>
 
-                {/* Footer Actions */}
-                <div className="p-8 md:p-12 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-                    <button onClick={handleBack} disabled={step === 0} className="text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-900 disabled:opacity-0 transition-all">
-                        Back
-                    </button>
-                    <button 
-                        onClick={step === WIZARD_STEPS.length - 1 ? handleSubmit : handleNext} 
-                        className="bg-orange-600 text-white px-12 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-orange-700 shadow-xl shadow-orange-600/20 flex items-center gap-3 transition-all active:scale-95"
-                    >
-                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : (
-                            step === WIZARD_STEPS.length - 1 ? "Submit for Approval" : <>Next Step <ArrowRight className="w-4 h-4" /></>
-                        )}
-                    </button>
-                </div>
-            </div>
+                            <div className="space-y-2.5">
+                                {ADMIN_TICKET_TEMPLATES.map((tpl) => {
+                                    const selected = tpl.id === selectedTemplateId;
+                                    return (
+                                        <div
+                                            key={tpl.id}
+                                            onClick={() => handleTemplateSelect(tpl.id)}
+                                            className={`p-3.5 rounded-xl border cursor-pointer transition-all space-y-1 ${
+                                                selected
+                                                    ? "border-orange-600 bg-orange-50/40"
+                                                    : "border-slate-200 hover:border-slate-300"
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider">
+                                                <span className="text-orange-600 truncate">{tpl.commission}</span>
+                                                <span className="text-slate-900 shrink-0 whitespace-nowrap">
+                                                    {tpl.maxPrice === 0 ? "Free Pass (£0 Cap)" : `Cap: £${tpl.minPrice}–£${tpl.maxPrice}`}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs sm:text-sm font-extrabold text-slate-900">
+                                                {tpl.name}
+                                            </p>
+                                            <p className="text-[11px] text-slate-500">{tpl.description}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Your Ticket Price (£{activeTemplate.minPrice} – £{activeTemplate.maxPrice} Cap)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={activeTemplate.minPrice}
+                                        max={activeTemplate.maxPrice}
+                                        value={ticketPrice}
+                                        onChange={(e) => setTicketPrice(Number(e.target.value))}
+                                        disabled={activeTemplate.maxPrice === 0}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 disabled:bg-slate-100"
+                                    />
+                                    {!isPriceValid && (
+                                        <p className="text-[11px] font-bold text-red-600 flex items-center gap-1 mt-1">
+                                            <AlertCircle className="w-3.5 h-3.5" /> Price cannot exceed Admin cap of £
+                                            {activeTemplate.maxPrice}.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        MCOM Rewards Complimentary Allocation
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={rewardQuota}
+                                        onChange={(e) => setRewardQuota(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(2)}
+                                    className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 cursor-pointer"
+                                >
+                                    ← Back
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!isPriceValid}
+                                    onClick={() => setStep(4)}
+                                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 disabled:opacity-50 cursor-pointer"
+                                >
+                                    Continue →
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 4 && (
+                        <div className="space-y-4">
+                            <div className="pb-3 border-b border-slate-100">
+                                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> Review & Confirmation
+                                </h2>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    Verify your event schedule, venue or joining link, co-hosts, and ticket pricing.
+                                </p>
+                            </div>
+
+                            {/* Main Event Showcase Card */}
+                            <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-orange-100/90 text-orange-700">
+                                        {format === "virtual" && <Video className="w-3 h-3" />}
+                                        {format === "physical" && <MapPin className="w-3 h-3" />}
+                                        {format === "hybrid" && <Globe className="w-3 h-3" />}
+                                        {format === "virtual"
+                                            ? "Virtual Stream"
+                                            : format === "physical"
+                                            ? "In-Person Venue"
+                                            : "Hybrid Event"}
+                                    </span>
+                                    <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                        {eventDate} • {startTime} - {endTime}
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                                        {title || "Untitled Booth Showcase"}
+                                    </h3>
+                                    {(format === "physical" || format === "hybrid") && (
+                                        <p className="text-xs text-slate-600 font-medium flex items-center gap-1.5 mt-1.5">
+                                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            <span>{physicalVenue} • <strong className="text-slate-800">{physicalSpaces} Seats</strong></span>
+                                        </p>
+                                    )}
+                                    {(format === "virtual" || format === "hybrid") && (
+                                        <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5 mt-1 break-all">
+                                            <Video className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                            <span>{virtualLink || "Google Meet Link"}</span>
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Structured 2-Column Info Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* Ticket & Pricing Box */}
+                                <div className="p-3.5 bg-white border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                        <Ticket className="w-3.5 h-3.5 text-orange-600" /> Ticket & Pricing
+                                    </div>
+                                    <div className="space-y-1.5 text-xs">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Template</span>
+                                            <span className="font-bold text-slate-900 text-right">{activeTemplate.name}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Ticket Price</span>
+                                            <span className="font-extrabold text-emerald-600 text-sm">£{ticketPrice}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Total Passes</span>
+                                            <span className="font-bold text-slate-900">{capacity} Passes</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Rewards Quota</span>
+                                            <span className="font-bold text-slate-900">{rewardQuota} Passes</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Co-Hosts & Partners Box */}
+                                <div className="p-3.5 bg-white border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                        <Users className="w-3.5 h-3.5 text-orange-600" /> Co-Hosts ({invitedPartners.length})
+                                    </div>
+                                    {invitedPartners.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {invitedPartners.map((p) => (
+                                                <div key={p.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-0">
+                                                    <div className="min-w-0 pr-2">
+                                                        <div className="font-bold text-slate-900 truncate">{p.name}</div>
+                                                        <div className="text-[10px] text-slate-500">{p.role}</div>
+                                                    </div>
+                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                                        Pending
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-slate-400 font-medium italic pt-2">
+                                            Solo Host — No external co-hosts invited.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Compliance Note */}
+                            <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center gap-2.5 text-xs text-emerald-800">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                <span>
+                                    Ready for review. All ticket tiers and price caps comply with season guidelines.
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(3)}
+                                    className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-50 transition-colors"
+                                >
+                                    ← Back
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 cursor-pointer shadow-xs transition-colors"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" /> Submit to Admin Queue
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </form>
+            )}
         </div>
     );
 }

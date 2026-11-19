@@ -190,3 +190,13 @@ body {
   transform: translateY(-5px);
   box-shadow: 0 20px 40px -12px rgba(234, 88, 12, 0.1);
 }
+
+/* Hide Scrollbar for Horizontal Carousels & Filter Strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

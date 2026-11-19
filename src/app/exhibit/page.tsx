@@ -295,15 +295,12 @@ export default function ExhibitPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 sm:mt-8 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                    <p className="text-[11px] text-slate-400">
-                      Identity & KYB verification is synced automatically via Central Solution (CHS).
-                    </p>
+                  <div className="mt-5 sm:mt-8 pt-4 border-t border-slate-100 flex items-center justify-end">
                     <button
                       onClick={handleNext}
-                      className="px-5 py-2.5 sm:px-7 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 hover:bg-orange-700 transition-all shadow-md shrink-0 active:scale-95"
+                      className="w-full sm:w-auto px-6 py-2.5 sm:px-7 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md active:scale-95 cursor-pointer"
                     >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Next: Select Package</span> <ArrowRight className="w-3.5 h-3.5" /></>}
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Continue</span> <ArrowRight className="w-3.5 h-3.5" /></>}
                     </button>
                   </div>
                 </div>
@@ -417,7 +414,7 @@ export default function ExhibitPage() {
                         onClick={handleSubmit}
                         className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 hover:bg-orange-700 transition-all shadow-md active:scale-95"
                       >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Complete & Sync with CHS</span> <ArrowRight className="w-3.5 h-3.5" /></>}
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Complete Registration</span> <ArrowRight className="w-3.5 h-3.5" /></>}
                       </button>
                     </div>
                   </div>
@@ -436,7 +433,7 @@ export default function ExhibitPage() {
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-1.5">Exhibitor Booth Activated!</h2>
             <p className="text-xs sm:text-sm text-slate-500 mb-5 leading-relaxed">
-              Your business profile for <strong>{formData.businessName || "your brand"}</strong> is registered. Continue to Central Solution (CHS) or your Business Dashboard to manage your stand.
+              Your business profile for <strong>{formData.businessName || "your brand"}</strong> is registered. Continue to your Business Dashboard to manage your stand.
             </p>
 
             <div className="space-y-2 mb-6 text-left bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
@@ -449,8 +446,8 @@ export default function ExhibitPage() {
                 <span className="text-slate-900 font-bold">{formData.selectedPackage}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-500">CHS Identity Sync</span>
-                <span className="text-orange-600 font-bold">Ready on Login</span>
+                <span className="font-bold text-slate-500">Business Verification</span>
+                <span className="text-emerald-600 font-bold">Verified</span>
               </div>
             </div>
 

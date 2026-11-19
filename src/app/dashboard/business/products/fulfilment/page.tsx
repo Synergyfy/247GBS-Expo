@@ -1,226 +1,326 @@
 "use client";
 
-import { useState } from "react";
-import { 
-    Package, 
-    Truck, 
-    MapPin, 
-    Calendar, 
-    Clock, 
-    ChevronRight, 
-    Plus, 
-    Filter, 
-    Search,
-    AlertCircle,
+import React, { useState } from "react";
+import Link from "next/link";
+import {
+    Truck,
     CheckCircle2,
-    Settings2,
-    ArrowUpRight
+    Clock,
+    Search,
+    ChevronDown,
+    ArrowLeft,
+    ExternalLink,
+    ShoppingBag,
+    Package,
+    RefreshCw,
 } from "lucide-react";
+import Modal from "@/app/component/Modal";
 
-export default function FulfilmentPage() {
+export default function OrderFulfilmentPage() {
+    const [activeFilter, setActiveFilter] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [showAutomation, setShowAutomation] = useState(false);
+
+    const [orders, setOrders] = useState([
+        {
+            id: "#ORD-7829",
+            customer: "Alice Thompson",
+            email: "alice.t@example.com",
+            items: "2x Smart Home Hub (Gen 4)",
+            total: "£259.98",
+            status: "Processing",
+            type: "MCOM Delivery",
+            date: "2h ago",
+            address: "142B Baker Street, London, NW1 6XE",
+            tracking: "",
+        },
+        {
+            id: "#ORD-7825",
+            customer: "Mark Evans",
+            email: "mark.evans@techcorp.co.uk",
+            items: "1x Enterprise Cloud Suite (1-Yr)",
+            total: "£499.00",
+            status: "Completed",
+            type: "Digital Key",
+            date: "5h ago",
+            address: "Instant Digital Delivery",
+            tracking: "DIGI-9920-XLA",
+        },
+        {
+            id: "#ORD-7819",
+            customer: "Sarah Jenkins",
+            email: "s.jenkins@designstudio.io",
+            items: "1x Ergonomic Mesh Chair, 1x Desk Mat",
+            total: "£345.50",
+            status: "Shipped",
+            type: "MCOM Delivery",
+            date: "1d ago",
+            address: "22 Victoria Road, Manchester, M1 2AB",
+            tracking: "DPD-88392019",
+        },
+        {
+            id: "#ORD-7812",
+            customer: "David Kwame",
+            email: "david@kwameventures.com",
+            items: "3x Wireless Charging Pad",
+            total: "£89.97",
+            status: "Pending",
+            type: "Booth Collection",
+            date: "1d ago",
+            address: "Collect at Booth #B-42",
+            tracking: "PIN: 4829",
+        },
+    ]);
+
+    const filteredOrders = orders.filter((o) => {
+        const matchesTab = activeFilter === "all" || o.status.toLowerCase() === activeFilter.toLowerCase();
+        const matchesSearch =
+            o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            o.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            o.items.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesTab && matchesSearch;
+    });
+
+    const handleMarkShipped = (id: string) => {
+        setOrders(
+            orders.map((o) =>
+                o.id === id ? { ...o, status: "Shipped", tracking: o.tracking || "MCOM-TRK-9021" } : o
+            )
+        );
+        setSelectedOrder(null);
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "Completed":
+                return "text-emerald-600";
+            case "Shipped":
+                return "text-blue-600";
+            case "Processing":
+                return "text-orange-600";
+            default:
+                return "text-amber-600";
+        }
+    };
+
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-5 pb-12">
+            {/* Compact Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-200/80">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Product Fulfilment</h1>
-                    <p className="text-slate-500 text-lg">Manage bundle inventory, delivery schedules, and pickup points.</p>
+                    <Link
+                        href="/dashboard/business/products"
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-orange-600 uppercase tracking-wider mb-1 transition-colors"
+                    >
+                        <ArrowLeft className="w-3.5 h-3.5" /> Back to MCOM Products
+                    </Link>
+                    <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+                        Order Fulfilment & MCOM Dispatch
+                    </h1>
+                    <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                        Track MCOM Mall checkout orders, digital keys, and physical dispatch queues.
+                    </p>
                 </div>
-                <div className="flex gap-3">
-                    <button className="px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-                        Export Manifest
-                    </button>
-                    <button className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg flex items-center gap-2">
-                        <Plus className="w-5 h-5" /> New Fulfilment Rule
-                    </button>
+
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/dashboard/business/products/redemption"
+                        className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:border-orange-500 hover:text-orange-600 transition-all"
+                    >
+                        Voucher Redemptions
+                    </Link>
                 </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                    { label: "Pending Shipments", val: "24", icon: Truck, color: "text-blue-600", bg: "bg-blue-50" },
-                    { label: "Pickup Ready", val: "15", icon: MapPin, color: "text-emerald-600", bg: "bg-emerald-50" },
-                    { label: "Service Slots", val: "8/20", icon: Clock, color: "text-purple-600", bg: "bg-purple-50" },
-                    { label: "Inventory Alerts", val: "2", icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
-                ].map((stat, i) => (
-                    <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-                        <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center`}>
-                            <stat.icon className="w-6 h-6" />
+            {/* Horizontal-Scroll KPI Strip */}
+            <div>
+                <div className="flex lg:grid lg:grid-cols-4 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+                    {[
+                        { label: "Total Orders", value: "148", sub: "Last 30 days", icon: ShoppingBag, color: "text-orange-600" },
+                        { label: "Awaiting Dispatch", value: "12", sub: "Action required", icon: Clock, color: "text-amber-600" },
+                        { label: "In Transit", value: "34", sub: "Via MCOM Logistics", icon: Truck, color: "text-blue-600" },
+                        { label: "Fulfilled", value: "102", sub: "98.4% on-time rate", icon: CheckCircle2, color: "text-emerald-600" },
+                    ].map((stat, i) => (
+                        <div
+                            key={i}
+                            className="w-[42%] min-w-[144px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-sm"
+                        >
+                            <div className="flex items-center justify-between gap-1.5 mb-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+                                    {stat.label}
+                                </span>
+                                <stat.icon className={`w-3.5 h-3.5 shrink-0 ${stat.color}`} />
+                            </div>
+                            <p className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                                {stat.value}
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-medium mt-0.5 truncate">{stat.sub}</p>
                         </div>
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
-                            <p className="text-2xl font-bold text-slate-900">{stat.val}</p>
+                    ))}
+                </div>
+                <div className="flex items-center justify-center gap-1.5 mt-1.5 lg:hidden">
+                    <span className="w-4 h-1 rounded-full bg-orange-600" />
+                    <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+                    <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+                </div>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 sm:pb-0">
+                    {["all", "Processing", "Pending", "Shipped", "Completed"].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveFilter(tab)}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0 transition-all ${
+                                activeFilter === tab
+                                    ? "bg-orange-600 text-white shadow-sm"
+                                    : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+                            }`}
+                        >
+                            {tab === "all" ? "All Orders" : tab}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="relative w-full sm:w-64">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                        type="text"
+                        placeholder="Search order ID, buyer, item..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500"
+                    />
+                </div>
+            </div>
+
+            {/* Clean 3-Line Order List */}
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm divide-y divide-slate-100">
+                {filteredOrders.map((order) => (
+                    <div
+                        key={order.id}
+                        className="p-3.5 sm:p-4 hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                        <div className="min-w-0 flex-1 space-y-1">
+                            {/* Line 1: Metadata & Colored Status */}
+                            <div className="flex items-center justify-between sm:justify-start gap-2 text-[10px] font-bold uppercase tracking-wider">
+                                <div className="flex items-center gap-1.5 truncate">
+                                    <span className="text-slate-900 font-extrabold">{order.id}</span>
+                                    <span className="text-slate-300">•</span>
+                                    <span className="text-slate-500">{order.type}</span>
+                                    <span className="text-slate-300">•</span>
+                                    <span className="text-slate-400">{order.date}</span>
+                                </div>
+                                <span className={`shrink-0 ${getStatusColor(order.status)}`}>{order.status}</span>
+                            </div>
+
+                            {/* Line 2: Buyer & Items */}
+                            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                                {order.customer} — <span className="font-semibold text-slate-600">{order.items}</span>
+                            </p>
+
+                            {/* Line 3: Address & Total */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5 text-[11px] text-slate-500">
+                                <span className="truncate">{order.address}</span>
+                                <span className="font-extrabold text-slate-900">{order.total}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
+                            <button
+                                onClick={() => setSelectedOrder(order)}
+                                className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-600 transition-colors"
+                            >
+                                Manage Order
+                            </button>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                {/* 10.1 Bundle Management (Inventory & Delivery) */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                        <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/30">
-                            <h3 className="font-bold text-xl text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                                <Package className="text-orange-600 w-5 h-5" /> Bundle Inventory
+            {/* Collapsible MCOM Logistics Sync Card */}
+            <div className="bg-slate-900 text-white rounded-xl overflow-hidden border border-slate-800">
+                <button
+                    onClick={() => setShowAutomation(!showAutomation)}
+                    className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left"
+                >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <RefreshCw className="w-4 h-4 text-orange-400 shrink-0" />
+                        <div className="min-w-0">
+                            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider truncate">
+                                MCOM Mall Fulfilment Bridge
                             </h3>
-                            <div className="relative w-full md:w-64">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <input type="text" placeholder="Search bundles..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-1 focus:ring-orange-500" />
-                            </div>
-                        </div>
-                        
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50/50">
-                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bundle Item</th>
-                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Allocated</th>
-                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">In Stock</th>
-                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {[
-                                        { name: "Premium Gift Set (VIP)", allocated: 120, stock: 42, status: "Low Stock" },
-                                        { name: "Standard Goodie Bag", allocated: 500, stock: 450, status: "Healthy" },
-                                        { name: "Exhibition Digital Pass", allocated: 1200, stock: "Unlimited", status: "Active" },
-                                    ].map((item, i) => (
-                                        <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-8 py-5">
-                                                <p className="font-bold text-slate-900 text-sm">{item.name}</p>
-                                            </td>
-                                            <td className="px-8 py-5 text-sm font-bold text-slate-600">{item.allocated}</td>
-                                            <td className="px-8 py-5 text-sm font-bold text-slate-900">{item.stock}</td>
-                                            <td className="px-8 py-5">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                                    item.status === 'Low Stock' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
-                                                }`}>
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                            <p className="text-[11px] text-slate-400 truncate">
+                                Orders placed via your booth&apos;s MCOM Mall &quot;Buy Now&quot; links sync automatically.
+                            </p>
                         </div>
                     </div>
-
-                    {/* 10.1 Delivery & Pickup Schedules */}
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-8 md:p-12">
-                        <h3 className="text-xl font-bold text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
-                            <Truck className="text-orange-600 w-5 h-5" /> Logistics Control
-                        </h3>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-6">
-                                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                                    <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-blue-600" /> Service Slots
-                                    </h4>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-500 font-medium">Morning (09:00 - 12:00)</span>
-                                            <span className="font-bold text-slate-900">12 Booked</span>
-                                        </div>
-                                        <div className="w-full h-1.5 bg-slate-200 rounded-full">
-                                            <div className="h-full bg-blue-500 rounded-full w-[60%]" />
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm pt-2">
-                                            <span className="text-slate-500 font-medium">Afternoon (13:00 - 17:00)</span>
-                                            <span className="font-bold text-slate-900">18 Booked</span>
-                                        </div>
-                                        <div className="w-full h-1.5 bg-slate-200 rounded-full">
-                                            <div className="h-full bg-blue-500 rounded-full w-[90%]" />
-                                        </div>
-                                    </div>
-                                    <button className="w-full mt-6 py-2 border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs uppercase rounded-xl hover:border-orange-500 hover:text-orange-600 transition-all">
-                                        Adjust Slot Capacity
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                                    <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                        <MapPin className="w-4 h-4 text-emerald-600" /> Pickup Locations
-                                    </h4>
-                                    <div className="space-y-4">
-                                        {[
-                                            { name: "Main Hall Information Desk", active: true },
-                                            { name: "South Gate Kiosk B", active: true },
-                                            { name: "VIP Lounge Redemption", active: false },
-                                        ].map((loc, i) => (
-                                            <div key={i} className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-slate-700">{loc.name}</span>
-                                                <div className={`w-8 h-4 rounded-full relative cursor-pointer ${loc.active ? 'bg-emerald-500' : 'bg-slate-300'}`}>
-                                                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${loc.active ? 'right-0.5' : 'left-0.5'}`} />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <button className="w-full mt-6 py-2 bg-white border border-slate-200 text-slate-600 font-bold text-xs uppercase rounded-xl hover:bg-slate-50 transition-all">
-                                        Manage Locations
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <ChevronDown
+                        className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${
+                            showAutomation ? "rotate-180" : ""
+                        }`}
+                    />
+                </button>
+                {showAutomation && (
+                    <div className="px-3.5 pb-4 sm:px-4 pt-2 border-t border-slate-800 space-y-2.5 text-xs text-slate-300">
+                        <p>
+                            • <strong className="text-white">Direct MCOM Checkout:</strong> Physical shipments are automatically routed to your connected MCOM Mall courier account.
+                        </p>
+                        <p>
+                            • <strong className="text-white">Digital Licences:</strong> Instant download keys are dispatched by email as soon as payment clears.
+                        </p>
                     </div>
-                </div>
-
-                {/* Exception Handling Sidebar (10.3) */}
-                <div className="space-y-8">
-                    <div className="bg-red-50 rounded-[2.5rem] border border-red-100 p-8 shadow-sm">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shadow-sm">
-                                <AlertCircle className="w-6 h-6" />
-                            </div>
-                            <h3 className="font-bold text-red-900 uppercase tracking-tight">Active Exceptions</h3>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            {[
-                                { title: "Out-of-stock Trigger", desc: "Premium Gift Set is < 10% remaining.", action: "Switch to Substitution" },
-                                { title: "Pickup Delay", desc: "Heavy traffic at Main Hall Desk.", action: "Notify Customers" },
-                            ].map((ex, i) => (
-                                <div key={i} className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm space-y-3">
-                                    <p className="text-sm font-bold text-slate-900">{ex.title}</p>
-                                    <p className="text-xs text-slate-500 leading-relaxed">{ex.desc}</p>
-                                    <button className="w-full py-2 bg-red-600 text-white font-black uppercase tracking-widest text-[10px] rounded-lg hover:bg-red-700 transition-all">
-                                        {ex.action}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 right-0 p-6 opacity-10">
-                            <Settings2 className="w-32 h-32" />
-                        </div>
-                        <h3 className="text-xl font-bold mb-6 relative z-10">Fulfilment Automation</h3>
-                        <div className="space-y-4 relative z-10">
-                            <div className="flex items-center justify-between py-2 border-b border-white/10">
-                                <span className="text-sm font-medium text-slate-400">Auto-Substitution</span>
-                                <div className="w-10 h-5 bg-emerald-500 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                            </div>
-                            <div className="flex items-center justify-between py-2 border-b border-white/10">
-                                <span className="text-sm font-medium text-slate-400">Delay Notifications</span>
-                                <div className="w-10 h-5 bg-emerald-500 rounded-full relative"><div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                            </div>
-                            <div className="flex items-center justify-between py-2 border-b border-white/10">
-                                <span className="text-sm font-medium text-slate-400">Auto-Refund Trigger</span>
-                                <div className="w-10 h-5 bg-slate-600 rounded-full relative"><div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" /></div>
-                            </div>
-                        </div>
-                        <button className="w-full py-4 mt-8 bg-white/10 hover:bg-white/20 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border border-white/10">
-                            Advanced Logic Rules
-                        </button>
-                    </div>
-                </div>
-
+                )}
             </div>
+
+            {/* Order Detail Modal */}
+            <Modal
+                isOpen={!!selectedOrder}
+                onClose={() => setSelectedOrder(null)}
+                title={`Order ${selectedOrder?.id || ""}`}
+            >
+                {selectedOrder && (
+                    <div className="space-y-4">
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 font-medium">Customer:</span>
+                                <span className="font-bold text-slate-900">{selectedOrder.customer}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 font-medium">Items:</span>
+                                <span className="font-bold text-slate-900">{selectedOrder.items}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 font-medium">Total Paid:</span>
+                                <span className="font-extrabold text-orange-600">{selectedOrder.total}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 font-medium">Destination:</span>
+                                <span className="font-semibold text-slate-700">{selectedOrder.address}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-2">
+                            <button
+                                onClick={() => setSelectedOrder(null)}
+                                className="px-3.5 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                            >
+                                Close
+                            </button>
+                            {selectedOrder.status !== "Shipped" && selectedOrder.status !== "Completed" && (
+                                <button
+                                    onClick={() => handleMarkShipped(selectedOrder.id)}
+                                    className="px-4 py-2 rounded-lg bg-orange-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-orange-700"
+                                >
+                                    Mark Dispatched
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }

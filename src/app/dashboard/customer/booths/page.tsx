@@ -1,78 +1,204 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Search, ArrowRight, X } from "lucide-react";
+
+const BOOTHS = [
+  {
+    id: "101",
+    code: "BOOTH A-101",
+    name: "TechFlow Solutions",
+    location: "London, UK",
+    category: "Technology",
+    tags: "SaaS • Cloud",
+    live: true,
+    desc: "Enterprise-grade cloud architecture and AI deployment tools for modern startups.",
+    image: "/main_stage_banner.png"
+  },
+  {
+    id: "102",
+    code: "BOOTH A-102",
+    name: "FutureTech Systems",
+    location: "San Francisco, CA",
+    category: "Technology",
+    tags: "Infrastructure • Edge",
+    live: true,
+    desc: "Building the next generation of zero-downtime enterprise cloud infrastructure.",
+    image: "/hero.webp"
+  },
+  {
+    id: "103",
+    code: "BOOTH B-104",
+    name: "Urban Threads Apparel",
+    location: "Manchester, UK",
+    category: "Fashion",
+    tags: "Retail • Sustainable",
+    live: false,
+    desc: "Ethical fashion lines and direct wholesale ordering synced with MCOM Mall.",
+    image: "/Creative-Couple-with-IHS-totes.webp"
+  },
+  {
+    id: "104",
+    code: "BOOTH B-201",
+    name: "Vitality Health Labs",
+    location: "Birmingham, UK",
+    category: "Health",
+    tags: "Diagnostics • Wellness",
+    live: true,
+    desc: "Connected health telemetry devices and preventative wellness programs.",
+    image: "/ideal.png"
+  },
+  {
+    id: "105",
+    code: "BOOTH C-110",
+    name: "Nordic Home Studio",
+    location: "Stockholm, SE",
+    category: "Home & Design",
+    tags: "Interiors • Smart Home",
+    live: false,
+    desc: "Minimalist modular furniture and smart lighting systems for modern workspaces.",
+    image: "/f265f1748035f3fe5d0e6839698aecfc.jpg"
+  },
+  {
+    id: "106",
+    code: "BOOTH C-208",
+    name: "Apex Global Logistics",
+    location: "Rotterdam, NL",
+    category: "Services",
+    tags: "Supply Chain • B2B",
+    live: true,
+    desc: "Automated cross-border fulfillment and customs clearance for MCOM merchants.",
+    image: "/stats.png"
+  }
+];
 
 export default function BoothsCatalogPage() {
-    const categories = ["All Booths", "Technology", "Fashion", "Health", "Home & Design", "Services"];
+  const [selectedCategory, setSelectedCategory] = useState("All Booths");
+  const [searchTerm, setSearchTerm] = useState("");
 
-    return (
-        <div>
-            <div className="mb-8 text-center max-w-2xl mx-auto">
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">Expo Hall</h1>
-                <p className="text-slate-500">Discover thousands of virtual booths from industry leaders and emerging startups.</p>
-            </div>
+  const categories = [
+    "All Booths",
+    "Technology",
+    "Fashion",
+    "Health",
+    "Home & Design",
+    "Services"
+  ];
 
-            {/* FILTERS */}
-            <div className="flex flex-wrap justify-center gap-3 mb-10">
-                {categories.map((cat, i) => (
-                    <button
-                        key={i}
-                        className={`px-5 py-2.5 rounded-full font-medium transition-colors ${i === 0 ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'bg-white text-slate-600 border border-slate-200 hover:border-orange-500 hover:text-orange-600'}`}
-                    >
-                        {cat}
-                    </button>
-                ))}
-            </div>
+  const filteredBooths = BOOTHS.filter((b) => {
+    const matchesCat =
+      selectedCategory === "All Booths" || b.category === selectedCategory;
+    const matchesSearch =
+      b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.tags.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.code.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCat && matchesSearch;
+  });
 
-            {/* BOOTHS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
-                        <div className="h-48 rounded-xl bg-slate-200 relative mb-4 overflow-hidden">
-                            <Image
-                                src={`https://images.unsplash.com/photo-15567407${i % 2 === 0 ? '1' : '2'}-e83484fce328?q=80&w=400&auto=format&fit=crop`}
-                                alt="Booth"
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md text-slate-900">
-                                BOOTH A-{100 + i}
-                            </div>
-                            <div className="absolute top-3 left-3 bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded">
-                                LIVE NOW
-                            </div>
-                        </div>
-                        <div className="flex items-start justify-between mb-2">
-                            <div>
-                                <h3 className="font-bold text-lg text-slate-900 leading-tight">FutureTech Systems {i}</h3>
-                                <div className="text-xs text-slate-500 mt-1">San Francisco, CA</div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
-                            </div>
-                        </div>
+  return (
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5">
+      {/* Compact Header */}
+      <div>
+        <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+          Expo Hall & Exhibitor Booths
+        </h1>
+        <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+          Explore virtual booths, watch live product demos, and shop directly on MCOM Mall.
+        </p>
+      </div>
 
-                        <p className="text-slate-500 text-sm mb-4 line-clamp-2">
-                            Providing enterprise-grade cloud architecture for modern startups. We specialize in scalable infrastructure.
-                        </p>
-
-                        <div className="flex items-center justify-between border-t border-slate-50 pt-4">
-                            <div className="flex gap-2 text-xs font-medium text-slate-600">
-                                <span className="bg-slate-100 px-2 py-1 rounded">SaaS</span>
-                                <span className="bg-slate-100 px-2 py-1 rounded">Cloud</span>
-                            </div>
-                            <Link href="/dashboard/customer/booths/101" className="text-orange-600 text-sm font-bold group-hover:underline">Visit Booth &rarr;</Link>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="mt-12 text-center">
-                <button className="bg-white border border-slate-200 text-slate-600 px-8 py-3 rounded-full font-bold hover:bg-slate-50 transition-colors">
-                    Load More Exhibitors
-                </button>
-            </div>
+      {/* Search & Peeping Horizontal Category Filter */}
+      <div className="flex flex-col md:flex-row gap-2.5">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search booth name, category, or hall code..."
+            className="w-full pl-8 pr-7 py-2 rounded-xl bg-white border border-slate-200/80 text-xs font-medium focus:outline-none focus:border-orange-500 shadow-2xs"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-    );
+
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-0.5">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3.5 py-1.5 rounded-xl font-bold text-[11px] shrink-0 transition-colors ${
+                selectedCategory === cat
+                  ? "bg-orange-600 text-white shadow-xs"
+                  : "bg-white text-slate-600 border border-slate-200/80 hover:border-orange-500 hover:text-orange-600"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* BOOTHS GRID (Colored text metadata instead of pills) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+        {filteredBooths.map((booth) => (
+          <Link
+            key={booth.id}
+            href={`/dashboard/customer/booths/${booth.id}`}
+            className="bg-white rounded-2xl p-3.5 sm:p-4 shadow-2xs border border-slate-200/80 hover:shadow-md transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="h-36 sm:h-40 rounded-xl bg-slate-200 relative mb-3 overflow-hidden">
+                <Image
+                  src={booth.image}
+                  alt={booth.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider mb-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-orange-600">{booth.code}</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-500">{booth.location}</span>
+                </div>
+                {booth.live ? (
+                  <span className="text-emerald-600 font-extrabold">Live Now</span>
+                ) : (
+                  <span className="text-slate-400">Open 24/7</span>
+                )}
+              </div>
+
+              <h3 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-orange-600 transition-colors">
+                {booth.name}
+              </h3>
+
+              <p className="text-slate-500 text-[11px] mt-1 line-clamp-2 leading-relaxed">
+                {booth.desc}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 mt-3 text-[11px]">
+              <span className="font-semibold text-slate-500 truncate">{booth.tags}</span>
+              <span className="text-orange-600 font-bold group-hover:underline inline-flex items-center gap-1 shrink-0">
+                <span>Visit Booth</span>
+                <ArrowRight className="w-3 h-3" />
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
 }

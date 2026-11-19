@@ -1,237 +1,383 @@
 "use client";
 
-import React from "react";
-import { Award, Zap, Gift, CreditCard, TrendingUp, Star, ArrowRight, Clock } from "lucide-react";
-
-// --- ICONS ---
-const DownloadIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-);
-
-const WalletIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-    </svg>
-);
+import React, { useState } from "react";
+import {
+  Award,
+  Zap,
+  Gift,
+  CreditCard,
+  TrendingUp,
+  Wallet,
+  ExternalLink,
+  ChevronDown,
+  RefreshCw
+} from "lucide-react";
 
 export default function RewardsPage() {
-    const orders = [
-        { id: "EXP-4001", title: "Premium Tech Bundle", price: "299.00", date: "Jan 24, 2026", type: "DIGITAL ITEM" },
-        { id: "EXP-4002", title: "Business Strategy Consultation", price: "150.00", date: "Jan 25, 2026", type: "SERVICE" },
-    ];
+  const [tiersExpanded, setTiersExpanded] = useState(false);
 
-    const transactions = [
-        { date: "Jan 24, 2026", desc: "Wallet Top-up", status: "Completed", amount: "+£500.00", isCredit: true },
-        { date: "Jan 23, 2026", desc: "Booth Purchase: TechFlow", status: "Completed", amount: "-£299.00", isCredit: false },
-        { date: "Jan 22, 2026", desc: "Service Booking: Emily Chen", status: "Completed", amount: "-£150.00", isCredit: false },
-        { date: "Jan 20, 2026", desc: "Cashback Reward: Early Bird", status: "Completed", amount: "+£15.00", isCredit: true },
-        { date: "Jan 18, 2026", desc: "Referral Bonus", status: "Completed", amount: "+£25.00", isCredit: true },
-    ];
+  const transactions = [
+    {
+      id: "MCOM-901",
+      date: "Jan 24, 2026",
+      desc: "Pass Wallet Top-Up",
+      source: "247GBS Wallet",
+      status: "Completed",
+      amount: "+£500.00",
+      isCredit: true
+    },
+    {
+      id: "MCOM-902",
+      date: "Jan 23, 2026",
+      desc: "MCOM Mall Order: TechFlow Cloud Hub",
+      source: "MCOM Mall",
+      status: "Completed",
+      amount: "-£299.00",
+      isCredit: false
+    },
+    {
+      id: "MCOM-903",
+      date: "Jan 20, 2026",
+      desc: "MCOM Reward Cashback: Early Bird",
+      source: "MCOM Rewards",
+      status: "Synced",
+      amount: "+£15.00",
+      isCredit: true
+    },
+    {
+      id: "MCOM-904",
+      date: "Jan 18, 2026",
+      desc: "Attendee Referral Bonus (+100 Pts)",
+      source: "MCOM Rewards",
+      status: "Synced",
+      amount: "+£25.00",
+      isCredit: true
+    }
+  ];
 
-    const rewardTiers = [
-        { name: "Silver", points: 0, color: "bg-slate-200 text-slate-700" },
-        { name: "Gold", points: 1000, color: "bg-yellow-100 text-yellow-700" },
-        { name: "Platinum", points: 5000, color: "bg-purple-100 text-purple-700" },
-    ];
+  const availableRewards = [
+    {
+      id: 1,
+      title: "£10 MCOM Mall Voucher",
+      cost: "500 PTS",
+      type: "Voucher",
+      icon: Gift,
+      iconColor: "text-orange-600"
+    },
+    {
+      id: 2,
+      title: "VIP Lounge Pass Upgrade",
+      cost: "1,200 PTS",
+      type: "Upgrade",
+      icon: Zap,
+      iconColor: "text-purple-600"
+    },
+    {
+      id: 3,
+      title: "£50 Season Pass Credit",
+      cost: "2,500 PTS",
+      type: "Cashback",
+      icon: CreditCard,
+      iconColor: "text-emerald-600"
+    }
+  ];
 
-    const availableRewards = [
-        { id: 1, title: "£10 Discount Voucher", cost: 500, type: "VOUCHER", icon: <Gift className="w-5 h-5" /> },
-        { id: 2, title: "VIP Lounge Access", cost: 1200, type: "UPGRADE", icon: <Zap className="w-5 h-5" /> },
-        { id: 3, title: "£50 Cashback Credit", cost: 2500, type: "CASHBACK", icon: <CreditCard className="w-5 h-5" /> },
-    ];
+  const summaryStats = [
+    {
+      label: "Wallet Balance",
+      value: "£1,250.00",
+      sub: "Available for passes",
+      icon: Wallet,
+      iconColor: "text-orange-600"
+    },
+    {
+      label: "MCOM Points",
+      value: "850 PTS",
+      sub: "150 pts to Gold Tier",
+      icon: Award,
+      iconColor: "text-purple-600"
+    },
+    {
+      label: "MCOM Cashback",
+      value: "£40.00",
+      sub: "Next payout Feb 01",
+      icon: TrendingUp,
+      iconColor: "text-emerald-600"
+    },
+    {
+      label: "Upgrade Credits",
+      value: "2",
+      sub: "VIP hall tokens",
+      icon: Zap,
+      iconColor: "text-blue-600"
+    }
+  ];
 
-    const waysToEarn = [
-        { action: "Attend an Event", points: "+50 pts" },
-        { action: "Submit Feedback", points: "+20 pts" },
-        { action: "Refer a Friend", points: "+100 pts" },
-        { action: "Complete Profile", points: "+30 pts" },
-    ];
-
-    return (
-        <div className="max-w-6xl mx-auto space-y-10">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2 font-display">My Rewards & Orders</h1>
-                <p className="text-slate-500">Track your purchases, manage your wallet, and unlock exclusive expo benefits.</p>
-            </div>
-
-            {/* REWARD SUMMARY CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Wallet Balance */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between h-full">
-                    <div className="flex items-center gap-3 mb-4 text-orange-600">
-                        <WalletIcon className="w-6 h-6" />
-                        <span className="font-bold text-sm uppercase tracking-wider">Wallet Balance</span>
-                    </div>
-                    <div>
-                        <span className="text-3xl font-black text-slate-900">£1,250.00</span>
-                        <p className="text-xs text-slate-500 mt-1">Available for purchases</p>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
-                         <button className="flex-1 text-xs font-bold bg-orange-50 text-orange-700 py-2 rounded-lg hover:bg-orange-100 transition-colors">Top Up</button>
-                         <button className="flex-1 text-xs font-bold bg-slate-50 text-slate-700 py-2 rounded-lg hover:bg-slate-100 transition-colors">Withdraw</button>
-                    </div>
-                </div>
-
-                {/* Loyalty Points */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between h-full">
-                    <div className="flex items-center gap-3 mb-4 text-purple-600">
-                        <Award className="w-6 h-6" />
-                        <span className="font-bold text-sm uppercase tracking-wider">Loyalty Points</span>
-                    </div>
-                    <div>
-                        <span className="text-3xl font-black text-slate-900">850</span>
-                        <p className="text-xs text-slate-500 mt-1">PTS Earned Lifetime</p>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                             <div className="bg-purple-600 h-full w-[85%] rounded-full" />
-                         </div>
-                         <p className="text-[10px] text-right font-bold text-purple-600 mt-1">150 pts to Gold Tier</p>
-                    </div>
-                </div>
-
-                {/* Cashback Earned */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between h-full">
-                    <div className="flex items-center gap-3 mb-4 text-green-600">
-                        <TrendingUp className="w-6 h-6" />
-                        <span className="font-bold text-sm uppercase tracking-wider">Cashback Earned</span>
-                    </div>
-                    <div>
-                        <span className="text-3xl font-black text-slate-900">£40.00</span>
-                        <p className="text-xs text-slate-500 mt-1">Lifetime Savings</p>
-                    </div>
-                     <div className="mt-4 pt-4 border-t border-slate-100">
-                        <p className="text-xs text-slate-500">Next payout on <span className="font-bold text-slate-700">Feb 01</span></p>
-                    </div>
-                </div>
-                
-                 {/* Upgrade Credits */}
-                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between h-full">
-                    <div className="flex items-center gap-3 mb-4 text-blue-600">
-                        <Zap className="w-6 h-6" />
-                        <span className="font-bold text-sm uppercase tracking-wider">Upgrade Credits</span>
-                    </div>
-                    <div>
-                        <span className="text-3xl font-black text-slate-900">2</span>
-                        <p className="text-xs text-slate-500 mt-1">Available Credits</p>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                         <button className="w-full text-xs font-bold bg-blue-50 text-blue-700 py-2 rounded-lg hover:bg-blue-100 transition-colors">Redeem for Access</button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* REWARDS CENTER */}
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 lg:col-span-2">
-                    <div className="flex items-center justify-between mb-8">
-                         <div>
-                            <h3 className="font-bold text-xl text-slate-900 flex items-center gap-2"><Star className="w-5 h-5 text-yellow-500 fill-yellow-500"/> Rewards Center</h3>
-                            <p className="text-slate-500 text-sm">Redeem your points for exclusive benefits.</p>
-                         </div>
-                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">Balance: 850 PTS</span>
-                    </div>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {availableRewards.map((reward) => (
-                            <div key={reward.id} className="border border-slate-100 rounded-2xl p-5 hover:border-orange-200 hover:shadow-md transition-all group">
-                                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 mb-4 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
-                                    {reward.icon}
-                                </div>
-                                <h4 className="font-bold text-slate-900 text-sm mb-1">{reward.title}</h4>
-                                <p className="text-xs text-slate-500 font-medium mb-4">{reward.cost} PTS</p>
-                                <button className="w-full py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors">Redeem</button>
-                            </div>
-                        ))}
-                    </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-slate-100">
-                        <h4 className="font-bold text-slate-900 text-sm mb-4">Ways to Earn Points</h4>
-                        <div className="flex flex-wrap gap-3">
-                            {waysToEarn.map((way, idx) => (
-                                <div key={idx} className="bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl flex items-center gap-3">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                                    <span className="text-sm font-medium text-slate-700">{way.action}</span>
-                                    <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">{way.points}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* TIER PROGRESS */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white flex flex-col">
-                     <div className="mb-6">
-                        <h3 className="font-bold text-xl text-white mb-2">Member Status</h3>
-                        <div className="flex items-center gap-2">
-                            <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-sm">Silver Tier</span>
-                            <span className="text-slate-400 text-xs">Since Jan 2026</span>
-                        </div>
-                     </div>
-                     
-                     <div className="flex-1 space-y-6">
-                        {rewardTiers.map((tier, idx) => (
-                            <div key={idx} className={`relative pl-8 ${tier.name === 'Silver' ? 'opacity-100' : 'opacity-50'}`}>
-                                <div className={`absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white/20 ${tier.name === 'Silver' ? 'bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'bg-slate-700'}`} />
-                                {idx !== rewardTiers.length - 1 && <div className="absolute left-[7px] top-6 w-0.5 h-12 bg-white/10" />}
-                                <h4 className="font-bold text-white text-sm">{tier.name}</h4>
-                                <p className="text-xs text-slate-400">{tier.points} PTS Required</p>
-                            </div>
-                        ))}
-                     </div>
-                     
-                     <div className="mt-8 pt-6 border-t border-white/10">
-                         <p className="text-xs text-slate-400 mb-4">Unlock <span className="text-yellow-400 font-bold">Gold Tier</span> benefits:</p>
-                         <ul className="space-y-2">
-                             <li className="text-xs flex items-center gap-2 text-white/80"><span className="w-1 h-1 bg-yellow-400 rounded-full"/> 1.5x Point Multiplier</li>
-                             <li className="text-xs flex items-center gap-2 text-white/80"><span className="w-1 h-1 bg-yellow-400 rounded-full"/> Early Access to Tickets</li>
-                         </ul>
-                     </div>
-                </div>
-            </div>
-
-            {/* TRANSACTION HISTORY (Updated) */}
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-                <div className="flex items-center justify-between mb-8">
-                    <h3 className="font-bold text-xl text-slate-900">Activity History</h3>
-                    <div className="flex gap-2">
-                        <button className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50">Filter</button>
-                        <button className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50">Export</button>
-                    </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="border-b border-slate-100">
-                            <tr>
-                                <th className="pb-4 font-semibold text-slate-500 text-sm">Date</th>
-                                <th className="pb-4 font-semibold text-slate-500 text-sm">Description</th>
-                                <th className="pb-4 font-semibold text-slate-500 text-sm">Status</th>
-                                <th className="pb-4 font-semibold text-slate-500 text-sm text-right">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {transactions.map((tx, idx) => (
-                                <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="py-5 text-sm text-slate-600">{tx.date}</td>
-                                    <td className="py-5">
-                                        <div className="text-sm font-bold text-slate-900">{tx.desc}</div>
-                                        <div className="text-[10px] text-slate-400 font-medium tracking-tight">REF: {Math.random().toString(36).substring(7).toUpperCase()}</div>
-                                    </td>
-                                    <td className="py-5">
-                                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${tx.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                                            {tx.status}
-                                        </span>
-                                    </td>
-                                    <td className={`py-5 text-sm font-bold text-right ${tx.isCredit ? 'text-green-600' : 'text-slate-900'}`}>
-                                        {tx.amount}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  return (
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5">
+      {/* Compact Header (Synced with MCOM Rewards per meeting requirement) */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2.5">
+        <div>
+          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+            MCOM Rewards & Wallet
+          </h1>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+            Points, vouchers, and cashback dynamically synced from your MCOM Rewards account.
+          </p>
         </div>
-    );
+        <a
+          href="https://mcomrewards.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-[11px] font-bold hover:bg-orange-600 transition-colors w-fit shrink-0"
+        >
+          <RefreshCw className="w-3 h-3 text-orange-400" />
+          <span>Open MCOM Rewards Portal</span>
+          <ExternalLink className="w-3 h-3" />
+        </a>
+      </div>
+
+      {/* Horizontal Scroll KPI Strip on Mobile (Peeping Card + Dot Slider, Inline Small Icons) */}
+      <div>
+        <div className="flex lg:grid lg:grid-cols-4 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+          {summaryStats.map((stat, i) => {
+            const IconComponent = stat.icon;
+            return (
+              <div
+                key={i}
+                className="w-[42%] min-w-[144px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs"
+              >
+                <div className="flex items-center justify-between gap-1.5 mb-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                    {stat.label}
+                  </span>
+                  <IconComponent className={`w-3.5 h-3.5 ${stat.iconColor} shrink-0`} />
+                </div>
+                <div className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 leading-none">
+                  {stat.value}
+                </div>
+                <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">
+                  {stat.sub}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-center gap-1.5 mt-1.5 lg:hidden">
+          <span className="w-3.5 h-1 rounded-full bg-orange-600" />
+          <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+          <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+        </div>
+      </div>
+
+      {/* MCOM REWARDS REDEMPTION CATALOG */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2 border-b border-slate-100">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
+                Redeem Reward Points
+              </h3>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold">
+                850 pts available
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Convert loyalty balance into Expo passes or MCOM Mall vouchers.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <div className="flex sm:grid sm:grid-cols-3 gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+            {availableRewards.map((reward) => {
+              const IconComponent = reward.icon;
+              return (
+                <div
+                  key={reward.id}
+                  className="w-[68%] min-w-[195px] sm:w-auto shrink-0 snap-start border border-slate-200/70 rounded-xl p-3.5 hover:border-orange-300 transition-all flex flex-col justify-between gap-3 bg-white"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600">
+                        {reward.type}
+                      </span>
+                      <IconComponent className={`w-3.5 h-3.5 ${reward.iconColor} shrink-0`} />
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm">{reward.title}</h4>
+                    <p className="text-[11px] text-slate-500 font-semibold mt-0.5">{reward.cost}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="w-full py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold hover:bg-orange-600 transition-colors"
+                  >
+                    Redeem via MCOM
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-center gap-1.5 mt-1.5 sm:hidden">
+            <span className="w-3.5 h-1 rounded-full bg-orange-600" />
+            <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+            <span className="w-1.5 h-1 rounded-full bg-slate-300" />
+          </div>
+        </div>
+      </div>
+
+      {/* COLLAPSIBLE TIER PROGRESS & WAYS TO EARN CARD */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setTiersExpanded((prev) => !prev)}
+          className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/60 transition-colors"
+          aria-expanded={tiersExpanded}
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                MCOM Tier Status & Ways to Earn
+              </h3>
+              <span className="text-[10px] font-extrabold text-orange-600 uppercase tracking-wider">
+                Silver Tier
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 truncate">
+              850 / 1,000 PTS to Gold Tier • +50 pts per event attended
+            </p>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+              tiersExpanded ? "rotate-180 text-orange-600" : ""
+            }`}
+          />
+        </button>
+
+        {tiersExpanded && (
+          <div className="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-2.5 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                Ways to Earn MCOM Points
+              </p>
+              <div className="divide-y divide-slate-100">
+                {[
+                  { action: "Attend a Live Expo Event", points: "+50 PTS" },
+                  { action: "Purchase on MCOM Mall", points: "10 PTS / £1" },
+                  { action: "Submit Session Feedback", points: "+20 PTS" },
+                  { action: "Refer a Visitor or Exhibitor", points: "+100 PTS" }
+                ].map((way, idx) => (
+                  <div key={idx} className="py-1.5 flex items-center justify-between">
+                    <span className="text-slate-700 font-medium">{way.action}</span>
+                    <span className="font-bold text-orange-600">{way.points}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                MCOM Membership Tiers
+              </p>
+              <div className="divide-y divide-slate-100">
+                {[
+                  { name: "Silver Tier (Current)", req: "0 – 999 PTS", perk: "1.0x Base Multiplier" },
+                  { name: "Gold Tier", req: "1,000+ PTS", perk: "1.5x Multiplier + Early Access" },
+                  { name: "Platinum VIP", req: "5,000+ PTS", perk: "2.0x Multiplier + Lounge Pass" }
+                ].map((t, idx) => (
+                  <div key={idx} className="py-1.5 flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-slate-900 block">{t.name}</span>
+                      <span className="text-[11px] text-slate-500">{t.perk}</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-500">{t.req}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* UNIFIED ACTIVITY & ORDER HISTORY (Desktop Table + Mobile Stacked Rows, Colored Text Status) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
+            MCOM Orders & Wallet Activity
+          </h3>
+          <span className="text-[11px] font-bold text-slate-400">
+            Showing {transactions.length} records
+          </span>
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50/80 border-b border-slate-100 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+              <tr>
+                <th className="px-5 py-3">Date</th>
+                <th className="px-5 py-3">Description & Reference</th>
+                <th className="px-5 py-3">Source</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {transactions.map((tx) => (
+                <tr key={tx.id} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="px-5 py-3.5 text-slate-500 font-medium whitespace-nowrap">
+                    {tx.date}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="font-bold text-slate-900">{tx.desc}</div>
+                    <div className="text-[10px] text-slate-400 font-mono">REF: {tx.id}</div>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-600 font-semibold">{tx.source}</td>
+                  <td className="px-5 py-3.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                      {tx.status}
+                    </span>
+                  </td>
+                  <td
+                    className={`px-5 py-3.5 font-extrabold text-right ${
+                      tx.isCredit ? "text-emerald-600" : "text-slate-900"
+                    }`}
+                  >
+                    {tx.amount}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Stacked List */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {transactions.map((tx) => (
+            <div key={tx.id} className="p-3.5 space-y-1">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-bold text-xs text-slate-900 leading-snug">{tx.desc}</p>
+                <span
+                  className={`font-extrabold text-xs shrink-0 ${
+                    tx.isCredit ? "text-emerald-600" : "text-slate-900"
+                  }`}
+                >
+                  {tx.amount}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-slate-500">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-orange-600">{tx.source}</span>
+                  <span className="text-slate-300">•</span>
+                  <span>{tx.date}</span>
+                </div>
+                <span className="text-[10px] font-bold uppercase text-emerald-600">
+                  {tx.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

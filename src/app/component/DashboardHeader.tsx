@@ -5,6 +5,7 @@ import { Search, Bell, ChevronDown, LogOut, User, Settings, Gift } from "lucide-
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { clearStoredUser } from "@/lib/auth";
 
 interface DashboardHeaderProps {
     user: {
@@ -23,7 +24,7 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
 
     const handleLogout = () => {
         setProfileOpen(false);
-        // Clear session logic would go here
+        clearStoredUser();
         router.push("/");
     };
 
@@ -37,7 +38,27 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
     };
 
     return (
-        <header className="h-20 bg-white border-b border-slate-200 sticky top-0 z-30 px-8 flex items-center justify-between">
+        <header className="h-16 sm:h-20 bg-white border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
+            {/* Mobile Brand / Context Badge (visible on < lg) */}
+            <div className="flex items-center gap-2.5 lg:hidden">
+                <div className="w-8 h-8 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-xs shadow-md shadow-orange-600/20">
+                    {dashboardType === "admin" ? "A" : dashboardType === "business" ? "B" : "E"}
+                </div>
+                <div>
+                    <span className="font-extrabold text-xs text-slate-900 uppercase tracking-tight block leading-tight">
+                        247GBS Expo
+                    </span>
+                    <span className="text-[9px] font-bold text-orange-600 uppercase tracking-wider block">
+                        {dashboardType === "admin"
+                            ? "Admin Portal"
+                            : dashboardType === "business"
+                            ? "Exhibitor Portal"
+                            : "Visitor Portal"}
+                    </span>
+                </div>
+            </div>
+
+            {/* Desktop Search Bar */}
             <div className="relative w-80 hidden xl:block">
                 <input
                     type="text"
