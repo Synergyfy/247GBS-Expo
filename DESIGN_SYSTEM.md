@@ -38,6 +38,13 @@ This document defines the strict UI and UX craft standards for all front-facing 
    - An auxiliary badge placed side-by-side on a mobile screen eats 40–50% of the available width, crunching the main title and forcing the description into a cramped, awkward 3-line wrap.
    - If secondary metadata is necessary, place it inline with the title (e.g. `Title (optional)`) or embed it naturally within the description copy below—never as an opposing float that starves primary headings.
 
+8. **NO Raw Key-Value Dumps on Review & Summary Steps:**
+   - Multi-step review screens must NEVER dump 8–10 key-value pairs into a single flat `flex justify-between` grey box, where long labels and values wrap into awkward, broken text (e.g. `Venue & Spaces:`, `Invited Co- Hosts:`).
+   - Use structured, dedicated cards:
+     - **Hero Showcase Card:** Prominent title, format pill (`Virtual Stream`, `In-Person Venue`, or `Hybrid`), date & time, and venue or joining link.
+     - **Categorized 2-Column Info Grid:** Clean separation of concerns (e.g. Ticket & Pricing on one card, Invited Co-Hosts on the other) with appropriate status badges and typography.
+     - **Compliance & Confidence Callout:** Reassurance badge confirming adherence to platform rules.
+
 ---
 
 ## 2. Multi-Step Wizard & Stepper Standards

@@ -692,86 +692,121 @@ export default function CreateEventPage() {
                                     <ShieldCheck className="w-4 h-4 text-emerald-600" /> Review & Confirmation
                                 </h2>
                                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                                    Verify all details, invited partners, and pricing before submitting for moderation.
+                                    Verify your event schedule, venue or joining link, co-hosts, and ticket pricing.
                                 </p>
                             </div>
 
-                            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Event Title:</span>
-                                    <span className="font-bold text-slate-900">{title || "Live AI Product Showcase"}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Format:</span>
-                                    <span className="font-bold uppercase text-orange-600">
+                            {/* Main Event Showcase Card */}
+                            <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-orange-100/90 text-orange-700">
+                                        {format === "virtual" && <Video className="w-3 h-3" />}
+                                        {format === "physical" && <MapPin className="w-3 h-3" />}
+                                        {format === "hybrid" && <Globe className="w-3 h-3" />}
                                         {format === "virtual"
-                                            ? "Virtual (Online Stream / Meet)"
+                                            ? "Virtual Stream"
                                             : format === "physical"
-                                            ? "Physical (In-Person Venue)"
-                                            : "Hybrid (Venue + Livestream)"}
+                                            ? "In-Person Venue"
+                                            : "Hybrid Event"}
+                                    </span>
+                                    <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                        {eventDate} • {startTime} - {endTime}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Date & Time:</span>
-                                    <span className="font-bold text-slate-900">
-                                        {eventDate} ({startTime} - {endTime})
-                                    </span>
+
+                                <div>
+                                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                                        {title || "Untitled Booth Showcase"}
+                                    </h3>
+                                    {(format === "physical" || format === "hybrid") && (
+                                        <p className="text-xs text-slate-600 font-medium flex items-center gap-1.5 mt-1.5">
+                                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            <span>{physicalVenue} • <strong className="text-slate-800">{physicalSpaces} Seats</strong></span>
+                                        </p>
+                                    )}
+                                    {(format === "virtual" || format === "hybrid") && (
+                                        <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5 mt-1 break-all">
+                                            <Video className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                            <span>{virtualLink || "Google Meet Link"}</span>
+                                        </p>
+                                    )}
                                 </div>
-                                {(format === "virtual" || format === "hybrid") && (
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">Online Link:</span>
-                                        <span className="font-medium text-blue-600 truncate max-w-[200px]">
-                                            {virtualLink || "Google Meet Link"}
-                                        </span>
+                            </div>
+
+                            {/* Structured 2-Column Info Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* Ticket & Pricing Box */}
+                                <div className="p-3.5 bg-white border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                        <Ticket className="w-3.5 h-3.5 text-orange-600" /> Ticket & Pricing
                                     </div>
-                                )}
-                                {(format === "physical" || format === "hybrid") && (
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">Venue & Spaces:</span>
-                                        <span className="font-bold text-slate-900">
-                                            {physicalVenue} ({physicalSpaces} seats)
-                                        </span>
+                                    <div className="space-y-1.5 text-xs">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Template</span>
+                                            <span className="font-bold text-slate-900 text-right">{activeTemplate.name}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Ticket Price</span>
+                                            <span className="font-extrabold text-emerald-600 text-sm">£{ticketPrice}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Total Passes</span>
+                                            <span className="font-bold text-slate-900">{capacity} Passes</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 font-medium">Rewards Quota</span>
+                                            <span className="font-bold text-slate-900">{rewardQuota} Passes</span>
+                                        </div>
                                     </div>
-                                )}
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Total Capacity:</span>
-                                    <span className="font-bold text-slate-900">{capacity} Passes</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Invited Co-Hosts:</span>
-                                    <span className="font-bold text-slate-900">
-                                        {invitedPartners.length > 0
-                                            ? invitedPartners.map((p) => p.name).join(", ")
-                                            : "Solo Host (No external partners)"}
-                                    </span>
+
+                                {/* Co-Hosts & Partners Box */}
+                                <div className="p-3.5 bg-white border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                        <Users className="w-3.5 h-3.5 text-orange-600" /> Co-Hosts ({invitedPartners.length})
+                                    </div>
+                                    {invitedPartners.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {invitedPartners.map((p) => (
+                                                <div key={p.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-0">
+                                                    <div className="min-w-0 pr-2">
+                                                        <div className="font-bold text-slate-900 truncate">{p.name}</div>
+                                                        <div className="text-[10px] text-slate-500">{p.role}</div>
+                                                    </div>
+                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                                        Pending
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-slate-400 font-medium italic pt-2">
+                                            Solo Host — No external co-hosts invited.
+                                        </p>
+                                    )}
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Admin Template:</span>
-                                    <span className="font-bold text-orange-600">{activeTemplate.name}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Ticket Price:</span>
-                                    <span className="font-extrabold text-emerald-600">
-                                        £{ticketPrice} (Within £{activeTemplate.maxPrice} Admin Cap)
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">MCOM Rewards Gift Quota:</span>
-                                    <span className="font-bold text-slate-900">{rewardQuota} Passes</span>
-                                </div>
+                            </div>
+
+                            {/* Compliance Note */}
+                            <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center gap-2.5 text-xs text-emerald-800">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                <span>
+                                    Ready for review. All ticket tiers and price caps comply with season guidelines.
+                                </span>
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setStep(3)}
-                                    className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 cursor-pointer"
+                                    className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-50 transition-colors"
                                 >
                                     ← Back
                                 </button>
                                 <button
                                     type="submit"
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 cursor-pointer shadow-xs"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 cursor-pointer shadow-xs transition-colors"
                                 >
                                     <Sparkles className="w-3.5 h-3.5" /> Submit to Admin Queue
                                 </button>
