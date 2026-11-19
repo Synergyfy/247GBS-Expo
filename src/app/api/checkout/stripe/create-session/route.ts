@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "";
+export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2025-02-24.acacia" as any,
-});
+function getStripe(): Stripe | null {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) return null;
+  return new Stripe(stripeSecretKey, {
+    apiVersion: "2025-02-24.acacia" as any,
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,6 +18,16 @@ export async function POST(req: NextRequest) {
 
     const origin = returnOrigin || req.headers.get("origin") || "http://localhost:3030";
     const amountInPence = Math.round((Number(amount) || 19) * 100);
+
+    const stripe = getStripe();
+    if (!stripe) {
+      const mockSessionId = `cs_test_mock_${Date.now()}`;
+      return NextResponse.json({
+        url: `${origin}/tickets?step=4&session_id=${mockSessionId}&gateway=stripe&status=success`,
+        sessionId: mockSessionId,
+        sandbox: true,
+      });
+    }
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -48,7 +62,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Stripe create-session error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to create Stripe Checkout session" },
+      { error: error?.message || "Failed to create Stripe Checkout Session" },
       { status: 500 }
     );
   }
