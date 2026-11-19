@@ -38,11 +38,11 @@ export default function Footer() {
                 <Globe className="w-3.5 h-3.5 text-orange-500" /> Platform
               </h4>
               <ul className="space-y-2 text-xs text-slate-400">
-                <li><Link href="/tickets" className="hover:text-orange-400 transition-colors">Explore Events</Link></li>
+                <li><Link href="/tickets" className="hover:text-orange-400 transition-colors">Tickets & Cart</Link></li>
                 <li><Link href="/events/national" className="hover:text-orange-400 transition-colors">National Expo</Link></li>
-                <li><Link href="/events/platform-led" className="hover:text-orange-400 transition-colors">Platform Events</Link></li>
-                <li><Link href="/events/business-led" className="hover:text-orange-400 transition-colors">Business Events</Link></li>
-                <li><Link href="/exhibit" className="hover:text-orange-400 transition-colors">Host an Event</Link></li>
+                <li><Link href="/galleries" className="hover:text-orange-400 transition-colors">Exhibitor Halls</Link></li>
+                <li><Link href="/news" className="hover:text-orange-400 transition-colors">News & Trends</Link></li>
+                <li><Link href="/exhibit" className="hover:text-orange-400 transition-colors">Exhibitor Booths</Link></li>
               </ul>
             </div>
 
