@@ -28,6 +28,10 @@ This document defines the strict UI and UX craft standards for all front-facing 
    - Conditional inputs must blend seamlessly as standard form controls (`space-y-1` with standard text labels and inputs) directly inside the parent form flow.
    - Never wrap conditional fields in isolated alert boxes, tinted background cards (`bg-amber-50`, `bg-blue-50`), or nested bordered containers that make them look foreign or disconnected from the rest of the form.
 
+6. **NO Verbose 'Next: [Step Name]' Button Text:**
+   - Wizard and form action buttons must use standard, concise labels such as `Continue →`, `Next →`, `Back`, or `Submit for Approval`.
+   - Never chain the full target step title onto navigation buttons (e.g. `Next: Review & Submit →` or `Next: Select Package →`), which causes ugly text wrapping and redundant UI noise.
+
 ---
 
 ## 2. Multi-Step Wizard & Stepper Standards

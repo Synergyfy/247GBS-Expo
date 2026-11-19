@@ -445,7 +445,7 @@ export default function CreateEventPage() {
                                     onClick={() => setStep(2)}
                                     className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 cursor-pointer"
                                 >
-                                    Next: Invite Partners & Co-Hosts →
+                                    Continue →
                                 </button>
                             </div>
                         </div>
@@ -589,7 +589,7 @@ export default function CreateEventPage() {
                                     onClick={() => setStep(3)}
                                     className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 cursor-pointer"
                                 >
-                                    Next: Select Ticket Template →
+                                    Continue →
                                 </button>
                             </div>
                         </div>
@@ -688,7 +688,7 @@ export default function CreateEventPage() {
                                     onClick={() => setStep(4)}
                                     className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 disabled:opacity-50 cursor-pointer"
                                 >
-                                    Next: Review & Submit →
+                                    Continue →
                                 </button>
                             </div>
                         </div>

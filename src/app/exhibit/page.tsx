@@ -300,7 +300,7 @@ export default function ExhibitPage() {
                       onClick={handleNext}
                       className="w-full sm:w-auto px-6 py-2.5 sm:px-7 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md active:scale-95 cursor-pointer"
                     >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Next: Select Package</span> <ArrowRight className="w-3.5 h-3.5" /></>}
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Continue</span> <ArrowRight className="w-3.5 h-3.5" /></>}
                     </button>
                   </div>
                 </div>
