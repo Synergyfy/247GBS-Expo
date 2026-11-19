@@ -57,7 +57,8 @@ This document defines the strict UI and UX craft standards for all front-facing 
 - **Completed Step:** Unified orange circle with checkmark (`bg-orange-600 text-white`).
 - **Active Step:** Orange circle with current step number (`bg-orange-600 text-white ring-4 ring-orange-100`).
 - **Upcoming Step:** Slate circle with step number (`bg-slate-100 text-slate-500`).
-- **Timeline Connector:** Clean 2px line (`h-0.5 bg-slate-200`, tinted orange for completed steps).
+- **Timeline Connector:** Clean 2px line (`h-0.5 bg-slate-200 overflow-hidden`) with a nested child fill (`h-full bg-orange-600 transition-all duration-300`).
+  - **Crucial Layout Rule:** The progress fill MUST be a nested child of the track (`left-4 right-4` matching the circle radius of 16px). NEVER make the fill a sibling with `left-X` and a percentage width of the parent container, because on the final step `width: 100%` will overshoot past the last circle by the offset amount.
 - **Responsive Behavior:**
   - Mobile (< 640px): Show the numbered circles with timeline bars, and a clear summary banner below: `Step X of 4: [Step Title]`.
   - Desktop (≥ 640px): Show step labels centered under each circle without text truncation.

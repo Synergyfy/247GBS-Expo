@@ -164,12 +164,13 @@ export default function CreateEventPage() {
             {/* Elegant Numbered Timeline Stepper (No Text Truncation) */}
             <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 shadow-2xs">
                 <div className="flex items-center justify-between relative max-w-lg mx-auto">
-                    {/* Background Connector Bar */}
-                    <div className="absolute left-6 right-6 top-4 -translate-y-1/2 h-0.5 bg-slate-200 z-0" />
-                    <div
-                        className="absolute left-6 top-4 -translate-y-1/2 h-0.5 bg-orange-600 transition-all duration-300 z-0"
-                        style={{ width: `${((step - 1) / 3) * 100}%` }}
-                    />
+                    {/* Timeline Connector Track & Fill (Contained within track bounds) */}
+                    <div className="absolute left-4 right-4 top-4 -translate-y-1/2 h-0.5 bg-slate-200 z-0 overflow-hidden">
+                        <div
+                            className="h-full bg-orange-600 transition-all duration-300"
+                            style={{ width: `${((step - 1) / 3) * 100}%` }}
+                        />
+                    </div>
 
                     {[
                         { num: 1, title: "Schedule" },
