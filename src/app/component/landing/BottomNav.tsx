@@ -38,13 +38,13 @@ export default function BottomNav() {
   }
 
   const isHome = pathname === "/";
-  const isExplore = pathname === "/tickets";
-  const isHost = pathname === "/exhibit" || pathname === "/partnership";
+  const isExhibit = pathname === "/partnership" || pathname === "/exhibit";
+  const isGalleries = pathname === "/galleries";
   const isEvents = pathname?.startsWith("/events") || isEventsOpen;
 
   return (
     <>
-      {/* Fixed Bottom Navigation Bar on Mobile (Storyline §10 Alignment) */}
+      {/* Fixed Bottom Navigation Bar on Mobile (Below lg) */}
       <nav 
         aria-label="Mobile Bottom Navigation"
         className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-2 py-1.5 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] lg:hidden"
@@ -68,47 +68,45 @@ export default function BottomNav() {
             <span className="text-[10px] tracking-tight mt-0.5">Home</span>
           </Link>
 
-          {/* Tab 2: Explore Events */}
+          {/* Tab 2: Exhibit & Partner */}
           <Link
-            href="/tickets"
+            href="/partnership"
             onClick={() => setIsEventsOpen(false)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-95 ${
-              isExplore && !isEventsOpen
+              isExhibit && !isEventsOpen
                 ? "text-orange-600 font-bold"
                 : "text-slate-500 hover:text-slate-900 font-medium"
             }`}
           >
             <div className={`p-1 rounded-lg transition-colors ${
-              isExplore && !isEventsOpen ? "bg-orange-50 text-orange-600" : ""
-            }`}>
-              <Ticket className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] tracking-tight mt-0.5 text-center truncate max-w-[80px]">
-              Explore
-            </span>
-          </Link>
-
-          {/* Tab 3: Host an Event */}
-          <Link
-            href="/exhibit"
-            onClick={() => setIsEventsOpen(false)}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-95 ${
-              isHost && !isEventsOpen
-                ? "text-orange-600 font-bold"
-                : "text-slate-500 hover:text-slate-900 font-medium"
-            }`}
-          >
-            <div className={`p-1 rounded-lg transition-colors ${
-              isHost && !isEventsOpen ? "bg-orange-50 text-orange-600" : ""
+              isExhibit && !isEventsOpen ? "bg-orange-50 text-orange-600" : ""
             }`}>
               <Handshake className="w-5 h-5" />
             </div>
             <span className="text-[10px] tracking-tight mt-0.5 text-center truncate max-w-[80px]">
-              Host Event
+              Exhibit & Partner
             </span>
           </Link>
 
-          {/* Tab 4: Events (Opens Categories Sheet) */}
+          {/* Tab 3: Galleries */}
+          <Link
+            href="/galleries"
+            onClick={() => setIsEventsOpen(false)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-95 ${
+              isGalleries && !isEventsOpen
+                ? "text-orange-600 font-bold"
+                : "text-slate-500 hover:text-slate-900 font-medium"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition-colors ${
+              isGalleries && !isEventsOpen ? "bg-orange-50 text-orange-600" : ""
+            }`}>
+              <Images className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Galleries</span>
+          </Link>
+
+          {/* Tab 4: Events (Opens More Features Bottom Popup) */}
           <button
             type="button"
             onClick={() => setIsEventsOpen(!isEventsOpen)}
@@ -187,7 +185,7 @@ export default function BottomNav() {
                   Event Formats
                 </p>
                 <div className="flex flex-col gap-2">
-                  {/* Category 1: National Expo */}
+                  {/* Category 1: National */}
                   <Link
                     href="/events/national"
                     onClick={() => setIsEventsOpen(false)}
@@ -199,18 +197,18 @@ export default function BottomNav() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">National Expo</span>
+                          <span className="font-bold text-slate-900 text-sm">National Digital Expo</span>
                           <span className="px-1.5 py-0.2 bg-orange-600 text-white text-[9px] font-extrabold rounded-full">
                             FLAGSHIP
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500">Platform-wide seasonal flagship exhibition</p>
+                        <p className="text-xs text-slate-500">Platform-wide UK digital seasonal showcase</p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-orange-600 shrink-0 ml-2" />
                   </Link>
 
-                  {/* Category 2: Platform Events */}
+                  {/* Category 2: Platform-led */}
                   <Link
                     href="/events/platform-led"
                     onClick={() => setIsEventsOpen(false)}
@@ -222,18 +220,18 @@ export default function BottomNav() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">Platform Events</span>
+                          <span className="font-bold text-slate-900 text-sm">Workshops & Demos</span>
                           <span className="px-1.5 py-0.2 bg-blue-600 text-white text-[9px] font-extrabold rounded-full">
-                            247GBS
+                            TRAINING
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500">Workshops, onboarding & product demonstrations</p>
+                        <p className="text-xs text-slate-500">Educational sessions & live tech masterclasses</p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-blue-600 shrink-0 ml-2" />
                   </Link>
 
-                  {/* Category 3: Business Events */}
+                  {/* Category 3: Business-led */}
                   <Link
                     href="/events/business-led"
                     onClick={() => setIsEventsOpen(false)}
@@ -245,12 +243,12 @@ export default function BottomNav() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">Business Events</span>
+                          <span className="font-bold text-slate-900 text-sm">Exhibitor Events</span>
                           <span className="px-1.5 py-0.2 bg-slate-700 text-white text-[9px] font-extrabold rounded-full">
-                            BUSINESS
+                            MERCHANT
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500">Brand showcases, product launches & live selling</p>
+                        <p className="text-xs text-slate-500">Brand showcases, product drops & live selling</p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-700 shrink-0 ml-2" />
