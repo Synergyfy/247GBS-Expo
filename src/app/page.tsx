@@ -14,7 +14,7 @@ import Footer from "@/app/component/landing/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white font-sans selection:bg-orange-100 selection:text-orange-900">
+    <main className="min-h-screen bg-white font-sans selection:bg-orange-100 selection:text-orange-900 overflow-x-clip max-w-full">
       <Navbar />
       <Hero />
       <VideoShowcase />

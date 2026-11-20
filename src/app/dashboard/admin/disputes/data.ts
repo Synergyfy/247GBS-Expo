@@ -13,7 +13,6 @@ export interface Dispute {
   evidence: string;
   category?: string;
   sla?: string;
-  redFlags?: string[];
 }
 
 export const INITIAL_DISPUTES: Dispute[] = [
@@ -30,11 +29,6 @@ export const INITIAL_DISPUTES: Dispute[] = [
     amount: "£299.00",
     category: "Ticket Refund",
     sla: "46h remaining",
-    redFlags: [
-      "Event rescheduled < 24h prior to start",
-      "Voucher offered instead of required refund",
-      "Escrow SLA freeze active"
-    ],
     details:
       "Organizer postponed flagship event 24h before commencement. Attendee is requesting an immediate cash refund per platform escrow rules.",
     evidence:
@@ -53,11 +47,6 @@ export const INITIAL_DISPUTES: Dispute[] = [
     amount: "£50.00",
     category: "Ticketing & Delivery",
     sla: "19h remaining",
-    redFlags: [
-      "Gateway settled but webhook sync failed",
-      "Pass token generation exception in ticket vault",
-      "Missing QR token in attendee wallet"
-    ],
     details:
       "Payment went through gateway successfully, but barcode token was not minted into the attendee's ticket vault due to webhook timeout.",
     evidence:
@@ -76,11 +65,6 @@ export const INITIAL_DISPUTES: Dispute[] = [
     amount: "N/A",
     category: "Exhibitor Conduct",
     sla: "6h remaining",
-    redFlags: [
-      "Unverified ISO credential claim",
-      "Zero records found in national registry",
-      "Prior compliance warning logged"
-    ],
     details:
       "Exhibitor promoted uncertified green technology claiming official ISO verification. Compliance team flagged the booth for misleading claims.",
     evidence:
@@ -99,11 +83,6 @@ export const INITIAL_DISPUTES: Dispute[] = [
     amount: "£150.00",
     category: "Billing Duplicate",
     sla: "Resolved SLA",
-    redFlags: [
-      "Rapid concurrent checkout retry (1.2s)",
-      "Dual payment authorizations detected",
-      "Only 1 pass recorded in database"
-    ],
     details:
       "Parallel checkout requests resulted in dual transaction entries for a single registered pass on checkout session #SES-881.",
     evidence:

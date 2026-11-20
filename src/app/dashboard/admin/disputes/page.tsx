@@ -9,8 +9,7 @@ import {
   MoreHorizontal,
   User,
   Gavel,
-  ArrowRight,
-  AlertTriangle
+  ArrowRight
 } from "lucide-react";
 import { INITIAL_DISPUTES, STAGES, Dispute } from "./data";
 
@@ -112,12 +111,6 @@ export default function DisputesPage() {
                     </span>
                     <span className="text-slate-300">•</span>
                     <span className="text-slate-400 font-mono text-[10px]">{item.id}</span>
-                    {item.redFlags && item.redFlags.length > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
-                        <AlertTriangle className="w-2.5 h-2.5" />
-                        <span>{item.redFlags.length} Flags</span>
-                      </span>
-                    )}
                   </div>
                   <span className="text-slate-500 font-bold text-[10px] sm:text-xs">{stageObj?.label}</span>
                 </div>
@@ -193,12 +186,6 @@ export default function DisputesPage() {
                         >
                           {item.priority}
                         </span>
-                        {item.redFlags && item.redFlags.length > 0 && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
-                            <AlertTriangle className="w-2.5 h-2.5" />
-                            <span>{item.redFlags.length} Flags</span>
-                          </span>
-                        )}
                       </div>
                       <span className="text-slate-400 group-hover:text-slate-600 p-0.5 rounded">
                         <MoreHorizontal className="w-4 h-4" />
