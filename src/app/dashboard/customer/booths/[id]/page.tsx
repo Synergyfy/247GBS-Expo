@@ -9,6 +9,7 @@ import {
   MessageSquare,
   ExternalLink,
   Play,
+  X,
   Mail,
   MapPin,
   Calendar,
@@ -20,6 +21,7 @@ export default function VirtualBoothPage() {
   const boothId = params.id;
   const [activeTab, setActiveTab] = useState("products");
   const [scheduleExpanded, setScheduleExpanded] = useState(false);
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
 
   const booth = {
     name: "FutureTech Systems",
@@ -34,7 +36,7 @@ export default function VirtualBoothPage() {
     live: true
   };
 
-  // Per meeting directive: Product Name, Description, Price, Image, and Buy Now button linking to MCOM Mall
+  // Products & services showcase with customizable CTA button label per business setting
   const products = [
     {
       name: "Cloud Core Hub X1",
@@ -42,7 +44,8 @@ export default function VirtualBoothPage() {
         "High-availability enterprise cloud router with automated failover and hardware encryption.",
       price: "499.00",
       image: "/ideal.png",
-      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1"
+      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1",
+      buttonLabel: "Buy Now"
     },
     {
       name: "Edge Guard Pro Appliance",
@@ -50,7 +53,8 @@ export default function VirtualBoothPage() {
         "Real-time zero-trust firewall and DDoS mitigation node for distributed retail branches.",
       price: "199.00",
       image: "/main_stage_banner.png",
-      mcomUrl: "https://mcommall.com/products/edge-guard-pro"
+      mcomUrl: "https://mcommall.com/products/edge-guard-pro",
+      buttonLabel: "Book Now"
     },
     {
       name: "Global Sync Node S4",
@@ -58,7 +62,8 @@ export default function VirtualBoothPage() {
         "Multi-region storage replication server with plug-and-play MCOM inventory synchronization.",
       price: "899.00",
       image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
-      mcomUrl: "https://mcommall.com/products/global-sync-node"
+      mcomUrl: "https://mcommall.com/products/global-sync-node",
+      buttonLabel: "Order Now"
     }
   ];
 
@@ -127,30 +132,68 @@ export default function VirtualBoothPage() {
         {/* Left Column: Main Booth Content */}
         <div className="lg:col-span-2 space-y-4">
           {/* Compact Live Demo Video Stream */}
-          <div className="bg-slate-900 rounded-2xl aspect-video relative overflow-hidden shadow-sm group cursor-pointer border border-slate-200/80">
-            <Image
-              src="/main_stage_banner.png"
-              alt="Live Demo"
-              fill
-              className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center bg-black/30">
-              <div className="w-11 h-11 bg-white/20 backdrop-blur-xs rounded-full flex items-center justify-center mb-2 border border-white/30 group-hover:scale-110 transition-transform">
-                <Play className="w-4 h-4 fill-white" />
+          {isPlayingVideo ? (
+            <div className="bg-slate-900 rounded-2xl aspect-video relative overflow-hidden shadow-sm border border-slate-200/80">
+              {/* Live Badge */}
+              <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-md pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                <span>LIVE DEMO STREAM</span>
               </div>
-              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-tight">
-                Booth Live Product Demo
-              </h3>
-              <p className="text-slate-300 text-[11px] max-w-xs mt-0.5">
-                Watch live demonstration or browse MCOM Mall products below.
-              </p>
+
+              {/* Close / Return Button */}
+              <button
+                type="button"
+                onClick={() => setIsPlayingVideo(false)}
+                className="absolute top-3 right-3 z-20 w-8 h-8 bg-slate-950/80 hover:bg-slate-950 text-white rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all hover:scale-105"
+                title="Close video"
+                aria-label="Close video"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/L_LUpnjgPso?autoplay=1&rel=0&modestbranding=1"
+                title="Booth Live Product Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
             </div>
-          </div>
+          ) : (
+            <div
+              onClick={() => setIsPlayingVideo(true)}
+              className="bg-slate-900 rounded-2xl aspect-video relative overflow-hidden shadow-sm group cursor-pointer border border-slate-200/80"
+            >
+              {/* Live Badge */}
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm backdrop-blur-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                <span>LIVE DEMO</span>
+              </div>
+
+              <Image
+                src="/main_stage_banner.png"
+                alt="Live Demo"
+                fill
+                className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center bg-black/30">
+                <div className="w-12 h-12 bg-orange-600 group-hover:bg-orange-500 rounded-full flex items-center justify-center mb-2 shadow-lg border border-white/30 group-hover:scale-110 transition-transform">
+                  <Play className="w-5 h-5 fill-white ml-0.5" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-tight">
+                  Booth Live Product Demo
+                </h3>
+                <p className="text-slate-300 text-[11px] max-w-xs mt-0.5">
+                  Watch live demonstration or browse products below.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Horizontal Scrollable Tabs */}
           <div className="flex gap-5 sm:gap-7 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
             {[
-              { id: "products", label: "MCOM Mall Products" },
+              { id: "products", label: "Products & Offers" },
               { id: "about", label: "About Exhibitor" },
               { id: "services", label: "B2B Services" }
             ].map((tab) => (
@@ -209,7 +252,7 @@ export default function VirtualBoothPage() {
                       rel="noopener noreferrer"
                       className="w-full bg-orange-600 text-white py-2 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all flex items-center justify-center gap-1.5 shadow-xs"
                     >
-                      <span>Buy Now on MCOM Mall</span>
+                      <span>{product.buttonLabel || "Buy Now"}</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>

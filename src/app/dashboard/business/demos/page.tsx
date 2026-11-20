@@ -159,7 +159,7 @@ export default function LiveDemosPage() {
                                 <span>{item.attendees}</span>
                                 <span className="text-slate-300">•</span>
                                 <span>
-                                    Pinned MCOM Product: <strong className="text-slate-900">{item.pinnedProduct}</strong>
+                                    Pinned Product: <strong className="text-slate-900">{item.pinnedProduct}</strong>
                                 </span>
                             </div>
                         </div>

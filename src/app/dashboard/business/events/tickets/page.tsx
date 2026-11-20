@@ -11,6 +11,8 @@ import {
     Gift,
     ChevronDown,
     Sliders,
+    AlertCircle,
+    Info,
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 
@@ -29,8 +31,8 @@ interface TicketTier {
 export default function TicketTiersPage() {
     const [showCapPolicy, setShowCapPolicy] = useState(false);
     const [editingTier, setEditingTier] = useState<TicketTier | null>(null);
-    const [priceInput, setPriceInput] = useState<number>(0);
-    const [quotaInput, setQuotaInput] = useState<number>(0);
+    const [priceInput, setPriceInput] = useState<number | string>(0);
+    const [quotaInput, setQuotaInput] = useState<number | string>(0);
 
     const [tiers, setTiers] = useState<TicketTier[]>([
         {
@@ -74,13 +76,23 @@ export default function TicketTiersPage() {
         setQuotaInput(tier.quota);
     };
 
+    const numPrice = Number(priceInput);
+    const numQuota = Number(quotaInput);
+
+    const isOverMaxCap = editingTier ? (editingTier.maxCap > 0 && numPrice > editingTier.maxCap) : false;
+    const isUnderMinCap = editingTier ? (numPrice < editingTier.minCap) : false;
+    const isPriceValid = editingTier
+        ? (editingTier.maxCap === 0 ? numPrice === 0 : !isOverMaxCap && !isUnderMinCap && priceInput !== "")
+        : false;
+    const isQuotaValid = editingTier ? (numQuota >= editingTier.sold && quotaInput !== "") : false;
+
     const handleSaveTier = (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingTier) return;
-        const clampedPrice = Math.min(Math.max(priceInput, editingTier.minCap), editingTier.maxCap);
+        if (!isPriceValid || !isQuotaValid) return;
         setTiers(
             tiers.map((t) =>
-                t.id === editingTier.id ? { ...t, currentPrice: clampedPrice, quota: quotaInput } : t
+                t.id === editingTier.id ? { ...t, currentPrice: numPrice, quota: numQuota } : t
             )
         );
         setEditingTier(null);
@@ -253,51 +265,114 @@ export default function TicketTiersPage() {
                 {editingTier && (
                     <form onSubmit={handleSaveTier} className="space-y-4">
                         <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-1">
-                            <p className="font-bold text-slate-900">{editingTier.name}</p>
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="font-bold text-slate-900">{editingTier.name}</p>
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                                    Cap Protected
+                                </span>
+                            </div>
                             <p className="text-slate-500">
                                 Template: <strong className="text-orange-600">{editingTier.templateName}</strong> (Allowed Cap: £{editingTier.minCap} – £{editingTier.maxCap})
                             </p>
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                Ticket Price (£{editingTier.minCap} – £{editingTier.maxCap})
-                            </label>
+                            <div className="flex items-center justify-between gap-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                    Ticket Price (£{editingTier.minCap} – £{editingTier.maxCap})
+                                </label>
+                                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                                    Admin Cap: Max £{editingTier.maxCap}
+                                </span>
+                            </div>
                             <input
                                 type="number"
                                 min={editingTier.minCap}
                                 max={editingTier.maxCap}
                                 disabled={editingTier.maxCap === 0}
                                 value={priceInput}
-                                onChange={(e) => setPriceInput(Number(e.target.value))}
-                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 disabled:bg-slate-100"
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    if (raw === "") {
+                                        setPriceInput("");
+                                        return;
+                                    }
+                                    const val = Number(raw);
+                                    if (isNaN(val)) return;
+                                    // Hard cap: If user attempts to add more than admin cap, clamp immediately
+                                    if (editingTier.maxCap > 0 && val > editingTier.maxCap) {
+                                        setPriceInput(editingTier.maxCap);
+                                    } else {
+                                        setPriceInput(val);
+                                    }
+                                }}
+                                className={`w-full px-3 py-2 rounded-lg border text-xs font-bold focus:outline-none disabled:bg-slate-100 ${
+                                    isOverMaxCap || isUnderMinCap
+                                        ? "border-red-500 ring-1 ring-red-500 bg-red-50/20 text-red-900 focus:border-red-500"
+                                        : "border-slate-200 text-slate-900 focus:border-orange-500"
+                                }`}
                             />
+                            {isOverMaxCap && (
+                                <p className="text-[11px] font-bold text-red-600 flex items-center gap-1 mt-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Cannot exceed the Super Admin price cap of £{editingTier.maxCap}.
+                                </p>
+                            )}
+                            {isUnderMinCap && (
+                                <p className="text-[11px] font-bold text-red-600 flex items-center gap-1 mt-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Ticket price must be at least £{editingTier.minCap}.
+                                </p>
+                            )}
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                Total Pass Quota
-                            </label>
+                            <div className="flex items-center justify-between gap-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                    Total Pass Quota
+                                </label>
+                                <span className="text-[10px] text-slate-500">
+                                    {editingTier.sold} passes already issued
+                                </span>
+                            </div>
                             <input
                                 type="number"
                                 min={editingTier.sold}
                                 value={quotaInput}
-                                onChange={(e) => setQuotaInput(Number(e.target.value))}
-                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    setQuotaInput(raw === "" ? "" : Number(raw));
+                                }}
+                                className={`w-full px-3 py-2 rounded-lg border text-xs font-bold focus:outline-none ${
+                                    !isQuotaValid
+                                        ? "border-red-500 ring-1 ring-red-500 bg-red-50/20 text-red-900 focus:border-red-500"
+                                        : "border-slate-200 text-slate-900 focus:border-orange-500"
+                                }`}
                             />
+                            {!isQuotaValid && (
+                                <p className="text-[11px] font-bold text-red-600 flex items-center gap-1 mt-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Quota cannot be lower than the {editingTier.sold} passes already issued.
+                                </p>
+                            )}
                         </div>
 
                         <div className="flex justify-end gap-2 pt-2">
                             <button
                                 type="button"
                                 onClick={() => setEditingTier(null)}
-                                className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                                className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700"
+                                disabled={!isPriceValid || !isQuotaValid}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+                                    !isPriceValid || !isQuotaValid
+                                        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                        : "bg-orange-600 text-white hover:bg-orange-700 cursor-pointer shadow-sm"
+                                }`}
                             >
                                 Save Changes
                             </button>

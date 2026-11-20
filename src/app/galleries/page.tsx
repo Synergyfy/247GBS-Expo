@@ -76,6 +76,7 @@ function GalleryContent() {
 
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [selectedVideo, setSelectedVideo] = useState<(typeof GALLERY_ITEMS)[0] | null>(null);
 
   useEffect(() => {
     const cat = searchParams.get("category");
@@ -169,7 +170,12 @@ function GalleryContent() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="w-full relative group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-slate-900 h-48 sm:h-56 md:h-64"
+                  onClick={() => {
+                    if (item.type === "video") setSelectedVideo(item);
+                  }}
+                  className={`w-full relative group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-slate-900 h-48 sm:h-56 md:h-64 ${
+                    item.type === "video" ? "cursor-pointer" : ""
+                  }`}
                 >
                   <img
                     src={item.image}
@@ -182,7 +188,7 @@ function GalleryContent() {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent" />
                   
                   {item.type === "video" && (
-                    <div className="absolute top-3 right-3 w-8 h-8 sm:w-9 sm:h-9 bg-orange-600/95 backdrop-blur-xs rounded-full flex items-center justify-center text-white shadow-md">
+                    <div className="absolute top-3 right-3 w-8 h-8 sm:w-9 sm:h-9 bg-orange-600/95 backdrop-blur-xs rounded-full flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform">
                       <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current ml-0.5" />
                     </div>
                   )}
@@ -289,6 +295,50 @@ function GalleryContent() {
           </div>
         </div>
       </section>
+
+      {/* Video Modal Player */}
+      {selectedVideo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md"
+          onClick={() => setSelectedVideo(null)}
+        >
+          <div
+            className="relative w-full max-w-4xl bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-3.5 sm:p-4 border-b border-white/10 bg-slate-950/60">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
+                  RECORDED SHOWCASE
+                </span>
+                <h3 className="text-xs sm:text-sm font-bold text-white truncate max-w-xs sm:max-w-md">
+                  {selectedVideo.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedVideo(null)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Embed Frame */}
+            <div className="aspect-video w-full bg-black">
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/L_LUpnjgPso?autoplay=1&rel=0&modestbranding=1"
+                title={selectedVideo.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </main>

@@ -6,7 +6,9 @@ import {
   Ticket,
   Gift,
   Compass,
-  Wallet
+  Wallet,
+  User,
+  Settings
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -43,6 +45,15 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroup[] = [
     items: [
       { label: "My Tickets & Passes", href: "/dashboard/customer/tickets", icon: Ticket },
       { label: "MCOM Rewards & Orders", href: "/dashboard/customer/rewards", icon: Gift }
+    ]
+  },
+  {
+    id: "profile-account",
+    label: "Account & Identity",
+    icon: User,
+    items: [
+      { label: "Profile Settings", href: "/dashboard/customer/profile", icon: User },
+      { label: "Account Settings", href: "/dashboard/customer/settings", icon: Settings }
     ]
   }
 ];

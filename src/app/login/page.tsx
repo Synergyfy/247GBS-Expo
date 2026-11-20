@@ -19,9 +19,12 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "customer";
+  const searchRole = searchParams.get("role");
   const redirect = searchParams.get("redirect") || "";
 
+  const [activeRole, setActiveRole] = useState<"customer" | "business" | "admin">(
+    searchRole === "business" ? "business" : searchRole === "admin" ? "admin" : "customer"
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -30,16 +33,16 @@ function LoginForm() {
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setStoredUser({
-      name: email.split("@")[0] || "Demo User",
-      email: email || "customer@247gbs.com",
-      role: role === "business" ? "business" : role === "admin" ? "admin" : "customer"
+      name: email.split("@")[0] || (activeRole === "business" ? "Acme Corp" : activeRole === "admin" ? "Central Admin" : "Demo Visitor"),
+      email: email || `${activeRole}@247gbs.com`,
+      role: activeRole
     });
 
     if (redirect) {
       router.push(redirect);
-    } else if (role === "customer") {
+    } else if (activeRole === "customer") {
       router.push("/dashboard/customer");
-    } else if (role === "admin") {
+    } else if (activeRole === "admin") {
       router.push("/dashboard/admin");
     } else {
       router.push("/dashboard/business");
@@ -57,6 +60,43 @@ function LoginForm() {
         </div>
       </div>
 
+      {/* Role Switcher Tabs */}
+      <div className="grid grid-cols-3 p-1 bg-slate-100 rounded-xl mb-4 text-xs font-bold">
+        <button
+          type="button"
+          onClick={() => setActiveRole("customer")}
+          className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+            activeRole === "customer"
+              ? "bg-white text-orange-600 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Visitor
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveRole("business")}
+          className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+            activeRole === "business"
+              ? "bg-white text-orange-600 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Exhibitor
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveRole("admin")}
+          className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+            activeRole === "admin"
+              ? "bg-white text-orange-600 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Admin
+        </button>
+      </div>
+
       {isFromTickets && (
         <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl flex items-center gap-2.5 text-xs text-orange-800">
           <Ticket className="w-4 h-4 text-orange-600 shrink-0" />
@@ -69,7 +109,7 @@ function LoginForm() {
       <div className="text-center mb-5">
         <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-1">Welcome Back</h1>
         <p className="text-xs sm:text-sm text-slate-500">
-          Sign in to your <span className="text-orange-600 font-bold capitalize">{role || "Expo"}</span> account
+          Sign in to your <span className="text-orange-600 font-bold capitalize">{activeRole === "business" ? "Exhibitor" : activeRole === "admin" ? "Admin" : "Visitor"}</span> account
         </p>
       </div>
 
@@ -112,7 +152,7 @@ function LoginForm() {
       <div className="mt-4 text-center text-xs text-slate-500">
         Don&apos;t have an account?{" "}
         <Link
-          href={`/signup?role=${role || ""}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ""}`}
+          href={`/signup?role=${activeRole || ""}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ""}`}
           className="text-orange-600 font-bold hover:underline"
         >
           Create one

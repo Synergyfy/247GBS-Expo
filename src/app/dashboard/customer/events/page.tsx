@@ -86,6 +86,7 @@ export default function DiscoverEventsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
   const [joinedEvents] = useState<string[]>(["spring2026"]);
@@ -245,28 +246,64 @@ export default function DiscoverEventsPage() {
       {/* EVENT DETAILS MODAL */}
       <Modal
         isOpen={!!selectedEvent}
-        onClose={() => setSelectedEvent(null)}
+        onClose={() => {
+          setSelectedEvent(null);
+          setIsPlayingTrailer(false);
+        }}
         title={selectedEvent?.title || "Event Details"}
       >
         {selectedEvent && (
           <div className="space-y-4">
             {/* Compact Video / Hero Preview */}
-            <div className="relative rounded-xl overflow-hidden bg-slate-900 aspect-video group cursor-pointer">
-              <Image
-                src={selectedEvent.image}
-                alt={selectedEvent.title}
-                fill
-                className="object-cover opacity-65"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-11 h-11 bg-white/20 backdrop-blur-xs rounded-full flex items-center justify-center border border-white/40">
-                  <Play className="w-4 h-4 text-white fill-white" />
+            {isPlayingTrailer ? (
+              <div className="relative rounded-xl overflow-hidden bg-slate-900 aspect-video shadow-sm border border-slate-200/80">
+                <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm pointer-events-none">
+                  <span>● TRAILER PREVIEW</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPlayingTrailer(false)}
+                  className="absolute top-2.5 right-2.5 z-20 w-7 h-7 bg-slate-950/80 hover:bg-slate-950 text-white rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all hover:scale-105"
+                  title="Close trailer"
+                  aria-label="Close trailer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/L_LUpnjgPso?autoplay=1&rel=0&modestbranding=1"
+                  title={`${selectedEvent.title} Trailer`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              </div>
+            ) : (
+              <div
+                onClick={() => setIsPlayingTrailer(true)}
+                className="relative rounded-xl overflow-hidden bg-slate-900 aspect-video group cursor-pointer"
+              >
+                {selectedEvent.isLive && (
+                  <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm backdrop-blur-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                    <span>● LIVE NOW</span>
+                  </div>
+                )}
+                <Image
+                  src={selectedEvent.image}
+                  alt={selectedEvent.title}
+                  fill
+                  className="object-cover opacity-65 group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 bg-orange-600 group-hover:bg-orange-500 rounded-full flex items-center justify-center shadow-lg border border-white/40 group-hover:scale-110 transition-transform">
+                    <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+                  </div>
+                </div>
+                <div className="absolute bottom-2.5 left-3 text-white font-bold text-[11px] bg-black/50 px-2.5 py-0.5 rounded-md backdrop-blur-xs">
+                  Watch Preview Trailer
                 </div>
               </div>
-              <div className="absolute bottom-2.5 left-3 text-white font-bold text-[11px]">
-                Watch Preview Trailer
-              </div>
-            </div>
+            )}
 
             {/* Navigation Tabs */}
             <div className="flex gap-4 border-b border-slate-200">
