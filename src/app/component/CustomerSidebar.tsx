@@ -24,26 +24,41 @@ export default function CustomerSidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    "expo-discovery": true,
-    "wallet-rewards": true
+  const getActiveCustomerGroupId = (currentPath: string) => {
+    for (const group of CUSTOMER_NAV_GROUPS) {
+      if (group.items.some((item) => isCustomerRouteActive(currentPath, item.href))) {
+        return group.id;
+      }
+    }
+    return CUSTOMER_NAV_GROUPS[0].id;
+  };
+
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const active = getActiveCustomerGroupId(pathname);
+    return { [active]: true };
   });
 
+  // Keep ONLY the active category expanded when navigating; others remain collapsed
   useEffect(() => {
-    for (const group of CUSTOMER_NAV_GROUPS) {
-      if (group.items.some((item) => isCustomerRouteActive(pathname, item.href))) {
-        setExpandedGroups((prev) => ({ ...prev, [group.id]: true }));
-      }
+    const activeGroup = CUSTOMER_NAV_GROUPS.find((group) =>
+      group.items.some((item) => isCustomerRouteActive(pathname, item.href))
+    );
+    if (activeGroup) {
+      setExpandedGroups({ [activeGroup.id]: true });
     }
   }, [pathname]);
 
   const toggleGroup = (groupId: string) => {
     if (!isOpen) {
       setIsOpen(true);
-      setExpandedGroups((prev) => ({ ...prev, [groupId]: true }));
+      setExpandedGroups({ [groupId]: true });
       return;
     }
-    setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+    setExpandedGroups((prev) => {
+      const willOpen = !prev[groupId];
+      // When opening a dropdown, collapse all other dropdowns
+      return willOpen ? { [groupId]: true } : {};
+    });
   };
 
   const handleLogout = () => {

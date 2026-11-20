@@ -18,9 +18,11 @@ import {
   ShieldCheck,
   Video,
   MapPin,
-  Ticket
+  Ticket,
+  AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
+import Modal from "@/app/component/Modal";
 
 interface AdminEvent {
   id: string;
@@ -41,6 +43,10 @@ export default function AdminEventsPage() {
   const [activeTab, setActiveTab] = useState<"all" | "national" | "platform" | "business">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [rulesExpanded, setRulesExpanded] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: "publish" | "unpublish" | "delete";
+    event: AdminEvent;
+  } | null>(null);
 
   const [events, setEvents] = useState<AdminEvent[]>([
     {
@@ -238,24 +244,19 @@ export default function AdminEventsPage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setEvents((prev) =>
-                      prev.map((item) =>
-                        item.id === event.id
-                          ? { ...item, status: item.status === "Published" ? "Draft" : "Published" }
-                          : item
-                      )
-                    );
-                  }}
+                  onClick={() =>
+                    setConfirmAction({
+                      type: event.status === "Published" ? "unpublish" : "publish",
+                      event
+                    })
+                  }
                   className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 shadow-2xs transition-colors cursor-pointer"
                 >
                   {event.status === "Published" ? "Unpublish" : "Publish"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setEvents((prev) => prev.filter((item) => item.id !== event.id));
-                  }}
+                  onClick={() => setConfirmAction({ type: "delete", event })}
                   className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold transition-colors cursor-pointer"
                 >
                   Delete
@@ -361,6 +362,99 @@ export default function AdminEventsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal for Publish / Unpublish / Delete */}
+      {confirmAction && (
+        <Modal
+          isOpen={!!confirmAction}
+          onClose={() => setConfirmAction(null)}
+          title={
+            confirmAction.type === "delete"
+              ? "Confirm Delete Event"
+              : confirmAction.type === "publish"
+              ? "Confirm Publish Event"
+              : "Confirm Unpublish Event"
+          }
+          maxWidth="md"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  confirmAction.type === "delete"
+                    ? "bg-red-50 text-red-600"
+                    : confirmAction.type === "publish"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "bg-amber-50 text-amber-600"
+                }`}
+              >
+                {confirmAction.type === "delete" ? (
+                  <AlertTriangle className="w-5 h-5" />
+                ) : confirmAction.type === "publish" ? (
+                  <CheckCircle2 className="w-5 h-5" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5" />
+                )}
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-slate-900">
+                  {confirmAction.type === "delete"
+                    ? `Are you sure you want to delete "${confirmAction.event.title}"?`
+                    : confirmAction.type === "publish"
+                    ? `Publish "${confirmAction.event.title}" to public directory?`
+                    : `Unpublish "${confirmAction.event.title}"?`}
+                </h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {confirmAction.type === "delete"
+                    ? "This action cannot be undone. All registrations and directory listings associated with this event will be permanently removed."
+                    : confirmAction.type === "publish"
+                    ? "This event will immediately appear in the public events directory and calendar for attendees to view and book passes."
+                    : "This event will be moved to Draft status and hidden from public visitors. Existing ticket holders will retain their booking records."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfirmAction(null)}
+                className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmAction.type === "delete") {
+                    setEvents((prev) => prev.filter((item) => item.id !== confirmAction.event.id));
+                  } else {
+                    const newStatus = confirmAction.type === "publish" ? "Published" : "Draft";
+                    setEvents((prev) =>
+                      prev.map((item) =>
+                        item.id === confirmAction.event.id ? { ...item, status: newStatus } : item
+                      )
+                    );
+                  }
+                  setConfirmAction(null);
+                }}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-white rounded-lg transition-all shadow-xs cursor-pointer ${
+                  confirmAction.type === "delete"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : confirmAction.type === "publish"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-slate-900 hover:bg-slate-800"
+                }`}
+              >
+                {confirmAction.type === "delete"
+                  ? "Yes, Delete Event"
+                  : confirmAction.type === "publish"
+                  ? "Yes, Publish Event"
+                  : "Yes, Unpublish"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
