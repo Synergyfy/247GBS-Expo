@@ -16,6 +16,7 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   History,
   Send,
   Lock,
@@ -141,7 +142,7 @@ export default function DisputeDetailPage() {
   const currentStageObj = STAGES.find((s) => s.id === dispute.status);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 pb-24 lg:pb-12 relative">
+    <div className="max-w-6xl mx-auto space-y-3.5 sm:space-y-5 pb-24 lg:pb-12 relative">
       {/* Toast Notification — Smooth Slide-in */}
       <AnimatePresence>
         {toastMessage && (
@@ -173,20 +174,20 @@ export default function DisputeDetailPage() {
           href="/dashboard/admin/disputes"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-orange-600 transition-colors group cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
           <span>Back to Disputes</span>
         </Link>
       </div>
 
       {/* Main Header */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs sm:text-sm font-black bg-slate-100 text-slate-900 px-2.5 py-1 rounded-lg">
+      <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <span className="font-mono text-[11px] sm:text-xs font-black bg-slate-100 text-slate-800 px-2 py-0.5 rounded-md">
               {dispute.id}
             </span>
             <span
-              className={`text-[10px] sm:text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full ${
+              className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                 dispute.priority === "CRITICAL"
                   ? "bg-red-50 text-red-600 border border-red-200"
                   : dispute.priority === "HIGH"
@@ -197,86 +198,104 @@ export default function DisputeDetailPage() {
               {dispute.priority} PRIORITY
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-xs font-bold text-slate-600">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500">
               {currentStageObj?.label}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
+            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
             <span>Filed {dispute.date}</span>
             {dispute.sla && (
               <>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-200">•</span>
                 <span className="text-orange-600 font-bold">SLA: {dispute.sla}</span>
               </>
             )}
           </div>
         </div>
 
-        <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
           {dispute.subject}
         </h1>
+
+        {/* Red Flags / Risk Indicators */}
+        {dispute.redFlags && dispute.redFlags.length > 0 && (
+          <div className="bg-red-50/80 border border-red-200/70 rounded-xl p-2.5 sm:p-3 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-red-700 font-black text-[10px] sm:text-[11px] uppercase tracking-wider">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+              <span>Red Flags Detected ({dispute.redFlags.length})</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-red-900 font-semibold">
+              {dispute.redFlags.map((flag, idx) => (
+                <div key={idx} className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                  <span className="truncate">{flag}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Layout Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
         {/* Left Column (2 Cols): Case Information & Evidence */}
-        <div className="lg:col-span-2 space-y-5">
+        <div className="lg:col-span-2 space-y-4">
           {/* Parties Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Complainant */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2">
+            <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-blue-600" /> Complainant (Customer)
+                  <User className="w-3 h-3 text-blue-600" /> Complainant (Customer)
                 </span>
-                <span className="text-[10px] font-black uppercase bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md">
+                <span className="text-[9px] font-black uppercase bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
                   Claimant
                 </span>
               </div>
               <div>
-                <p className="font-extrabold text-slate-900 text-sm">{dispute.complainant}</p>
-                <p className="text-xs text-slate-500 font-medium">{dispute.complainantEmail}</p>
+                <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{dispute.complainant}</p>
+                <p className="text-[11px] text-slate-500 font-medium">{dispute.complainantEmail}</p>
               </div>
             </div>
 
             {/* Respondent */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2">
+            <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-purple-600" /> Respondent (Business / Org)
+                  <Building2 className="w-3 h-3 text-purple-600" /> Respondent (Business / Org)
                 </span>
-                <span className="text-[10px] font-black uppercase bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md">
+                <span className="text-[9px] font-black uppercase bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">
                   Exhibitor
                 </span>
               </div>
               <div>
-                <p className="font-extrabold text-slate-900 text-sm">{dispute.respondent}</p>
-                <p className="text-xs text-slate-500 font-medium">{dispute.respondentEmail}</p>
+                <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{dispute.respondent}</p>
+                <p className="text-[11px] text-slate-500 font-medium">{dispute.respondentEmail}</p>
               </div>
             </div>
           </div>
 
           {/* Incident Description */}
-          <div className="bg-white p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-orange-600" />
+          <div className="bg-white p-4 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-2">
+            <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 text-orange-600" />
               <span>Incident Details & Case Statement</span>
             </h3>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl border border-slate-100">
               {dispute.details}
             </p>
           </div>
 
           {/* Forensic Evidence & Audit Record */}
-          <div className="bg-white p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-slate-500" />
+          <div className="bg-white p-4 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-2">
+            <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-slate-500" />
               <span>Forensic Evidence & Transaction Audit</span>
             </h3>
-            <div className="bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-2xl leading-relaxed overflow-x-auto shadow-inner border border-slate-800">
-              <div className="text-slate-400 text-[10px] mb-2 uppercase tracking-widest pb-1 border-b border-slate-800">
+            <div className="bg-slate-950 text-emerald-400 font-mono text-[11px] p-3.5 rounded-xl leading-relaxed overflow-x-auto shadow-inner border border-slate-800">
+              <div className="text-slate-400 text-[9px] mb-1.5 uppercase tracking-widest pb-1 border-b border-slate-800">
                 // SECURE FORENSIC AUDIT RECORD • HASH VERIFIED
               </div>
               {dispute.evidence}
@@ -284,18 +303,18 @@ export default function DisputeDetailPage() {
           </div>
 
           {/* Audit History & Investigation Timeline */}
-          <div className="bg-white p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-              <History className="w-4 h-4 text-slate-500" />
+          <div className="bg-white p-4 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+            <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <History className="w-3.5 h-3.5 text-slate-500" />
               <span>Audit Trail & Case History</span>
             </h3>
 
-            <div className="space-y-3 divide-y divide-slate-100">
+            <div className="space-y-2.5 divide-y divide-slate-100">
               {timeline.map((item, idx) => (
-                <div key={idx} className="pt-3 first:pt-0 space-y-1">
+                <div key={idx} className="pt-2.5 first:pt-0 space-y-0.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-extrabold text-slate-900">{item.action}</span>
-                    <span className="text-[11px] text-slate-400 font-medium">{item.time}</span>
+                    <span className="text-[10px] text-slate-400 font-medium">{item.time}</span>
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
                   <p className="text-[10px] text-slate-400 font-semibold">Actor: {item.actor}</p>
@@ -303,20 +322,20 @@ export default function DisputeDetailPage() {
               ))}
             </div>
 
-            {/* Add investigation note */}
-            <form onSubmit={handleAddNote} className="pt-3 border-t border-slate-100 flex gap-2">
+            {/* Add investigation note — Fixed wrap on mobile */}
+            <form onSubmit={handleAddNote} className="pt-2.5 border-t border-slate-100 flex items-center gap-2">
               <input
                 type="text"
-                placeholder="Add investigation note or finding..."
+                placeholder="Add investigation note..."
                 value={internalNote}
                 onChange={(e) => setInternalNote(e.target.value)}
-                className="flex-1 px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-orange-500"
+                className="flex-1 min-w-0 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-orange-500 placeholder:text-slate-400"
               />
               <button
                 type="submit"
-                className="px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                className="whitespace-nowrap shrink-0 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Send className="w-3 h-3" />
+                <Send className="w-3 h-3 shrink-0" />
                 <span>Add Note</span>
               </button>
             </form>
@@ -324,60 +343,60 @@ export default function DisputeDetailPage() {
         </div>
 
         {/* Right Column (1 Col): Ruling Actions & Workflow Stage */}
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Ruling Actions */}
-          <div className="bg-white p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+          <div className="bg-white p-4 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
             <div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+              <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-800">
                 Arbitration Ruling
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[10px] text-slate-500 mt-0.5">
                 Issue a legally binding settlement decision.
               </p>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={handleApproveRefund}
-                className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Approve Refund ({dispute.amount})</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleDismissDispute}
-                className="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
                 <span>Dismiss Dispute</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleEscalateMediation}
-                className="w-full py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Scale className="w-4 h-4" />
+                <Scale className="w-3.5 h-3.5" />
                 <span>Escalate to Mediation</span>
               </button>
             </div>
           </div>
 
           {/* Workflow Stage Advancement */}
-          <div className="bg-white p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3.5">
+          <div className="bg-white p-4 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-2.5">
             <div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+              <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-800">
                 Workflow Stage
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[10px] text-slate-500 mt-0.5">
                 Current: <span className="font-bold text-slate-700">{currentStageObj?.label}</span>
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-1.5">
               {STAGES.map((stg) => {
                 const isActive = dispute.status === stg.id;
                 return (
@@ -385,7 +404,7 @@ export default function DisputeDetailPage() {
                     key={stg.id}
                     type="button"
                     onClick={() => handleUpdateStage(stg.id)}
-                    className={`p-2.5 rounded-xl text-xs font-bold text-center transition-all cursor-pointer ${
+                    className={`py-2 px-2 rounded-xl text-[11px] font-bold text-center transition-all cursor-pointer ${
                       isActive
                         ? "bg-slate-900 text-white shadow-xs"
                         : "bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-100"
@@ -399,31 +418,31 @@ export default function DisputeDetailPage() {
           </div>
 
           {/* Financial & Security Overview */}
-          <div className="bg-white p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+          <div className="bg-white p-4 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-2.5">
+            <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-800">
               Escrow & Security State
             </h3>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-orange-600" /> Escrow Status
+                <span className="text-slate-500 font-medium flex items-center gap-1.5 text-[11px]">
+                  <Lock className="w-3 h-3 text-orange-600" /> Escrow Status
                 </span>
-                <span className="font-bold text-slate-900">Held in Escrow</span>
+                <span className="font-bold text-slate-900 text-[11px]">Held in Escrow</span>
               </div>
 
               <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> Dispute Value
+                <span className="text-slate-500 font-medium flex items-center gap-1.5 text-[11px]">
+                  <DollarSign className="w-3 h-3 text-emerald-600" /> Dispute Value
                 </span>
-                <span className="font-black text-orange-600">{dispute.amount}</span>
+                <span className="font-black text-orange-600 text-xs">{dispute.amount}</span>
               </div>
 
               <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-blue-600" /> Category
+                <span className="text-slate-500 font-medium flex items-center gap-1.5 text-[11px]">
+                  <Calendar className="w-3 h-3 text-blue-600" /> Category
                 </span>
-                <span className="font-bold text-slate-700">{dispute.category || "General"}</span>
+                <span className="font-bold text-slate-700 text-[11px]">{dispute.category || "General"}</span>
               </div>
             </div>
           </div>

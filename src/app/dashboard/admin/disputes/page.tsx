@@ -9,7 +9,8 @@ import {
   MoreHorizontal,
   User,
   Gavel,
-  ArrowRight
+  ArrowRight,
+  AlertTriangle
 } from "lucide-react";
 import { INITIAL_DISPUTES, STAGES, Dispute } from "./data";
 
@@ -94,7 +95,7 @@ export default function DisputesPage() {
               <Link
                 key={item.id}
                 href={`/dashboard/admin/disputes/${item.id}`}
-                className="p-4 space-y-2 hover:bg-slate-50/60 transition-colors block cursor-pointer group"
+                className="p-3.5 sm:p-4 space-y-1.5 sm:space-y-2 hover:bg-slate-50/60 transition-colors block cursor-pointer group"
               >
                 <div className="flex items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wider">
                   <div className="flex items-center gap-1.5">
@@ -110,12 +111,18 @@ export default function DisputesPage() {
                       {item.priority}
                     </span>
                     <span className="text-slate-300">•</span>
-                    <span className="text-slate-400 font-mono">{item.id}</span>
+                    <span className="text-slate-400 font-mono text-[10px]">{item.id}</span>
+                    {item.redFlags && item.redFlags.length > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
+                        <AlertTriangle className="w-2.5 h-2.5" />
+                        <span>{item.redFlags.length} Flags</span>
+                      </span>
+                    )}
                   </div>
-                  <span className="text-slate-500 font-bold">{stageObj?.label}</span>
+                  <span className="text-slate-500 font-bold text-[10px] sm:text-xs">{stageObj?.label}</span>
                 </div>
 
-                <h4 className="font-extrabold text-slate-900 text-sm group-hover:text-orange-600 transition-colors">
+                <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-orange-600 transition-colors leading-snug">
                   {item.subject}
                 </h4>
 
@@ -130,10 +137,10 @@ export default function DisputesPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                  <span className="flex items-center gap-1 text-slate-400 font-medium">
+                  <span className="flex items-center gap-1 text-slate-400 font-medium text-[11px]">
                     <Clock className="w-3 h-3" /> {item.date}
                   </span>
-                  <span className="font-bold text-orange-600 inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                  <span className="font-bold text-orange-600 inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform text-xs">
                     <span>Review Case</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
@@ -174,17 +181,25 @@ export default function DisputesPage() {
                     className="bg-white p-4 rounded-2xl shadow-2xs border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition-all cursor-pointer group block"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <span
-                        className={`text-[10px] font-black uppercase tracking-wider ${
-                          item.priority === "CRITICAL"
-                            ? "text-red-600"
-                            : item.priority === "HIGH"
-                            ? "text-orange-600"
-                            : "text-blue-600"
-                        }`}
-                      >
-                        {item.priority} PRIORITY
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span
+                          className={`text-[10px] font-black uppercase tracking-wider ${
+                            item.priority === "CRITICAL"
+                              ? "text-red-600"
+                              : item.priority === "HIGH"
+                              ? "text-orange-600"
+                              : "text-blue-600"
+                          }`}
+                        >
+                          {item.priority}
+                        </span>
+                        {item.redFlags && item.redFlags.length > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
+                            <AlertTriangle className="w-2.5 h-2.5" />
+                            <span>{item.redFlags.length} Flags</span>
+                          </span>
+                        )}
+                      </div>
                       <span className="text-slate-400 group-hover:text-slate-600 p-0.5 rounded">
                         <MoreHorizontal className="w-4 h-4" />
                       </span>
