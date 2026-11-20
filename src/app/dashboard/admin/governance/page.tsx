@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings,
   Ticket,
@@ -37,6 +38,12 @@ export default function GovernancePage() {
   const [activeTab, setActiveTab] = useState("parameters");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   const [templates, setTemplates] = useState<TicketTemplate[]>([
     { name: "Standard Day Pass", access: "General", priceRange: "£0 - £50", status: "Active" },
@@ -98,10 +105,35 @@ export default function GovernancePage() {
   };
 
   return (
-    <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto relative">
+      {/* Toast Notification — Smooth Slide-in with framer-motion */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            className="fixed top-20 sm:top-24 right-4 sm:right-6 z-[9999] bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-xl border border-white/10 flex items-center gap-2.5 max-w-xs sm:max-w-sm pointer-events-auto"
+          >
+            <div className="w-5 h-5 rounded-lg bg-orange-600 flex items-center justify-center shrink-0 text-white">
+              <CheckCircle2 className="w-3 h-3" />
+            </div>
+            <p className="text-[11px] sm:text-xs font-semibold flex-1 leading-tight">{toastMessage}</p>
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
             Platform Governance
           </h1>
@@ -111,10 +143,11 @@ export default function GovernancePage() {
         </div>
         <button
           type="button"
-          className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm hover:bg-orange-700 shadow-md transition-all w-fit shrink-0"
+          onClick={() => showToast("Governance parameters saved successfully")}
+          className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 shadow-xs transition-all shrink-0 cursor-pointer"
         >
-          <Save className="w-4 h-4" />
-          <span>Save Global Changes</span>
+          <Save className="w-3.5 h-3.5" />
+          <span>Save</span>
         </button>
       </div>
 

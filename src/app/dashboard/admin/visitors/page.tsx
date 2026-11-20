@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   MoreVertical,
@@ -174,22 +175,30 @@ export default function AdminVisitorsPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 relative">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 sm:top-24 right-4 sm:right-8 z-[9999] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
-          <div className="w-7 h-7 rounded-xl bg-orange-600 flex items-center justify-center shrink-0 text-white">
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-          <p className="text-xs font-bold flex-1">{toastMessage}</p>
-          <button
-            type="button"
-            onClick={() => setToastMessage(null)}
-            className="text-slate-400 hover:text-white cursor-pointer"
+      {/* Toast Notification — Smooth Slide-in with framer-motion */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            className="fixed top-20 sm:top-24 right-4 sm:right-6 z-[9999] bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-xl border border-white/10 flex items-center gap-2.5 max-w-xs sm:max-w-sm pointer-events-auto"
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+            <div className="w-5 h-5 rounded-lg bg-orange-600 flex items-center justify-center shrink-0 text-white">
+              <CheckCircle2 className="w-3 h-3" />
+            </div>
+            <p className="text-[11px] sm:text-xs font-semibold flex-1 leading-tight">{toastMessage}</p>
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Compact Header */}
       <div>
@@ -566,10 +575,7 @@ export default function AdminVisitorsPage() {
             </button>
             <button
               type="button"
-              onClick={() => {
-                setCurrentPage((p) => Math.min(429, p + 1));
-                showToast(`Loaded page ${currentPage + 1} of attendees`);
-              }}
+              onClick={() => setCurrentPage((p) => Math.min(429, p + 1))}
               className="flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors cursor-pointer"
             >
               Next <ChevronRight className="w-3.5 h-3.5" />
