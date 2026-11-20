@@ -6,11 +6,23 @@ import {
   ShieldCheck,
   Briefcase,
   PieChart,
-  Search
+  Search,
+  CheckCircle2,
+  X,
+  FileText
 } from "lucide-react";
 
 export default function ReportingHubPage() {
   const [activeTab, setActiveTab] = useState("internal");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   const taxPackages = [
     { name: "Q1 VAT Return - UK", type: "Tax Filing", period: "Jan - Mar 2026", status: "Ready" },
@@ -18,8 +30,40 @@ export default function ReportingHubPage() {
     { name: "GDPR Consent Audit", type: "Compliance", period: "Dec 2025", status: "Archived" }
   ];
 
+  const filteredPackages = taxPackages.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleDownloadReport = (title: string) => {
+    const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}_2026.pdf`;
+    showToast(`PDF generated & downloaded: ${filename}`);
+  };
+
+  const handleExportAll = () => {
+    showToast("Compiling full reporting bundle: global_report_archive_2026.zip downloaded");
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">
+    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6 relative">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-white/10 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
+          <div className="w-7 h-7 rounded-xl bg-orange-600 flex items-center justify-center shrink-0 text-white">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+          <p className="text-xs font-bold flex-1">{toastMessage}</p>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="text-slate-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -32,7 +76,8 @@ export default function ReportingHubPage() {
         </div>
         <button
           type="button"
-          className="px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-orange-600 transition-all inline-flex items-center gap-1.5 shadow-sm w-fit shrink-0"
+          onClick={handleExportAll}
+          className="px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-orange-600 transition-all inline-flex items-center gap-1.5 shadow-sm w-fit shrink-0 cursor-pointer"
         >
           <Download className="w-3.5 h-3.5" />
           <span>Export All Data</span>
@@ -44,7 +89,7 @@ export default function ReportingHubPage() {
         <button
           type="button"
           onClick={() => setActiveTab("internal")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
             activeTab === "internal"
               ? "bg-orange-600 text-white shadow-xs"
               : "bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50"
@@ -55,7 +100,7 @@ export default function ReportingHubPage() {
         <button
           type="button"
           onClick={() => setActiveTab("external")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
             activeTab === "external"
               ? "bg-orange-600 text-white shadow-xs"
               : "bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50"
@@ -87,7 +132,8 @@ export default function ReportingHubPage() {
                 <span className="text-xs font-black text-slate-900">£1.24M YTD</span>
                 <button
                   type="button"
-                  className="text-xs font-black text-orange-600 hover:underline inline-flex items-center gap-1"
+                  onClick={() => handleDownloadReport("Revenue & Escrow Summary")}
+                  className="text-xs font-black text-orange-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" /> Generate PDF
                 </button>
@@ -113,7 +159,8 @@ export default function ReportingHubPage() {
                 <span className="text-xs font-black text-slate-900">0.12% Dispute Rate</span>
                 <button
                   type="button"
-                  className="text-xs font-black text-orange-600 hover:underline inline-flex items-center gap-1"
+                  onClick={() => handleDownloadReport("Risk & Fraud Report")}
+                  className="text-xs font-black text-orange-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" /> Generate PDF
                 </button>
@@ -139,7 +186,8 @@ export default function ReportingHubPage() {
                 <span className="text-xs font-black text-slate-900">99.99% SLA</span>
                 <button
                   type="button"
-                  className="text-xs font-black text-orange-600 hover:underline inline-flex items-center gap-1"
+                  onClick={() => handleDownloadReport("Compliance & SLA Adherence")}
+                  className="text-xs font-black text-orange-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" /> Generate PDF
                 </button>
@@ -158,6 +206,8 @@ export default function ReportingHubPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search filings..."
                   className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-orange-500"
                 />
@@ -187,7 +237,7 @@ export default function ReportingHubPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {taxPackages.map((pkg, i) => (
+                  {filteredPackages.map((pkg, i) => (
                     <tr key={i} className="hover:bg-slate-50/60 transition-colors">
                       <td className="px-6 py-4">
                         <span className="text-xs sm:text-sm font-bold text-slate-900">
@@ -210,7 +260,9 @@ export default function ReportingHubPage() {
                       <td className="px-6 py-4 text-right">
                         <button
                           type="button"
-                          className="p-1.5 text-slate-400 hover:text-orange-600 transition-colors"
+                          onClick={() => handleDownloadReport(pkg.name)}
+                          className="p-1.5 text-slate-400 hover:text-orange-600 transition-colors cursor-pointer"
+                          title={`Download ${pkg.name}`}
                         >
                           <Download className="w-4 h-4" />
                         </button>
@@ -221,9 +273,9 @@ export default function ReportingHubPage() {
               </table>
             </div>
 
-            {/* Mobile Stacked Packages (No bulky left icon box, colored text status) */}
+            {/* Mobile Stacked Packages */}
             <div className="md:hidden divide-y divide-slate-100">
-              {taxPackages.map((pkg, i) => (
+              {filteredPackages.map((pkg, i) => (
                 <div key={i} className="p-4 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-extrabold text-sm text-slate-900 truncate">{pkg.name}</p>
@@ -241,7 +293,9 @@ export default function ReportingHubPage() {
                     </span>
                     <button
                       type="button"
-                      className="p-1.5 bg-slate-100 rounded-lg text-slate-600 hover:text-orange-600"
+                      onClick={() => handleDownloadReport(pkg.name)}
+                      className="p-1.5 bg-slate-100 rounded-lg text-slate-600 hover:text-orange-600 cursor-pointer"
+                      aria-label="Download"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>

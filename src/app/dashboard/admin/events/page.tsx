@@ -378,40 +378,21 @@ export default function AdminEventsPage() {
           maxWidth="md"
         >
           <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  confirmAction.type === "delete"
-                    ? "bg-red-50 text-red-600"
-                    : confirmAction.type === "publish"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "bg-amber-50 text-amber-600"
-                }`}
-              >
-                {confirmAction.type === "delete" ? (
-                  <AlertTriangle className="w-5 h-5" />
-                ) : confirmAction.type === "publish" ? (
-                  <CheckCircle2 className="w-5 h-5" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5" />
-                )}
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-slate-900">
-                  {confirmAction.type === "delete"
-                    ? `Are you sure you want to delete "${confirmAction.event.title}"?`
-                    : confirmAction.type === "publish"
-                    ? `Publish "${confirmAction.event.title}" to public directory?`
-                    : `Unpublish "${confirmAction.event.title}"?`}
-                </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  {confirmAction.type === "delete"
-                    ? "This action cannot be undone. All registrations and directory listings associated with this event will be permanently removed."
-                    : confirmAction.type === "publish"
-                    ? "This event will immediately appear in the public events directory and calendar for attendees to view and book passes."
-                    : "This event will be moved to Draft status and hidden from public visitors. Existing ticket holders will retain their booking records."}
-                </p>
-              </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-900">
+                {confirmAction.type === "delete"
+                  ? `Are you sure you want to delete "${confirmAction.event.title}"?`
+                  : confirmAction.type === "publish"
+                  ? `Publish "${confirmAction.event.title}" to public directory?`
+                  : `Unpublish "${confirmAction.event.title}"?`}
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {confirmAction.type === "delete"
+                  ? "This action cannot be undone. All registrations and directory listings associated with this event will be permanently removed."
+                  : confirmAction.type === "publish"
+                  ? "This event will immediately appear in the public events directory and calendar for attendees to view and book passes."
+                  : "This event will be moved to Draft status and hidden from public visitors. Existing ticket holders will retain their booking records."}
+              </p>
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
@@ -446,10 +427,10 @@ export default function AdminEventsPage() {
                 }`}
               >
                 {confirmAction.type === "delete"
-                  ? "Yes, Delete Event"
+                  ? "Delete"
                   : confirmAction.type === "publish"
-                  ? "Yes, Publish Event"
-                  : "Yes, Unpublish"}
+                  ? "Publish"
+                  : "Unpublish"}
               </button>
             </div>
           </div>
