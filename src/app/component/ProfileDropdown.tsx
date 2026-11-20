@@ -37,10 +37,8 @@ export default function ProfileDropdown({ user, compact = false }: ProfileDropdo
   const handleLogout = () => {
     setProfileOpen(false);
     clearStoredUser();
-    router.push("/");
-    if (typeof window !== "undefined") {
-      window.location.reload();
-    }
+    const targetRole = user.role === "business" ? "business" : user.role === "admin" ? "admin" : "customer";
+    router.push(`/login?role=${targetRole}`);
   };
 
   const role = user.role || "customer";

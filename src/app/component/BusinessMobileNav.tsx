@@ -190,7 +190,7 @@ export default function BusinessMobileNav() {
                 onClick={() => {
                   setDrawerOpen(false);
                   clearStoredUser();
-                  router.push("/");
+                  router.push("/login?role=business");
                 }}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition-colors cursor-pointer"
               >

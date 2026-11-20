@@ -83,42 +83,49 @@ export default function FinancialHubPage() {
           <div className="space-y-5 sm:space-y-6">
             {/* Revenue KPI Strip (Horizontal Scroll on Mobile with Peeping Card + Dot Slider) */}
             <div>
-              <div className="flex md:grid md:grid-cols-3 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
-                <div className="w-[46%] min-w-[156px] sm:w-[210px] md:w-auto shrink-0 snap-start bg-slate-900 rounded-2xl p-3.5 sm:p-5 text-white relative overflow-hidden shadow-md">
+              <div className="flex md:grid md:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+                <div className="w-[68vw] min-w-[210px] max-w-[260px] md:w-auto shrink-0 snap-start bg-slate-900 rounded-2xl p-4 sm:p-5 text-white relative overflow-hidden shadow-md flex flex-col justify-between">
                   <div className="relative z-10">
-                    <div className="flex items-center justify-between gap-1.5 mb-1">
-                      <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider truncate">
+                    <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                      <p className="text-[11px] font-bold uppercase text-slate-400 tracking-wider">
                         Total Gross Volume
                       </p>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <ArrowUpRight className="w-4 h-4 text-emerald-400 shrink-0" />
                     </div>
-                    <h3 className="text-base sm:text-xl font-extrabold leading-none">£4.85M</h3>
-                    <p className="mt-1.5 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                      +18.2% vs last month
-                    </p>
+                    <h3 className="text-xl sm:text-2xl font-black leading-none">£4.85M</h3>
                   </div>
+                  <p className="mt-2 text-emerald-400 text-xs font-semibold whitespace-nowrap flex items-center gap-1">
+                    <span>+18.2%</span>
+                    <span className="text-slate-400 font-normal">vs last month</span>
+                  </p>
                 </div>
-                <div className="w-[46%] min-w-[156px] sm:w-[210px] md:w-auto shrink-0 snap-start bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-2xs">
-                  <div className="flex items-center justify-between gap-1.5 mb-1">
-                    <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider truncate">
-                      Commission Revenue
-                    </p>
-                    <TrendingUp className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+
+                <div className="w-[68vw] min-w-[210px] max-w-[260px] md:w-auto shrink-0 snap-start bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                      <p className="text-[11px] font-bold uppercase text-slate-400 tracking-wider">
+                        Commission Revenue
+                      </p>
+                      <TrendingUp className="w-4 h-4 text-emerald-600 shrink-0" />
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-none">£482,400</h3>
                   </div>
-                  <h3 className="text-base sm:text-xl font-extrabold text-slate-900 leading-none">£482,400</h3>
-                  <p className="mt-1.5 text-emerald-600 text-[10px] font-bold uppercase tracking-wider">
+                  <p className="mt-2 text-emerald-600 text-xs font-semibold whitespace-nowrap">
                     10% Avg Commission
                   </p>
                 </div>
-                <div className="w-[46%] min-w-[156px] sm:w-[210px] md:w-auto shrink-0 snap-start bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-2xs">
-                  <div className="flex items-center justify-between gap-1.5 mb-1">
-                    <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider truncate">
-                      Funds in Escrow
-                    </p>
-                    <Lock className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+
+                <div className="w-[68vw] min-w-[210px] max-w-[260px] md:w-auto shrink-0 snap-start bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                      <p className="text-[11px] font-bold uppercase text-slate-400 tracking-wider">
+                        Funds in Escrow
+                      </p>
+                      <Lock className="w-4 h-4 text-orange-600 shrink-0" />
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-orange-600 leading-none">£1.12M</h3>
                   </div>
-                  <h3 className="text-base sm:text-xl font-extrabold text-orange-600 leading-none">£1.12M</h3>
-                  <p className="mt-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                  <p className="mt-2 text-slate-400 text-xs font-semibold whitespace-nowrap">
                     Held for Settlement
                   </p>
                 </div>

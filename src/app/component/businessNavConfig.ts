@@ -7,14 +7,12 @@ import {
   Ticket,
   ShieldCheck,
   QrCode,
-  Gift,
   Wallet,
   BarChart3,
   MessageSquare,
   LifeBuoy,
   Settings,
-  Truck,
-  PlusCircle
+  Truck
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -51,19 +49,17 @@ export const BUSINESS_NAV_GROUPS: BusinessNavGroup[] = [
     label: "Events & Ticketing",
     icon: Calendar,
     items: [
-      { label: "My Events", href: "/dashboard/business/events", icon: Calendar, exact: true },
-      { label: "Create Event", href: "/dashboard/business/events/create", icon: PlusCircle },
+      { label: "My Events", href: "/dashboard/business/events", icon: Calendar },
       { label: "Ticket Templates", href: "/dashboard/business/events/tickets", icon: Ticket },
       { label: "Ticket Verification", href: "/dashboard/business/verification", icon: ShieldCheck }
     ]
   },
   {
     id: "sales-revenue",
-    label: "Sales, Rewards & Revenue",
+    label: "Sales & Revenue",
     icon: Wallet,
     items: [
       { label: "Sales Links & QR", href: "/dashboard/business/sales/links", icon: QrCode },
-      { label: "MCOM Rewards & Bulk", href: "/dashboard/business/rewards", icon: Gift },
       { label: "Revenue & Payouts", href: "/dashboard/business/revenue", icon: Wallet },
       { label: "Analytics", href: "/dashboard/business/analytics", icon: BarChart3 }
     ]
@@ -88,6 +84,13 @@ export const BUSINESS_MOBILE_PRIMARY_TABS: BusinessNavItem[] = [
 ];
 
 export function isBusinessRouteActive(pathname: string, item: BusinessNavItem): boolean {
+  if (item.href === "/dashboard/business/events") {
+    // Keep "My Events" active when on the events list or inside the event creation wizard
+    return (
+      pathname === "/dashboard/business/events" ||
+      pathname.startsWith("/dashboard/business/events/create")
+    );
+  }
   if (item.exact || item.href === "/dashboard/business") {
     return pathname === item.href;
   }

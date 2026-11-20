@@ -13,6 +13,7 @@ import {
   CUSTOMER_NAV_GROUPS,
   isCustomerRouteActive
 } from "./customerNavConfig";
+import { clearStoredUser } from "@/lib/auth";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -46,7 +47,8 @@ export default function CustomerSidebar({ isOpen, setIsOpen }: SidebarProps) {
   };
 
   const handleLogout = () => {
-    router.push("/");
+    clearStoredUser();
+    router.push("/login?role=customer");
   };
 
   return (

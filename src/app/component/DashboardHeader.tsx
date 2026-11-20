@@ -25,7 +25,13 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
     const handleLogout = () => {
         setProfileOpen(false);
         clearStoredUser();
-        router.push("/");
+        if (dashboardType === "business") {
+            router.push("/login?role=business");
+        } else if (dashboardType === "admin") {
+            router.push("/login?role=admin");
+        } else {
+            router.push("/login?role=customer");
+        }
     };
 
     const getProfileLink = () => {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -24,9 +24,11 @@ import {
   Headphones,
   ChevronDown,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  LogOut
 } from "lucide-react";
 import { ADMIN_NAV_GROUPS } from "./adminNavConfig";
+import { clearStoredUser } from "@/lib/auth";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -56,6 +58,12 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    clearStoredUser();
+    router.push("/login?role=admin");
+  };
 
   // Find initial active group ID based on current pathname
   const getActiveGroupId = (currentPath: string) => {
@@ -246,8 +254,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* Footer User Badge */}
-      <div className="p-3.5 w-full border-t border-orange-500/80 bg-orange-700/20 shrink-0">
+      {/* Footer User Badge & Logout */}
+      <div className="p-3 w-full border-t border-orange-500/80 bg-orange-700/20 shrink-0 space-y-2">
         <div className="flex items-center gap-2.5 px-1.5">
           <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-900 font-black text-xs shrink-0 shadow-sm">
             SA
@@ -263,6 +271,17 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className={`w-full flex items-center ${
+            isOpen ? "gap-2.5 px-3" : "justify-center"
+          } py-2 rounded-xl text-orange-100 hover:bg-red-500/30 hover:text-white transition-all cursor-pointer`}
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          {isOpen && <span className="font-bold text-xs">Logout</span>}
+        </button>
       </div>
 
       <style jsx>{`

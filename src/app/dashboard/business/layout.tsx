@@ -30,7 +30,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
           dashboardType="business"
         />
 
-        <div className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">{children}</div>
+        <div className="px-2.5 py-3 sm:p-6 lg:p-8 pb-24 lg:pb-8">{children}</div>
       </main>
 
       {/* Mobile Persistent Bottom Nav + Slide-Up Drawer */}

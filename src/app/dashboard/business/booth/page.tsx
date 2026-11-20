@@ -3,21 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShieldCheck, RefreshCw, ExternalLink, Save, Check } from "lucide-react";
+import { ShieldCheck, RefreshCw, ExternalLink, Lock } from "lucide-react";
 
 export default function MyBoothPage() {
   const [activeTab, setActiveTab] = useState("branding");
   const [syncing, setSyncing] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const handleChsSync = () => {
     setSyncing(true);
     setTimeout(() => setSyncing(false), 700);
-  };
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
@@ -146,35 +140,63 @@ export default function MyBoothPage() {
 
         {(activeTab === "information" || activeTab === "contact") && (
           <div className="w-full bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-tight">
+                    {activeTab === "information" ? "Verified Storefront Details" : "Verified Booth Contact"}
+                  </h3>
+                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 flex items-center gap-1">
+                    <Lock className="w-2.5 h-2.5" /> Read-Only
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Information automatically synchronized from your verified business and booth registration profile.
+                </p>
+              </div>
+            </div>
+
             {activeTab === "information" && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    Booth Display Name
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      Booth Display Name
+                    </label>
+                    <span className="text-[9px] font-semibold text-slate-400">Synced</span>
+                  </div>
                   <input
                     type="text"
+                    readOnly
                     defaultValue="Acme Corporation"
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs sm:text-sm font-bold text-slate-900"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 cursor-not-allowed select-text outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    Short Booth Tagline
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      Short Booth Tagline
+                    </label>
+                    <span className="text-[9px] font-semibold text-slate-400">Synced</span>
+                  </div>
                   <input
                     type="text"
+                    readOnly
                     defaultValue="Enterprise cloud infrastructure and automated B2B supply chain solutions."
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs sm:text-sm font-medium text-slate-800"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 cursor-not-allowed select-text outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    Full Exhibitor Description
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      Full Exhibitor Description
+                    </label>
+                    <span className="text-[9px] font-semibold text-slate-400">Synced</span>
+                  </div>
                   <textarea
+                    readOnly
                     defaultValue="Acme Corporation provides zero-downtime enterprise cloud deployment and global fulfillment nodes integrated directly with MCOM Mall."
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none h-24 text-xs sm:text-sm font-medium text-slate-700 resize-none"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 h-24 text-xs sm:text-sm font-medium text-slate-700 resize-none cursor-not-allowed select-text outline-none"
                   />
                 </div>
               </div>
@@ -184,61 +206,73 @@ export default function MyBoothPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      Booth Representative Name
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Booth Representative Name
+                      </label>
+                      <span className="text-[9px] font-semibold text-slate-400">Verified</span>
+                    </div>
                     <input
                       type="text"
+                      readOnly
                       defaultValue="Jane Smith"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs sm:text-sm font-bold"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 cursor-not-allowed select-text outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      Role / Title
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Role / Title
+                      </label>
+                      <span className="text-[9px] font-semibold text-slate-400">Verified</span>
+                    </div>
                     <input
                       type="text"
+                      readOnly
                       defaultValue="Head of Enterprise Partnerships"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs sm:text-sm font-bold"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 cursor-not-allowed select-text outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      Public Booth Email
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Public Booth Email
+                      </label>
+                      <span className="text-[9px] font-semibold text-slate-400">Verified</span>
+                    </div>
                     <input
                       type="email"
+                      readOnly
                       defaultValue="sales@acmecorp.com"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs sm:text-sm font-medium"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 cursor-not-allowed select-text outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      Direct Phone / WhatsApp
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Direct Phone / WhatsApp
+                      </label>
+                      <span className="text-[9px] font-semibold text-slate-400">Verified</span>
+                    </div>
                     <input
                       type="text"
+                      readOnly
                       defaultValue="+44 20 7946 0921"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs sm:text-sm font-medium"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 cursor-not-allowed select-text outline-none"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-              <button
-                type="button"
-                onClick={handleSave}
-                className="bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-orange-700 shadow-xs transition-all inline-flex items-center gap-1.5"
-              >
-                {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                <span>{saved ? "Saved!" : "Save Details"}</span>
-              </button>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200/80">
+              <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>
+                These booth profile details are pulled automatically from your verified business profile and cannot be edited directly in this view.
+              </span>
             </div>
           </div>
         )}

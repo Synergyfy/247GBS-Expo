@@ -21,7 +21,9 @@ import {
     MapPin,
     Video,
     Clock,
-    Info
+    Info,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
 import Tooltip from "@/app/component/Tooltip";
 
@@ -76,6 +78,7 @@ export default function CreateEventPage() {
     const [step, setStep] = useState(1);
     const [title, setTitle] = useState("");
     const [format, setFormat] = useState<"virtual" | "physical" | "hybrid">("virtual");
+    const [isFormatOpen, setIsFormatOpen] = useState(true);
     const [eventDate, setEventDate] = useState("2026-04-18");
     const [startTime, setStartTime] = useState("10:00");
     const [endTime, setEndTime] = useState("12:00");
@@ -146,16 +149,16 @@ export default function CreateEventPage() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto space-y-5 pb-12">
+        <div className="max-w-3xl mx-auto space-y-2.5 sm:space-y-4 pb-10">
             {/* Compact Header */}
-            <div className="pb-3 border-b border-slate-200/80">
+            <div className="pb-2 sm:pb-2.5 border-b border-slate-200/80">
                 <Link
                     href="/dashboard/business/events"
-                    className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-orange-600 uppercase tracking-wider mb-1 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-orange-600 uppercase tracking-wider mb-0.5 transition-colors"
                 >
-                    <ArrowLeft className="w-3.5 h-3.5" /> Back to My Events
+                    <ArrowLeft className="w-3 h-3" /> Back to My Events
                 </Link>
-                <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+                <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase leading-snug">
                     Create Event
                 </h1>
                 <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
@@ -163,11 +166,11 @@ export default function CreateEventPage() {
                 </p>
             </div>
 
-            {/* Elegant Numbered Timeline Stepper (No Text Truncation) */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 shadow-2xs">
+            {/* Streamlined Timeline Stepper */}
+            <div className="bg-white border border-slate-200/80 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 shadow-2xs">
                 <div className="flex items-center justify-between relative max-w-lg mx-auto">
                     {/* Timeline Connector Track & Fill (Contained within track bounds) */}
-                    <div className="absolute left-4 right-4 top-4 -translate-y-1/2 h-0.5 bg-slate-200 z-0 overflow-hidden">
+                    <div className="absolute left-4 right-4 top-3.5 sm:top-4 -translate-y-1/2 h-0.5 bg-slate-200 z-0 overflow-hidden">
                         <div
                             className="h-full bg-orange-600 transition-all duration-300"
                             style={{ width: `${((step - 1) / 3) * 100}%` }}
@@ -191,18 +194,18 @@ export default function CreateEventPage() {
                                 className="relative z-10 flex flex-col items-center group cursor-pointer"
                             >
                                 <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-[11px] sm:text-xs transition-all ${
                                         isCurrent
-                                            ? "bg-orange-600 text-white ring-4 ring-orange-100 shadow-sm"
+                                            ? "bg-orange-600 text-white ring-3 ring-orange-100 shadow-sm"
                                             : isCompleted
                                             ? "bg-orange-600 text-white shadow-2xs"
                                             : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                                     }`}
                                 >
-                                    {isCompleted ? <Check className="w-4 h-4 stroke-[2.5]" /> : s.num}
+                                    {isCompleted ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" /> : s.num}
                                 </div>
                                 <span
-                                    className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mt-1.5 transition-colors hidden sm:block ${
+                                    className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mt-1 transition-colors hidden sm:block ${
                                         isCurrent
                                             ? "text-orange-600 font-extrabold"
                                             : isCompleted
@@ -216,23 +219,10 @@ export default function CreateEventPage() {
                         );
                     })}
                 </div>
-
-                {/* Mobile Active Step Indicator Banner (Zero truncation) */}
-                <div className="sm:hidden mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                        Step {step} of 4
-                    </span>
-                    <span className="font-extrabold text-orange-600 uppercase tracking-tight text-xs">
-                        {step === 1 && "1. Event Schedule & Scope"}
-                        {step === 2 && "2. Co-Hosts & Partners"}
-                        {step === 3 && "3. Ticket Pricing & Templates"}
-                        {step === 4 && "4. Review & Confirmation"}
-                    </span>
-                </div>
             </div>
 
             {submitted ? (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center space-y-2">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 text-center space-y-2">
                     <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
                     <h2 className="text-sm font-extrabold text-slate-900 uppercase">
                         Event Submitted to Admin Approval Queue
@@ -243,10 +233,10 @@ export default function CreateEventPage() {
                     </p>
                 </div>
             ) : (
-                <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
+                <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-3.5 sm:p-5 space-y-3.5 sm:space-y-4">
                     {step === 1 && (
-                        <div className="space-y-4">
-                            <div className="pb-3 border-b border-slate-100">
+                        <div className="space-y-3.5 sm:space-y-4">
+                            <div className="pb-2 sm:pb-2.5 border-b border-slate-100">
                                 <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                                     <Calendar className="w-4 h-4 text-orange-600" /> Event Schedule & Format
                                 </h2>
@@ -255,69 +245,97 @@ export default function CreateEventPage() {
                                 </p>
                             </div>
 
-                            {/* Event Format Selection */}
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                                    <span>Attendance Format</span>
-                                    <Tooltip content="Choose virtual stream, in-person venue, or hybrid format.">
-                                        <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
-                                    </Tooltip>
-                                </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                                    {[
-                                        {
-                                            id: "virtual" as const,
-                                            label: "Virtual Event",
-                                            sub: "Google Meet / Livestream",
-                                            icon: Video,
-                                        },
-                                        {
-                                            id: "physical" as const,
-                                            label: "Physical Venue",
-                                            sub: "In-Person Stage or Booth",
-                                            icon: MapPin,
-                                        },
-                                        {
-                                            id: "hybrid" as const,
-                                            label: "Hybrid Event",
-                                            sub: "Venue + Online Stream",
-                                            icon: Globe,
-                                        },
-                                    ].map((f) => {
-                                        const isSelected = format === f.id;
-                                        const Icon = f.icon;
-                                        return (
-                                            <button
-                                                key={f.id}
-                                                type="button"
-                                                onClick={() => setFormat(f.id)}
-                                                className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center sm:flex-col sm:items-start gap-2.5 ${
-                                                    isSelected
-                                                        ? "border-orange-500 bg-orange-50/50 shadow-2xs"
-                                                        : "border-slate-200 hover:border-slate-300 bg-white"
-                                                }`}
-                                            >
-                                                <div
-                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                            {/* Attendance Format Selection (Flat on form surface, zero double container) */}
+                            <div className="space-y-2">
+                                <div
+                                    onClick={() => setIsFormatOpen(!isFormatOpen)}
+                                    className="flex items-center justify-between cursor-pointer select-none group"
+                                >
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                            Attendance Format
+                                        </span>
+                                        <Tooltip content="Choose virtual stream, in-person venue, or hybrid format.">
+                                            <Info className="w-3 h-3 text-slate-400 group-hover:text-slate-600 shrink-0" />
+                                        </Tooltip>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {!isFormatOpen && (
+                                            <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-200/80 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                {format === "virtual" && "Virtual"}
+                                                {format === "physical" && "Physical"}
+                                                {format === "hybrid" && "Hybrid"}
+                                            </span>
+                                        )}
+                                        <div className="w-5 h-5 rounded flex items-center justify-center text-slate-400 group-hover:text-slate-600 transition-colors">
+                                            {isFormatOpen ? (
+                                                <ChevronUp className="w-3.5 h-3.5" />
+                                            ) : (
+                                                <ChevronDown className="w-3.5 h-3.5" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {isFormatOpen && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-0.5">
+                                        {[
+                                            {
+                                                id: "virtual" as const,
+                                                label: "Virtual Event",
+                                                sub: "Google Meet / Livestream",
+                                                icon: Video,
+                                            },
+                                            {
+                                                id: "physical" as const,
+                                                label: "Physical Venue",
+                                                sub: "In-Person Stage or Booth",
+                                                icon: MapPin,
+                                            },
+                                            {
+                                                id: "hybrid" as const,
+                                                label: "Hybrid Event",
+                                                sub: "Venue + Online Stream",
+                                                icon: Globe,
+                                            },
+                                        ].map((f) => {
+                                            const isSelected = format === f.id;
+                                            const Icon = f.icon;
+                                            return (
+                                                <button
+                                                    key={f.id}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFormat(f.id);
+                                                    }}
+                                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center sm:flex-col sm:items-start gap-2 ${
                                                         isSelected
-                                                            ? "bg-orange-600 text-white"
-                                                            : "bg-slate-100 text-slate-500"
+                                                            ? "border-orange-500 bg-orange-50/50 shadow-2xs font-extrabold"
+                                                            : "border-slate-200 hover:border-slate-300 bg-white"
                                                     }`}
                                                 >
-                                                    <Icon className="w-4 h-4" />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <div className="text-xs font-extrabold text-slate-900 leading-tight">
-                                                        {f.label}
+                                                    <div
+                                                        className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
+                                                            isSelected ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-500"
+                                                        }`}
+                                                    >
+                                                        <Icon className="w-3.5 h-3.5" />
                                                     </div>
-                                                    <div className="text-[10px] text-slate-500 font-medium mt-0.5">
-                                                        {f.sub}
+                                                    <div className="min-w-0">
+                                                        <div className="text-xs font-extrabold text-slate-900 leading-tight">
+                                                            {f.label}
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                                                            {f.sub}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Title */}
@@ -496,8 +514,8 @@ export default function CreateEventPage() {
                                 </p>
                             </div>
 
-                            {/* Partner Invite Input Card */}
-                            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3">
+                            {/* Partner Invite Controls (Flat layout on form surface, zero double container) */}
+                            <div className="space-y-3">
                                 <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                                     <UserPlus className="w-3.5 h-3.5 text-orange-600" /> Add Co-Hosting Partner
                                 </div>
@@ -513,7 +531,7 @@ export default function CreateEventPage() {
                                         <select
                                             value={selectedPartnerId}
                                             onChange={(e) => setSelectedPartnerId(e.target.value)}
-                                            className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-orange-500"
+                                            className="w-full bg-slate-50/70 border border-slate-200 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-orange-500 focus:bg-white transition-colors"
                                         >
                                             {AVAILABLE_PARTNERS.map((p) => (
                                                 <option key={p.id} value={p.id}>
@@ -533,7 +551,7 @@ export default function CreateEventPage() {
                                         <select
                                             value={partnerRole}
                                             onChange={(e) => setPartnerRole(e.target.value)}
-                                            className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-orange-500"
+                                            className="w-full bg-slate-50/70 border border-slate-200 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-orange-500 focus:bg-white transition-colors"
                                         >
                                             <option value="Co-Host & Logistics Sponsor">Co-Host & Logistics Sponsor</option>
                                             <option value="Guest Speaker / Presenter">Guest Speaker / Presenter</option>
@@ -641,29 +659,29 @@ export default function CreateEventPage() {
                                 </p>
                             </div>
 
-                            <div className="space-y-2.5">
+                            <div className="space-y-2">
                                 {ADMIN_TICKET_TEMPLATES.map((tpl) => {
                                     const selected = tpl.id === selectedTemplateId;
                                     return (
                                         <div
                                             key={tpl.id}
                                             onClick={() => handleTemplateSelect(tpl.id)}
-                                            className={`p-3.5 rounded-xl border cursor-pointer transition-all space-y-1 ${
+                                            className={`p-3 sm:p-3.5 rounded-xl border cursor-pointer transition-all space-y-1.5 ${
                                                 selected
-                                                    ? "border-orange-600 bg-orange-50/40"
-                                                    : "border-slate-200 hover:border-slate-300"
+                                                    ? "border-orange-500 bg-orange-50/40 ring-1 ring-orange-500/20 shadow-2xs"
+                                                    : "border-slate-200 bg-white hover:border-slate-300"
                                             }`}
                                         >
                                             <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider">
                                                 <span className="text-orange-600 truncate">{tpl.commission}</span>
-                                                <span className="text-slate-900 shrink-0 whitespace-nowrap">
-                                                    {tpl.maxPrice === 0 ? "Free Pass (£0 Cap)" : `Cap: £${tpl.minPrice}–£${tpl.maxPrice}`}
+                                                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded text-[10px] font-bold shrink-0">
+                                                    {tpl.maxPrice === 0 ? "Free (£0 Cap)" : `Cap: £${tpl.minPrice} – £${tpl.maxPrice}`}
                                                 </span>
                                             </div>
-                                            <p className="text-xs sm:text-sm font-extrabold text-slate-900">
+                                            <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
                                                 {tpl.name}
-                                            </p>
-                                            <p className="text-[11px] text-slate-500">{tpl.description}</p>
+                                            </h4>
+                                            <p className="text-[11px] text-slate-500 leading-normal">{tpl.description}</p>
                                         </div>
                                     );
                                 })}

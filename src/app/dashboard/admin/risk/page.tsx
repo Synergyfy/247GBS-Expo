@@ -84,7 +84,7 @@ export default function RiskFraudPage() {
       {/* LIVE MONITOR TAB */}
       {activeTab === "monitor" && (
         <div className="space-y-5 sm:space-y-6">
-          {/* Horizontal Scroll KPI Strip on Mobile (Peeping 3rd Card + Dot Slider) */}
+          {/* Horizontal Scroll KPI Strip on Mobile (Peeping Card + Dot Slider) */}
           <div>
             <div className="flex lg:grid lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
               {kpiStats.map((stat, i) => {
@@ -92,18 +92,18 @@ export default function RiskFraudPage() {
                 return (
                   <div
                     key={i}
-                    className="w-[42%] min-w-[144px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs"
+                    className="w-[62vw] min-w-[200px] max-w-[250px] lg:w-auto shrink-0 snap-start bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
                   >
-                    <div className="flex items-center justify-between gap-1.5 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+                    <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                      <span className="text-xs font-bold text-slate-500 truncate">
                         {stat.label}
                       </span>
                       <IconComponent className={`w-3.5 h-3.5 ${stat.iconColor} shrink-0`} />
                     </div>
-                    <div className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight leading-none">
+                    <div className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-none">
                       {stat.value}
                     </div>
-                    <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">
+                    <p className="text-[11px] font-medium text-slate-400 mt-1 truncate">
                       {stat.sub}
                     </p>
                   </div>
@@ -113,6 +113,7 @@ export default function RiskFraudPage() {
             {/* Mobile Slider Dots Indicator */}
             <div className="flex items-center justify-center gap-1.5 mt-2 lg:hidden">
               <span className="w-4 h-1 rounded-full bg-orange-600" />
+              <span className="w-1.5 h-1 rounded-full bg-slate-300" />
               <span className="w-1.5 h-1 rounded-full bg-slate-300" />
               <span className="w-1.5 h-1 rounded-full bg-slate-300" />
             </div>

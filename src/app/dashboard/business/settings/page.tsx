@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck, RefreshCw, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, RefreshCw, CheckCircle2, Lock } from "lucide-react";
 
 const SETTINGS_TABS = [
     { label: "CHS Business Profile", href: "/dashboard/business/settings" },
@@ -88,14 +88,19 @@ export default function BusinessSettingsPage() {
                 </div>
             )}
 
-            {/* Profile Form */}
+            {/* Profile Form (Non-Editable Synced Fields) */}
             <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
-                        <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
-                            Synced Central Hub Solution (CHS) Identity
-                        </h2>
-                        <p className="text-[11px] text-slate-500">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
+                                Synced Central Hub Solution (CHS) Identity
+                            </h2>
+                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 flex items-center gap-1">
+                                <Lock className="w-2.5 h-2.5" /> Read-Only
+                            </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
                             Company name, logo, banner, and KYB credentials are automatically inherited from CHS.
                         </p>
                     </div>
@@ -104,74 +109,92 @@ export default function BusinessSettingsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            Registered Business Name
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                Registered Business Name
+                            </label>
+                            <span className="text-[9px] font-semibold text-slate-400">CHS Synced</span>
+                        </div>
                         <input
                             type="text"
+                            readOnly
                             value={profile.companyName}
-                            onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200/80 bg-slate-50 text-xs font-bold text-slate-900 cursor-not-allowed select-text outline-none"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            CHS Organization ID
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                CHS Organization ID
+                            </label>
+                            <span className="text-[9px] font-semibold text-slate-400">Verified</span>
+                        </div>
                         <input
                             type="text"
                             readOnly
                             value={profile.chsId}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono text-slate-600"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200/80 bg-slate-50 text-xs font-mono text-slate-700 cursor-not-allowed select-text outline-none"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            Connected MCOM Mall Storefront
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                Connected MCOM Mall Storefront
+                            </label>
+                            <span className="text-[9px] font-semibold text-slate-400">Linked</span>
+                        </div>
                         <input
                             type="text"
+                            readOnly
                             value={profile.mcomStoreSlug}
-                            onChange={(e) => setProfile({ ...profile, mcomStoreSlug: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200/80 bg-slate-50 text-xs text-slate-700 cursor-not-allowed select-text outline-none"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            Primary Exhibitor Contact
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                Primary Exhibitor Contact
+                            </label>
+                            <span className="text-[9px] font-semibold text-slate-400">KYB Primary</span>
+                        </div>
                         <input
                             type="email"
+                            readOnly
                             value={profile.primaryContact}
-                            onChange={(e) => setProfile({ ...profile, primaryContact: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200/80 bg-slate-50 text-xs text-slate-700 cursor-not-allowed select-text outline-none"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            UK VAT / Tax Registration
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                UK VAT / Tax Registration
+                            </label>
+                            <span className="text-[9px] font-semibold text-slate-400">Verified</span>
+                        </div>
                         <input
                             type="text"
+                            readOnly
                             value={profile.vatNumber}
-                            onChange={(e) => setProfile({ ...profile, vatNumber: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200/80 bg-slate-50 text-xs text-slate-700 cursor-not-allowed select-text outline-none"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            Settlement Bank Account
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                Settlement Bank Account
+                            </label>
+                            <span className="text-[9px] font-semibold text-slate-400">Verified</span>
+                        </div>
                         <input
                             type="text"
                             readOnly
                             value={profile.settlementBank}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-700"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200/80 bg-slate-50 text-xs font-mono text-slate-700 cursor-not-allowed select-text outline-none"
                         />
                     </div>
                 </div>
