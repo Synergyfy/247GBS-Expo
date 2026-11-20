@@ -34,7 +34,7 @@ export default function VirtualBoothPage() {
     live: true
   };
 
-  // Per meeting directive: Product Name, Description, Price, Image, and Buy Now button linking to MCOM Mall
+  // Products & services showcase with customizable CTA button label per business setting
   const products = [
     {
       name: "Cloud Core Hub X1",
@@ -42,7 +42,8 @@ export default function VirtualBoothPage() {
         "High-availability enterprise cloud router with automated failover and hardware encryption.",
       price: "499.00",
       image: "/ideal.png",
-      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1"
+      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1",
+      buttonLabel: "Buy Now"
     },
     {
       name: "Edge Guard Pro Appliance",
@@ -50,7 +51,8 @@ export default function VirtualBoothPage() {
         "Real-time zero-trust firewall and DDoS mitigation node for distributed retail branches.",
       price: "199.00",
       image: "/main_stage_banner.png",
-      mcomUrl: "https://mcommall.com/products/edge-guard-pro"
+      mcomUrl: "https://mcommall.com/products/edge-guard-pro",
+      buttonLabel: "Book Now"
     },
     {
       name: "Global Sync Node S4",
@@ -58,7 +60,8 @@ export default function VirtualBoothPage() {
         "Multi-region storage replication server with plug-and-play MCOM inventory synchronization.",
       price: "899.00",
       image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
-      mcomUrl: "https://mcommall.com/products/global-sync-node"
+      mcomUrl: "https://mcommall.com/products/global-sync-node",
+      buttonLabel: "Order Now"
     }
   ];
 
@@ -150,7 +153,7 @@ export default function VirtualBoothPage() {
           {/* Horizontal Scrollable Tabs */}
           <div className="flex gap-5 sm:gap-7 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
             {[
-              { id: "products", label: "MCOM Mall Products" },
+              { id: "products", label: "Products & Offers" },
               { id: "about", label: "About Exhibitor" },
               { id: "services", label: "B2B Services" }
             ].map((tab) => (
@@ -209,7 +212,7 @@ export default function VirtualBoothPage() {
                       rel="noopener noreferrer"
                       className="w-full bg-orange-600 text-white py-2 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all flex items-center justify-center gap-1.5 shadow-xs"
                     >
-                      <span>Buy Now on MCOM Mall</span>
+                      <span>{product.buttonLabel || "Buy Now"}</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>

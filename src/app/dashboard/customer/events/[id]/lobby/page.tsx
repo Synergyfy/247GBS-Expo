@@ -75,7 +75,8 @@ const LIVE_SHOWCASE_PRODUCTS = [
     booth: "FutureTech Systems",
     price: "£499.00",
     image: "/ideal.png",
-    mcomUrl: "https://mcommall.com/products/cloud-core-hub"
+    mcomUrl: "https://mcommall.com/products/cloud-core-hub",
+    buttonLabel: "Buy Now"
   },
   {
     id: "mcom-2",
@@ -83,7 +84,8 @@ const LIVE_SHOWCASE_PRODUCTS = [
     booth: "TechFlow Solutions",
     price: "£199.00",
     image: "/hero.webp",
-    mcomUrl: "https://mcommall.com/products/edge-guard-pro"
+    mcomUrl: "https://mcommall.com/products/edge-guard-pro",
+    buttonLabel: "Book Now"
   },
   {
     id: "mcom-3",
@@ -91,7 +93,8 @@ const LIVE_SHOWCASE_PRODUCTS = [
     booth: "GreenGrid Energy",
     price: "£349.00",
     image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
-    mcomUrl: "https://mcommall.com/products/solar-micro-inverter"
+    mcomUrl: "https://mcommall.com/products/solar-micro-inverter",
+    buttonLabel: "Buy Now"
   }
 ];
 
@@ -331,7 +334,7 @@ export default function EventLobbyPage() {
               <div className="flex items-center gap-1.5">
                 <ShoppingBag className="w-4 h-4 text-orange-600" />
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-tight">
-                  Featured Session Products (MCOM Mall)
+                  Featured Session Products
                 </h3>
               </div>
               <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
@@ -361,7 +364,7 @@ export default function EventLobbyPage() {
                     rel="noopener noreferrer"
                     className="w-full py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition-colors"
                   >
-                    <span>Buy on MCOM Mall</span>
+                    <span>{prod.buttonLabel || "Buy Now"}</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
