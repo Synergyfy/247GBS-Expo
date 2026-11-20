@@ -52,8 +52,8 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroup[] = [
     label: "Account & Identity",
     icon: User,
     items: [
-      { label: "Profile Settings", href: "/dashboard/customer/profile", icon: User },
-      { label: "Account Settings", href: "/dashboard/customer/settings", icon: Settings }
+      { label: "Profile", href: "/dashboard/customer/profile", icon: User },
+      { label: "Account", href: "/dashboard/customer/settings", icon: Settings }
     ]
   }
 ];

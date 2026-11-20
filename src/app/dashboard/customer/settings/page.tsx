@@ -19,8 +19,8 @@ import {
 } from "lucide-react";
 
 const SETTINGS_TABS = [
-  { label: "Profile Settings", href: "/dashboard/customer/profile", icon: User },
-  { label: "Account Settings", href: "/dashboard/customer/settings", icon: Settings },
+  { label: "Profile", href: "/dashboard/customer/profile", icon: User },
+  { label: "Account", href: "/dashboard/customer/settings", icon: Settings },
 ];
 
 export default function CustomerSettingsPage() {
@@ -47,7 +47,7 @@ export default function CustomerSettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
-            Account Settings
+            Account
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
             Configure live stream preferences, session notifications, and account security.
@@ -276,3 +276,4 @@ export default function CustomerSettingsPage() {
     </div>
   );
 }
+

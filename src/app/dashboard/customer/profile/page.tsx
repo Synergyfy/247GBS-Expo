@@ -20,8 +20,8 @@ import {
 } from "lucide-react";
 
 const PROFILE_TABS = [
-  { label: "Profile Settings", href: "/dashboard/customer/profile", icon: User },
-  { label: "Account Settings", href: "/dashboard/customer/settings", icon: Settings },
+  { label: "Profile", href: "/dashboard/customer/profile", icon: User },
+  { label: "Account", href: "/dashboard/customer/settings", icon: Settings },
 ];
 
 export default function CustomerProfilePage() {
@@ -66,7 +66,7 @@ export default function CustomerProfilePage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
-              Profile Settings
+              Profile
             </h1>
             <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -280,3 +280,4 @@ export default function CustomerProfilePage() {
     </div>
   );
 }
+
