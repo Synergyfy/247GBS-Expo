@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   CheckCircle2,
@@ -13,7 +14,8 @@ import {
   Ticket,
   Wallet,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  X
 } from "lucide-react";
 
 export default function CustomerProfilePage() {
@@ -57,13 +59,36 @@ export default function CustomerProfilePage() {
         </p>
       </div>
 
-      {/* Sync Success Feedback Alert */}
-      {savedSuccess && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Your attendee identity, passport status, and contact details are fully synced with Central Hub Solution.</span>
-        </div>
-      )}
+      {/* Floating Toast Notification (Slides in from top-right) */}
+      <AnimatePresence>
+        {savedSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -24, scale: 0.95 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-white/10 flex items-start sm:items-center gap-3 max-w-sm sm:max-w-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0 text-white shadow-xs">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 pr-1">
+              <p className="text-xs font-bold text-white">Profile Synced</p>
+              <p className="text-[11px] text-slate-300 leading-snug mt-0.5">
+                Your attendee identity, passport status, and contact details are fully synced with Central Hub Solution.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSavedSuccess(false)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg ml-auto shrink-0 transition-colors"
+              aria-label="Dismiss toast"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hero Showcase Card: Synced CHS Identity */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-6 space-y-4">
