@@ -851,9 +851,9 @@ export default function CreateEventPage() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 cursor-pointer shadow-xs transition-colors"
+                                    className="px-5 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 cursor-pointer shadow-xs transition-colors"
                                 >
-                                    <Sparkles className="w-3.5 h-3.5" /> Submit to Admin Queue
+                                    Submit
                                 </button>
                             </div>
                         </div>
