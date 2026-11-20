@@ -28,11 +28,20 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
         router.push("/");
     };
 
+    const getProfileLink = () => {
+        switch (dashboardType) {
+            case "admin": return "/dashboard/admin/configuration";
+            case "business": return "/dashboard/business/settings";
+            case "customer": return "/dashboard/customer/profile";
+            default: return "/";
+        }
+    };
+
     const getSettingsLink = () => {
         switch (dashboardType) {
             case "admin": return "/dashboard/admin/configuration";
             case "business": return "/dashboard/business/settings";
-            case "customer": return "/dashboard/customer";
+            case "customer": return "/dashboard/customer/settings";
             default: return "/";
         }
     };
@@ -111,7 +120,7 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
                                     </div>
 
                                     <Link
-                                        href={getSettingsLink()}
+                                        href={getProfileLink()}
                                         onClick={() => setProfileOpen(false)}
                                         className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                                     >
