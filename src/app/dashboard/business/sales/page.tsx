@@ -34,15 +34,6 @@ export default function SalesAndPromotionsHubPage() {
             status: "Active",
             href: "/dashboard/business/sales/links",
         },
-        {
-            name: "MCOM Rewards Loyalty Allocations",
-            type: "Complimentary Ticket & Voucher Perks",
-            conversions: "96 Redemptions",
-            revenue: "£3,450 Upsell",
-            growth: "68.5% claim rate",
-            status: "Synced",
-            href: "/dashboard/business/rewards",
-        },
     ];
 
     return (
@@ -54,20 +45,14 @@ export default function SalesAndPromotionsHubPage() {
                         Sales & Referral Performance
                     </h1>
                     <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
-                        Track MCOM Mall product conversions, ticket referral links, and MCOM Rewards redemptions.
+                        Track MCOM Mall product conversions, ticket referral links, and booth performance.
                     </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <Link
-                        href="/dashboard/business/rewards"
-                        className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:border-orange-500 hover:text-orange-600 transition-all"
-                    >
-                        MCOM Rewards
-                    </Link>
-                    <Link
                         href="/dashboard/business/sales/links"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-600 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-700 transition-all"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-600 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-700 transition-all shadow-sm"
                     >
                         <Link2 className="w-3.5 h-3.5" /> Ticket & Referral Links
                     </Link>

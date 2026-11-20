@@ -114,18 +114,18 @@ export default function SystemHealthPage() {
                   return (
                     <div
                       key={i}
-                      className="w-[42%] min-w-[144px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs"
+                      className="w-[62vw] min-w-[200px] max-w-[250px] lg:w-auto shrink-0 snap-start bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
                     >
-                      <div className="flex items-center justify-between gap-1.5 mb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+                      <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                        <span className="text-xs font-bold text-slate-500 truncate">
                           {stat.label}
                         </span>
                         <IconComponent className={`w-3.5 h-3.5 ${stat.iconColor} shrink-0`} />
                       </div>
-                      <h3 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 leading-none">
+                      <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-none">
                         {stat.value}
                       </h3>
-                      <p className={`text-[10px] font-bold uppercase tracking-wider mt-1 truncate ${stat.statusColor}`}>
+                      <p className={`text-[11px] font-bold mt-1 truncate ${stat.statusColor}`}>
                         {stat.statusText}
                       </p>
                     </div>
@@ -135,6 +135,7 @@ export default function SystemHealthPage() {
               {/* Mobile Slider Dots Indicator */}
               <div className="flex items-center justify-center gap-1.5 mt-2 lg:hidden">
                 <span className="w-4 h-1 rounded-full bg-orange-600" />
+                <span className="w-1.5 h-1 rounded-full bg-slate-300" />
                 <span className="w-1.5 h-1 rounded-full bg-slate-300" />
                 <span className="w-1.5 h-1 rounded-full bg-slate-300" />
               </div>

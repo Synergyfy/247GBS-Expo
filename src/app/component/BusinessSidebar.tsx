@@ -13,6 +13,7 @@ import {
   BUSINESS_NAV_GROUPS,
   isBusinessRouteActive
 } from "./businessNavConfig";
+import { clearStoredUser } from "@/lib/auth";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -48,7 +49,8 @@ export default function BusinessSidebar({ isOpen, setIsOpen }: SidebarProps) {
   };
 
   const handleLogout = () => {
-    router.push("/");
+    clearStoredUser();
+    router.push("/login?role=business");
   };
 
   return (
