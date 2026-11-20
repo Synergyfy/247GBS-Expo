@@ -2,10 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   User,
-  Settings,
   RefreshCw,
   CheckCircle2,
   ShieldCheck,
@@ -19,13 +17,7 @@ import {
   ExternalLink
 } from "lucide-react";
 
-const PROFILE_TABS = [
-  { label: "Profile", href: "/dashboard/customer/profile", icon: User },
-  { label: "Account", href: "/dashboard/customer/settings", icon: Settings },
-];
-
 export default function CustomerProfilePage() {
-  const pathname = usePathname();
   const [syncingChs, setSyncingChs] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -66,7 +58,7 @@ export default function CustomerProfilePage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
-              Profile
+              Profile Settings
             </h1>
             <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -88,28 +80,6 @@ export default function CustomerProfilePage() {
           <RefreshCw className={`w-3.5 h-3.5 ${syncingChs ? "animate-spin" : ""}`} />
           <span>{syncingChs ? "Syncing from CHS..." : "Sync from CHS"}</span>
         </button>
-      </div>
-
-      {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
-        {PROFILE_TABS.map((tab) => {
-          const active = pathname === tab.href;
-          const IconComp = tab.icon;
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 transition-all ${
-                active
-                  ? "bg-slate-900 text-white shadow-xs"
-                  : "bg-white border border-slate-200 text-slate-600 hover:border-orange-500 hover:text-slate-900"
-              }`}
-            >
-              <IconComp className="w-3.5 h-3.5" />
-              <span>{tab.label}</span>
-            </Link>
-          );
-        })}
       </div>
 
       {/* Sync Success Feedback Alert */}

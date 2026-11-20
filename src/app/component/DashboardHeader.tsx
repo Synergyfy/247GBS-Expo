@@ -125,7 +125,7 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
                                         className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                                     >
                                         <User className="w-4 h-4" />
-                                        Profile
+                                        Profile Settings
                                     </Link>
 
                                     {dashboardType === "customer" && (
@@ -145,7 +145,7 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
                                         className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                                     >
                                         <Settings className="w-4 h-4" />
-                                        Account
+                                        Account Settings
                                     </Link>
 
                                     <div className="border-t border-slate-50 mt-1 pt-1">

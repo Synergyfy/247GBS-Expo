@@ -2,9 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
-  User,
   Settings,
   Bell,
   Tv,
@@ -18,13 +16,7 @@ import {
   Volume2
 } from "lucide-react";
 
-const SETTINGS_TABS = [
-  { label: "Profile", href: "/dashboard/customer/profile", icon: User },
-  { label: "Account", href: "/dashboard/customer/settings", icon: Settings },
-];
-
 export default function CustomerSettingsPage() {
-  const pathname = usePathname();
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Experience and playback preferences
@@ -47,34 +39,12 @@ export default function CustomerSettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
-            Account
+            Account Settings
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
             Configure live stream preferences, session notifications, and account security.
           </p>
         </div>
-      </div>
-
-      {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
-        {SETTINGS_TABS.map((tab) => {
-          const active = pathname === tab.href;
-          const IconComp = tab.icon;
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 transition-all ${
-                active
-                  ? "bg-slate-900 text-white shadow-xs"
-                  : "bg-white border border-slate-200 text-slate-600 hover:border-orange-500 hover:text-slate-900"
-              }`}
-            >
-              <IconComp className="w-3.5 h-3.5" />
-              <span>{tab.label}</span>
-            </Link>
-          );
-        })}
       </div>
 
       {savedSuccess && (
