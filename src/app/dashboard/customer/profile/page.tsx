@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   User,
-  RefreshCw,
   CheckCircle2,
   ShieldCheck,
   Mail,
@@ -18,7 +17,6 @@ import {
 } from "lucide-react";
 
 export default function CustomerProfilePage() {
-  const [syncingChs, setSyncingChs] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Synced profile data from Central Hub Solution (CHS)
@@ -32,18 +30,8 @@ export default function CustomerProfilePage() {
     chsId: "CHS-ATT-948210",
     passportTier: "VIP Season Pass",
     passportCode: "GBX-88219-X22",
-    mcomPoints: "850 Pts",
-    lastSynced: "Just now"
+    mcomPoints: "850 Pts"
   });
-
-  const handleSyncFromChs = () => {
-    setSyncingChs(true);
-    setTimeout(() => {
-      setSyncingChs(false);
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3500);
-    }, 750);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,32 +42,19 @@ export default function CustomerProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 pb-12">
       {/* 100% Full-Width Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
-              Profile Settings
-            </h1>
-            <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Verified Attendee
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Manage your Central Hub Solution profile and synced event passport identity.
-          </p>
+      <div className="pb-3 border-b border-slate-200">
+        <div className="flex items-center gap-2">
+          <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
+            Profile Settings
+          </h1>
+          <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Verified Attendee
+          </span>
         </div>
-
-        {/* Sync from CHS Action Button */}
-        <button
-          type="button"
-          onClick={handleSyncFromChs}
-          disabled={syncingChs}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs transition-all active:scale-95 disabled:opacity-70 self-start sm:self-auto shrink-0"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${syncingChs ? "animate-spin" : ""}`} />
-          <span>{syncingChs ? "Syncing from CHS..." : "Sync from CHS"}</span>
-        </button>
+        <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+          Your attendee profile and event passport identity are automatically synchronized with Central Hub Solution.
+        </p>
       </div>
 
       {/* Sync Success Feedback Alert */}
@@ -234,7 +209,7 @@ export default function CustomerProfilePage() {
         {/* Action Buttons */}
         <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <p className="text-[11px] text-slate-400">
-            Last synced from Central Hub Solution: <strong className="text-slate-600">{profile.lastSynced}</strong>
+            Automatically synchronized with Central Hub Solution (CHS)
           </p>
 
           <div className="flex items-center gap-2">
