@@ -176,7 +176,7 @@ export default function AdminVisitorsPage() {
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 relative">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-4 sm:right-8 z-[9999] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
+        <div className="fixed top-20 sm:top-24 right-4 sm:right-8 z-[9999] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
           <div className="w-7 h-7 rounded-xl bg-orange-600 flex items-center justify-center shrink-0 text-white">
             <CheckCircle2 className="w-4 h-4" />
           </div>
