@@ -32,8 +32,11 @@ export default function VideoShowcase({ videoUrl, posterImage }: VideoShowcasePr
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPlaceholderNotice, setShowPlaceholderNotice] = useState(false);
 
-  // Read provided prop or environment variable; do not invent a default URL
-  const activeVideoUrl = videoUrl || process.env.NEXT_PUBLIC_EXPO_VIDEO_URL;
+  // Read provided prop, env variable, or default showcase video
+  const activeVideoUrl =
+    videoUrl ||
+    process.env.NEXT_PUBLIC_EXPO_VIDEO_URL ||
+    "https://www.youtube.com/watch?v=L_LUpnjgPso";
   const embedUrl = getEmbedUrl(activeVideoUrl);
   const poster = posterImage || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop";
 
@@ -111,6 +114,11 @@ export default function VideoShowcase({ videoUrl, posterImage }: VideoShowcasePr
               className="relative w-full h-full cursor-pointer flex items-center justify-center overflow-hidden" 
               onClick={handlePlayClick}
             >
+              {/* Showcase Badge */}
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-600/90 text-white text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md shadow-sm">
+                <span>● RECORDED PREVIEW</span>
+              </div>
+
               {/* Absolute Background Poster Image */}
               <img
                 src={poster}

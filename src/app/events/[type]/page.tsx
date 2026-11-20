@@ -3,7 +3,7 @@
 import { useState, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Calendar, MapPin, Info, Plus, Check, Star, Play,
+  Calendar, MapPin, Info, Plus, Check, Star, Play, X,
   ArrowRight, Zap, ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
@@ -20,6 +20,7 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
   const [cart, setCart] = useState<any[]>([]);
   const [selectedEventInfo, setSelectedEventInfo] = useState<any>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
   const info = eventTypeInfo[type];
   const filteredEvents = events.filter(e => e.type === type);
@@ -84,25 +85,54 @@ export default function EventTypePage({ params }: { params: Promise<{ type: stri
             </div>
 
             {/* Compact Video Preview Frame */}
-            <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 shadow-md">
-              <img
-                src={filteredEvents[0]?.fullImage || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop"}
-                alt={info.title}
-                className="w-full h-full object-cover opacity-75"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-center justify-center">
-                <Link
-                  href="#live-events"
-                  className="w-12 h-12 sm:w-14 sm:h-14 bg-orange-600 hover:bg-orange-700 text-white rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-105"
+            {isPlayingPreview ? (
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 shadow-md">
+                <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-md pointer-events-none">
+                  <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                  <span>● LIVE PREVIEW</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPlayingPreview(false)}
+                  className="absolute top-3 right-3 z-20 w-8 h-8 bg-slate-950/80 hover:bg-slate-950 text-white rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all hover:scale-105"
+                  title="Close preview"
+                  aria-label="Close preview"
                 >
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
-                </Link>
+                  <X className="w-4 h-4" />
+                </button>
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/L_LUpnjgPso?autoplay=1&rel=0&modestbranding=1"
+                  title={`${info.title} Preview`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
               </div>
-              <div className="absolute bottom-2.5 left-3 right-3 flex justify-between items-center text-white text-[11px] font-bold">
-                <span>Interactive 24/7 Hall Preview</span>
-                <span className="bg-black/60 px-2 py-0.5 rounded">{filteredEvents.length} Live Events</span>
+            ) : (
+              <div
+                onClick={() => setIsPlayingPreview(true)}
+                className="relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 shadow-md group cursor-pointer"
+              >
+                <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600/90 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm backdrop-blur-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  <span>● LIVE PREVIEW</span>
+                </div>
+                <img
+                  src={filteredEvents[0]?.fullImage || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop"}
+                  alt={info.title}
+                  className="w-full h-full object-cover opacity-75 group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-center justify-center">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-orange-600 group-hover:bg-orange-500 text-white rounded-full flex items-center justify-center shadow-xl transition-transform group-hover:scale-110 border border-white/30">
+                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                  </div>
+                </div>
+                <div className="absolute bottom-2.5 left-3 right-3 flex justify-between items-center text-white text-[11px] font-bold">
+                  <span>Interactive 24/7 Hall Preview</span>
+                  <span className="bg-black/60 px-2 py-0.5 rounded">{filteredEvents.length} Live Events</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

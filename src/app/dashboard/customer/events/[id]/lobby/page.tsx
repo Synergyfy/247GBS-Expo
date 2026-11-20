@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import {
   Play,
+  X,
   Users,
   MessageSquare,
   Calendar,
@@ -106,6 +107,7 @@ export default function EventLobbyPage() {
   // Per meeting directive: Attendees enter their access pass code before entering the live event
   const [passCode, setPassCode] = useState("GBX-88219-X22");
   const [isPassVerified, setIsPassVerified] = useState(false);
+  const [isPlayingStage, setIsPlayingStage] = useState(false);
 
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState(CHAT_MESSAGES);
@@ -270,44 +272,76 @@ export default function EventLobbyPage() {
         {/* Main Stage Area (Col 8) */}
         <div className="lg:col-span-8 space-y-4">
           {/* Video Player Section */}
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-md group border border-slate-200/80">
-            <Image
-              src={data.videoPlaceholder}
-              alt="Main Stage"
-              fill
-              className="object-cover opacity-80"
-            />
+          {isPlayingStage ? (
+            <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80">
+              {/* LIVE Badge */}
+              <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-md pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                <span>● LIVE BROADCAST</span>
+              </div>
 
-            {/* Player Overlay Controls */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent flex flex-col justify-end p-3 sm:p-5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsPassVerified(true)}
-                    className="w-8 h-8 bg-orange-600 rounded-xl flex items-center justify-center text-white hover:bg-orange-700 transition-colors"
-                  >
-                    <Play className="w-4 h-4 fill-white" />
-                  </button>
-                  <button
-                    type="button"
-                    className="w-8 h-8 bg-white/15 backdrop-blur-xs rounded-xl flex items-center justify-center text-white hover:bg-white/25 transition-colors"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </button>
-                  <span className="text-white text-[10px] font-bold tracking-wider px-1">
-                    LIVE • 01:24:45
-                  </span>
+              {/* Close / Return Button */}
+              <button
+                type="button"
+                onClick={() => setIsPlayingStage(false)}
+                className="absolute top-3 right-3 z-20 w-8 h-8 bg-slate-950/80 hover:bg-slate-950 text-white rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all hover:scale-105"
+                title="Return to preview"
+                aria-label="Return to preview"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/jfKfPfyJRdk?autoplay=1&rel=0&modestbranding=1"
+                title="Main Stage Live Stream"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+            </div>
+          ) : (
+            <div
+              onClick={() => {
+                setIsPassVerified(true);
+                setIsPlayingStage(true);
+              }}
+              className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-md group cursor-pointer border border-slate-200/80"
+            >
+              {/* LIVE Badge */}
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600/90 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm backdrop-blur-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                <span>● LIVE BROADCAST</span>
+              </div>
+
+              <Image
+                src={data.videoPlaceholder}
+                alt="Main Stage"
+                fill
+                className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+              />
+
+              {/* Big Centered Play Button */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-14 h-14 bg-orange-600 group-hover:bg-orange-500 rounded-full flex items-center justify-center text-white shadow-2xl transition-transform duration-300 group-hover:scale-110 border-2 border-white/40">
+                  <Play className="w-6 h-6 fill-white ml-0.5" />
                 </div>
-                <button
-                  type="button"
-                  className="w-8 h-8 bg-white/15 backdrop-blur-xs rounded-xl flex items-center justify-center text-white hover:bg-white/25 transition-colors"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </button>
+              </div>
+
+              {/* Player Overlay Controls */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3 sm:p-5 pointer-events-none">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white text-[10px] font-bold tracking-wider px-1 bg-black/50 rounded-md py-0.5 backdrop-blur-xs">
+                      LIVE • 01:24:45
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-white/90 text-[10px] font-bold">
+                    <span>Click to Stream</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Compact Stage Info */}
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
