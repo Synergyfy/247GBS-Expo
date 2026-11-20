@@ -27,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} antialiased font-sans`}>
+    <html lang="en" className="scroll-smooth overflow-x-clip max-w-full">
+      <body className={`${inter.variable} antialiased font-sans overflow-x-clip max-w-full relative`}>
         {children}
         <FloatingChat />
         <BottomNav />

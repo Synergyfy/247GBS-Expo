@@ -1,9 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Download, FileText, ArrowRight, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Download, FileText, ArrowRight, X, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 
-const AUDIT_LOGS = [
+interface AuditLog {
+  id: string;
+  timestamp: string;
+  actor: string;
+  role: string;
+  action: string;
+  details: string;
+  category: string;
+  status: "SUCCESS" | "WARNING";
+  ip?: string;
+  hash?: string;
+}
+
+const AUDIT_LOGS: AuditLog[] = [
   {
     id: "LOG-9921",
     timestamp: "2026-02-05 09:42:12",
@@ -12,7 +26,9 @@ const AUDIT_LOGS = [
     action: "POLICY_UPDATE",
     details: "Updated global refund window from 48h to 72h",
     category: "GOVERNANCE",
-    status: "SUCCESS"
+    status: "SUCCESS",
+    ip: "192.168.1.42",
+    hash: "0x8fa1...d920"
   },
   {
     id: "LOG-9920",
@@ -22,7 +38,9 @@ const AUDIT_LOGS = [
     action: "SETTLEMENT_RELEASE",
     details: "Released batch #4421 to Exhibitor: TechFlow",
     category: "FINANCIAL",
-    status: "SUCCESS"
+    status: "SUCCESS",
+    ip: "10.0.4.12",
+    hash: "0x3bb2...e811"
   },
   {
     id: "LOG-9919",
@@ -32,7 +50,9 @@ const AUDIT_LOGS = [
     action: "EVENT_REJECT",
     details: "Rejected event #EVT-109 due to pricing cap violation",
     category: "VERIFICATION",
-    status: "WARNING"
+    status: "WARNING",
+    ip: "172.16.8.99",
+    hash: "0x91cc...401b"
   },
   {
     id: "LOG-9918",
@@ -42,7 +62,9 @@ const AUDIT_LOGS = [
     action: "EVENT_CREATE",
     details: "Submitted new event: 'Sustainable Future Summit'",
     category: "BUSINESS_ACTION",
-    status: "SUCCESS"
+    status: "SUCCESS",
+    ip: "84.112.5.21",
+    hash: "0x12ef...aa32"
   },
   {
     id: "LOG-9917",
@@ -52,13 +74,27 @@ const AUDIT_LOGS = [
     action: "DISPUTE_RESOLVE",
     details: "Resolved dispute #DSP-112 in favor of Customer",
     category: "SUPPORT",
-    status: "SUCCESS"
+    status: "SUCCESS",
+    ip: "192.168.2.15",
+    hash: "0x55bc...77d1"
   }
 ];
 
 export default function AuditPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Modals & Popups
+  const [inspectLog, setInspectLog] = useState<AuditLog | null>(null);
+
+  // Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   const filteredLogs = AUDIT_LOGS.filter((log) => {
     const matchesSearch =
@@ -82,8 +118,54 @@ export default function AuditPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      ["ID,Timestamp,Actor,Role,Action,Details,Category,Status"]
+        .concat(
+          filteredLogs.map(
+            (l) =>
+              `"${l.id}","${l.timestamp}","${l.actor}","${l.role}","${l.action}","${l.details}","${l.category}","${l.status}"`
+          )
+        )
+        .join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `audit_trail_export_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Audit trail exported successfully as CSV");
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">
+    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6 relative">
+      {/* Toast Notification — Smooth Slide-in with framer-motion */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            className="fixed top-20 sm:top-24 right-4 sm:right-6 z-[9999] bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-xl border border-white/10 flex items-center gap-2.5 max-w-xs sm:max-w-sm pointer-events-auto"
+          >
+            <div className="w-5 h-5 rounded-lg bg-orange-600 flex items-center justify-center shrink-0 text-white">
+              <CheckCircle2 className="w-3 h-3" />
+            </div>
+            <p className="text-[11px] sm:text-xs font-semibold flex-1 leading-tight">{toastMessage}</p>
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -96,14 +178,15 @@ export default function AuditPage() {
         </div>
         <button
           type="button"
-          className="px-4 py-2 bg-white border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1.5 w-fit shrink-0 shadow-2xs"
+          onClick={handleExportCSV}
+          className="px-4 py-2 bg-white border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1.5 w-fit shrink-0 shadow-2xs cursor-pointer"
         >
           <Download className="w-3.5 h-3.5 text-orange-600" />
           <span>Export CSV</span>
         </button>
       </div>
 
-      {/* Search & Horizontal Scrollable Category Filter (Peeps out on mobile) */}
+      {/* Search & Category Filter */}
       <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -136,7 +219,7 @@ export default function AuditPage() {
               key={cat.id}
               type="button"
               onClick={() => setFilterCategory(cat.id)}
-              className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold shrink-0 transition-all ${
+              className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
                 filterCategory === cat.id
                   ? "bg-orange-600 text-white shadow-xs"
                   : "bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50"
@@ -148,7 +231,7 @@ export default function AuditPage() {
         </div>
       </div>
 
-      {/* Unified Audit Container (Desktop Table + Mobile Stacked Rows, Colored Text Status) */}
+      {/* Unified Audit Container */}
       <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
@@ -198,7 +281,9 @@ export default function AuditPage() {
                   <td className="px-6 py-4 text-right">
                     <button
                       type="button"
-                      className="text-orange-600 hover:bg-orange-50 p-1.5 rounded-lg transition-colors"
+                      onClick={() => setInspectLog(log)}
+                      className="text-orange-600 hover:bg-orange-50 p-1.5 rounded-lg transition-colors cursor-pointer"
+                      title="Inspect Log Entry"
                     >
                       <ArrowRight className="w-4 h-4" />
                     </button>
@@ -209,10 +294,14 @@ export default function AuditPage() {
           </table>
         </div>
 
-        {/* Mobile Stacked Forensic List (No bulky icon box, colored text metadata) */}
+        {/* Mobile Stacked Forensic List */}
         <div className="md:hidden divide-y divide-slate-100">
           {filteredLogs.map((log) => (
-            <div key={log.id} className="p-4 space-y-1.5">
+            <div
+              key={log.id}
+              onClick={() => setInspectLog(log)}
+              className="p-4 space-y-1.5 hover:bg-slate-50 cursor-pointer"
+            >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-[11px] font-bold min-w-0">
                   <span className="font-extrabold text-xs text-slate-900">{log.action}</span>
@@ -250,19 +339,87 @@ export default function AuditPage() {
           <div className="flex gap-1.5">
             <button
               type="button"
-              className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 cursor-pointer inline-flex items-center gap-1"
             >
-              Prev
+              <ChevronLeft className="w-3.5 h-3.5" /> Prev
             </button>
             <button
               type="button"
-              className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100"
+              onClick={() => setCurrentPage((p) => p + 1)}
+              className="px-3 py-1 bg-slate-900 text-white rounded-lg hover:bg-orange-600 transition-colors cursor-pointer inline-flex items-center gap-1"
             >
-              Next
+              Next <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* 1. INSPECT LOG FORENSIC MODAL */}
+      {inspectLog && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-black uppercase text-orange-600">
+                  {inspectLog.category}
+                </span>
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Audit Entry: {inspectLog.id}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInspectLog(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold">Actor:</span>
+                <span className="font-bold text-slate-900">
+                  {inspectLog.actor} ({inspectLog.role})
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold">Action:</span>
+                <span className="font-extrabold text-slate-900">{inspectLog.action}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold">Timestamp:</span>
+                <span className="font-mono text-slate-700">{inspectLog.timestamp}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold">Origin IP:</span>
+                <span className="font-mono text-slate-700">{inspectLog.ip || "192.168.1.1"}</span>
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                Payload / Change Summary
+              </span>
+              <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed font-medium">
+                {inspectLog.details}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setInspectLog(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

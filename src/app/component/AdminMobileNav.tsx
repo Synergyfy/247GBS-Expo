@@ -77,11 +77,9 @@ function AdminMobileNavContent() {
     return ADMIN_NAV_GROUPS[0].id;
   };
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    "platform-ops": true,
-    "compliance-audit": true,
-    "content-media": true,
-    "financials-access": true
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const active = getActiveGroupId(pathname);
+    return { [active]: true };
   });
 
   // Lock body scroll when drawer is open
@@ -105,20 +103,20 @@ function AdminMobileNavContent() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // When pathname changes, ensure active group is expanded
+  // When pathname changes, keep ONLY active category expanded
   useEffect(() => {
     const activeId = getActiveGroupId(pathname);
-    setExpandedGroups(prev => ({
-      ...prev,
+    setExpandedGroups({
       [activeId]: true
-    }));
+    });
   }, [pathname]);
 
   const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
+    setExpandedGroups(prev => {
+      const willOpen = !prev[groupId];
+      // When opening a dropdown, collapse all other dropdowns
+      return willOpen ? { [groupId]: true } : {};
+    });
   };
 
   const renderIcon = (name: string, className = "w-4 h-4") => {
