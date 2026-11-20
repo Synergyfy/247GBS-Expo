@@ -80,13 +80,14 @@ export default function ComplianceHubPage() {
   const [selectedDsar, setSelectedDsar] = useState<DsarRequest | null>(null);
   const [showAuditHistory, setShowAuditHistory] = useState(false);
   const [showLegalRequests, setShowLegalRequests] = useState(false);
+  const [gdprEnforced, setGdprEnforced] = useState(true);
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
   const filteredItems = complianceItems.filter(
@@ -125,7 +126,7 @@ export default function ComplianceHubPage() {
     <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto relative">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-white/10 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
+        <div className="fixed top-6 right-4 sm:right-8 z-[9999] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
           <div className="w-7 h-7 rounded-xl bg-orange-600 flex items-center justify-center shrink-0 text-white">
             <CheckCircle2 className="w-4 h-4" />
           </div>
@@ -356,12 +357,24 @@ export default function ComplianceHubPage() {
                       Auto-anonymize telemetry for UK/EU visitors
                     </p>
                   </div>
-                  <div
-                    onClick={() => showToast("GDPR enforcement toggled")}
-                    className="w-11 h-6 bg-emerald-500 rounded-full relative cursor-pointer shrink-0"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextVal = !gdprEnforced;
+                      setGdprEnforced(nextVal);
+                      showToast(`GDPR compliance auto-anonymization ${nextVal ? "enabled" : "disabled"}`);
+                    }}
+                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer p-0.5 shrink-0 ${
+                      gdprEnforced ? "bg-emerald-500" : "bg-slate-300"
+                    }`}
+                    aria-label="Toggle GDPR Compliance"
                   >
-                    <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-xs" />
-                  </div>
+                    <span
+                      className={`block w-5 h-5 bg-white rounded-full shadow-xs transition-transform transform ${
+                        gdprEnforced ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 <div>

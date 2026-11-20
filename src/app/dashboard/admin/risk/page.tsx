@@ -68,13 +68,18 @@ export default function RiskFraudPage() {
   // Thresholds state
   const [velocityLimit, setVelocityLimit] = useState(15);
   const [maxFailures, setMaxFailures] = useState(5);
+  const [detectionRules, setDetectionRules] = useState<{ [key: string]: boolean }>({
+    "Velocity Limits": true,
+    "IP Blacklisting": true,
+    "Device Fingerprinting": true
+  });
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
   const kpiStats = [
@@ -135,7 +140,7 @@ export default function RiskFraudPage() {
     <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto relative">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-white/10 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
+        <div className="fixed top-6 right-4 sm:right-8 z-[9999] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
           <div className="w-7 h-7 rounded-xl bg-orange-600 flex items-center justify-center shrink-0 text-white">
             <CheckCircle2 className="w-4 h-4" />
           </div>
@@ -295,17 +300,32 @@ export default function RiskFraudPage() {
                 </h3>
                 <div className="divide-y divide-white/10 text-xs">
                   {["Velocity Limits", "IP Blacklisting", "Device Fingerprinting"].map(
-                    (rule, idx) => (
-                      <div key={idx} className="flex items-center justify-between py-3">
-                        <span className="font-bold text-slate-200">{rule}</span>
-                        <div
-                          onClick={() => showToast(`Toggled ${rule} active rule`)}
-                          className="w-10 h-5 bg-orange-600 rounded-full relative cursor-pointer"
-                        >
-                          <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
+                    (rule, idx) => {
+                      const isEnabled = detectionRules[rule] ?? true;
+                      return (
+                        <div key={idx} className="flex items-center justify-between py-3">
+                          <span className="font-bold text-slate-200">{rule}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextVal = !isEnabled;
+                              setDetectionRules((prev) => ({ ...prev, [rule]: nextVal }));
+                              showToast(`${rule} ${nextVal ? "activated" : "deactivated"}`);
+                            }}
+                            className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer p-0.5 ${
+                              isEnabled ? "bg-orange-600" : "bg-slate-700"
+                            }`}
+                            aria-label={`Toggle ${rule}`}
+                          >
+                            <span
+                              className={`block w-5 h-5 bg-white rounded-full shadow-xs transition-transform transform ${
+                                isEnabled ? "translate-x-5" : "translate-x-0"
+                              }`}
+                            />
+                          </button>
                         </div>
-                      </div>
-                    )
+                      );
+                    }
                   )}
                 </div>
                 <button

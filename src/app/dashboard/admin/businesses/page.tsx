@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import {
   Search,
   MoreVertical,
   Mail,
   Building2,
-  ShieldCheck,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
@@ -17,8 +17,8 @@ import {
   CheckCircle2,
   Send,
   AlertTriangle,
-  Sparkles,
-  Ban
+  Ban,
+  Check
 } from "lucide-react";
 
 interface Business {
@@ -92,13 +92,20 @@ export default function AdminBusinessesPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Modals & Popups State
+  // Contextual dropdown state
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Modals State
   const [emailModalBiz, setEmailModalBiz] = useState<Business | null>(null);
   const [emailSubject, setEmailSubject] = useState("Exhibition Notice & Verification Status");
   const [emailBody, setEmailBody] = useState("");
 
   const [overviewModalBiz, setOverviewModalBiz] = useState<Business | null>(null);
-  const [actionMenuBiz, setActionMenuBiz] = useState<Business | null>(null);
+  const [suspendConfirmBiz, setSuspendConfirmBiz] = useState<Business | null>(null);
+  const [tierConfirmState, setTierConfirmState] = useState<{
+    biz: Business;
+    newTier: Business["status"];
+  } | null>(null);
   const [deleteConfirmBiz, setDeleteConfirmBiz] = useState<Business | null>(null);
 
   // Toast feedback
@@ -108,8 +115,20 @@ export default function AdminBusinessesPage() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3500);
+    }, 4000);
   };
+
+  // Close contextual menu when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".action-menu-container")) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   const filteredBusinesses = businesses.filter((biz) => {
     const matchesSearch =
@@ -123,7 +142,7 @@ export default function AdminBusinessesPage() {
   const stats = [
     { label: "Total Partners", val: "1,248", sub: "Active accounts", icon: <Building2 className="w-4 h-4 text-blue-600 shrink-0" /> },
     { label: "Premium Tier", val: "142", sub: "Yearly PRO booths", icon: <Trophy className="w-4 h-4 text-orange-600 shrink-0" /> },
-    { label: "Verified Entities", val: "890", sub: "KYB approved", icon: <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" /> },
+    { label: "Verified Entities", val: "890", sub: "Active verified", icon: <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> },
     { label: "Partner GMV", val: "£14.2M", sub: "Gross trade volume", icon: <TrendingUp className="w-4 h-4 text-purple-600 shrink-0" /> }
   ];
 
@@ -135,25 +154,30 @@ export default function AdminBusinessesPage() {
     setEmailBody("");
   };
 
-  const handleToggleTier = (biz: Business) => {
-    const nextTier: Business["status"] =
-      biz.status === "Standard" ? "Verified" : biz.status === "Verified" ? "Premium" : "Standard";
+  const handleConfirmTierChange = () => {
+    if (!tierConfirmState) return;
+    const { biz, newTier } = tierConfirmState;
     setBusinesses((prev) =>
-      prev.map((b) => (b.id === biz.id ? { ...b, status: nextTier } : b))
+      prev.map((b) => (b.id === biz.id ? { ...b, status: newTier } : b))
     );
-    showToast(`${biz.name} upgraded to ${nextTier} tier`);
-    setActionMenuBiz(null);
+    showToast(`${biz.name} tier updated to ${newTier}`);
+    setTierConfirmState(null);
+    setActiveMenuId(null);
   };
 
-  const handleToggleSuspend = (biz: Business) => {
-    const nextSuspended = !biz.suspended;
+  const handleConfirmSuspend = () => {
+    if (!suspendConfirmBiz) return;
+    const nextSuspended = !suspendConfirmBiz.suspended;
     setBusinesses((prev) =>
-      prev.map((b) => (b.id === biz.id ? { ...b, suspended: nextSuspended } : b))
+      prev.map((b) => (b.id === suspendConfirmBiz.id ? { ...b, suspended: nextSuspended } : b))
     );
     showToast(
-      nextSuspended ? `${biz.name} suspended from expo directory` : `${biz.name} reactivated`
+      nextSuspended
+        ? `${suspendConfirmBiz.name} suspended from expo directory`
+        : `${suspendConfirmBiz.name} reactivated`
     );
-    setActionMenuBiz(null);
+    setSuspendConfirmBiz(null);
+    setActiveMenuId(null);
   };
 
   const handleDeleteBusiness = () => {
@@ -161,13 +185,14 @@ export default function AdminBusinessesPage() {
     setBusinesses((prev) => prev.filter((b) => b.id !== deleteConfirmBiz.id));
     showToast(`${deleteConfirmBiz.name} permanently removed`);
     setDeleteConfirmBiz(null);
+    setActiveMenuId(null);
   };
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 relative">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-white/10 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
+        <div className="fixed top-6 right-4 sm:right-8 z-[9999] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
           <div className="w-7 h-7 rounded-xl bg-orange-600 flex items-center justify-center shrink-0 text-white">
             <CheckCircle2 className="w-4 h-4" />
           </div>
@@ -175,7 +200,7 @@ export default function AdminBusinessesPage() {
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            className="text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-white cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -198,7 +223,7 @@ export default function AdminBusinessesPage() {
           {stats.map((s, i) => (
             <div
               key={i}
-              className="w-[50%] min-w-[168px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+              className="w-[46%] min-w-[150px] sm:w-[180px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
             >
               <div className="flex items-center justify-between gap-1.5 mb-1">
                 <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">
@@ -263,9 +288,9 @@ export default function AdminBusinessesPage() {
       </div>
 
       {/* Unified Directory Card */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-visible">
         {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden md:block overflow-x-visible">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-100">
@@ -334,7 +359,7 @@ export default function AdminBusinessesPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
+                    <div className="flex items-center justify-end gap-1.5 relative action-menu-container">
                       <button
                         type="button"
                         onClick={() => {
@@ -348,22 +373,75 @@ export default function AdminBusinessesPage() {
                       >
                         <Mail className="w-3.5 h-3.5" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setOverviewModalBiz(biz)}
-                        className="p-2 bg-white border border-slate-200/80 rounded-lg text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all cursor-pointer"
-                        title="Open Booth Dossier"
+                      <Link
+                        href={`/dashboard/customer/booths/${biz.id}`}
+                        className="p-2 bg-white border border-slate-200/80 rounded-lg text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all cursor-pointer inline-flex items-center justify-center"
+                        title="View Live Booth"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
-                      </button>
+                      </Link>
                       <button
                         type="button"
-                        onClick={() => setActionMenuBiz(biz)}
-                        className="p-2 bg-slate-900 text-white rounded-lg hover:bg-orange-600 transition-all cursor-pointer"
-                        title="More Options"
+                        onClick={() => setActiveMenuId(activeMenuId === biz.id ? null : biz.id)}
+                        className={`p-2 rounded-lg transition-all cursor-pointer ${
+                          activeMenuId === biz.id
+                            ? "bg-orange-600 text-white"
+                            : "bg-slate-900 text-white hover:bg-orange-600"
+                        }`}
+                        title="Actions"
                       >
                         <MoreVertical className="w-3.5 h-3.5" />
                       </button>
+
+                      {/* CONTEXTUAL DROPDOWN MENU */}
+                      {activeMenuId === biz.id && (
+                        <div className="absolute right-0 top-full mt-1.5 z-40 bg-white border border-slate-200 rounded-2xl shadow-xl w-56 p-2 space-y-2 text-left animate-in fade-in zoom-in-95">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase px-2 mb-1">
+                              Switch Tier
+                            </label>
+                            <select
+                              value={biz.status}
+                              onChange={(e) => {
+                                const newTier = e.target.value as Business["status"];
+                                setTierConfirmState({ biz, newTier });
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-orange-500 cursor-pointer"
+                            >
+                              <option value="Standard">Standard Tier</option>
+                              <option value="Verified">Verified Tier</option>
+                              <option value="Premium">Premium Tier</option>
+                            </select>
+                          </div>
+
+                          <div className="pt-1.5 border-t border-slate-100 space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSuspendConfirmBiz(biz);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition-colors cursor-pointer text-left"
+                            >
+                              <Ban className="w-3.5 h-3.5 text-amber-600" />
+                              <span>{biz.suspended ? "Reactivate Account" : "Suspend Account"}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeleteConfirmBiz(biz);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer text-left"
+                            >
+                              <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+                              <span>Delete Exhibitor</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -373,9 +451,9 @@ export default function AdminBusinessesPage() {
         </div>
 
         {/* Mobile Stacked List */}
-        <div className="md:hidden divide-y divide-slate-100">
+        <div className="md:hidden divide-y divide-slate-100 overflow-visible">
           {filteredBusinesses.map((biz) => (
-            <div key={biz.id} className="p-4 space-y-2">
+            <div key={biz.id} className="p-4 space-y-2 relative action-menu-container">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-extrabold text-sm text-slate-900 truncate">
@@ -427,17 +505,16 @@ export default function AdminBusinessesPage() {
                   >
                     <Mail className="w-3.5 h-3.5" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setOverviewModalBiz(biz)}
-                    className="p-1.5 bg-slate-100 rounded-lg text-slate-600 hover:text-orange-600 cursor-pointer"
-                    aria-label="View Booth Dossier"
+                  <Link
+                    href={`/dashboard/customer/booths/${biz.id}`}
+                    className="p-1.5 bg-slate-100 rounded-lg text-slate-600 hover:text-orange-600 cursor-pointer inline-flex items-center justify-center"
+                    aria-label="View Booth"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
+                  </Link>
                   <button
                     type="button"
-                    onClick={() => setActionMenuBiz(biz)}
+                    onClick={() => setActiveMenuId(activeMenuId === biz.id ? null : biz.id)}
                     className="p-1.5 bg-slate-900 text-white rounded-lg hover:bg-orange-600 cursor-pointer"
                     aria-label="Manage Business"
                   >
@@ -445,6 +522,53 @@ export default function AdminBusinessesPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Mobile Contextual Dropdown */}
+              {activeMenuId === biz.id && (
+                <div className="mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-left animate-in fade-in">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase px-1 mb-1">
+                      Switch Tier
+                    </label>
+                    <select
+                      value={biz.status}
+                      onChange={(e) => {
+                        const newTier = e.target.value as Business["status"];
+                        setTierConfirmState({ biz, newTier });
+                        setActiveMenuId(null);
+                      }}
+                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-2 py-1.5 cursor-pointer"
+                    >
+                      <option value="Standard">Standard Tier</option>
+                      <option value="Verified">Verified Tier</option>
+                      <option value="Premium">Premium Tier</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-200 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSuspendConfirmBiz(biz);
+                        setActiveMenuId(null);
+                      }}
+                      className="flex-1 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-amber-50 hover:text-amber-700 cursor-pointer text-center"
+                    >
+                      {biz.suspended ? "Reactivate" : "Suspend"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteConfirmBiz(biz);
+                        setActiveMenuId(null);
+                      }}
+                      className="flex-1 py-1.5 bg-red-50 border border-red-200 rounded-lg text-xs font-bold text-red-600 hover:bg-red-100 cursor-pointer text-center"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -497,7 +621,7 @@ export default function AdminBusinessesPage() {
               <button
                 type="button"
                 onClick={() => setEmailModalBiz(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -551,165 +675,86 @@ export default function AdminBusinessesPage() {
         </div>
       )}
 
-      {/* 2. BUSINESS OVERVIEW DOSSIER MODAL */}
-      {overviewModalBiz && (
+      {/* 2. CONFIRM TIER SWITCH MODAL */}
+      {tierConfirmState && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                    {overviewModalBiz.name}
-                  </h3>
-                  <span
-                    className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
-                      overviewModalBiz.status === "Premium"
-                        ? "bg-orange-50 text-orange-600"
-                        : "bg-emerald-50 text-emerald-600"
-                    }`}
-                  >
-                    {overviewModalBiz.status}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Registration ID: {overviewModalBiz.cac}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOverviewModalBiz(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Owner</span>
-                <span className="font-bold text-slate-800">{overviewModalBiz.owner}</span>
-              </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Location</span>
-                <span className="font-bold text-slate-800">{overviewModalBiz.location}</span>
-              </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Events Held</span>
-                <span className="font-black text-slate-900">{overviewModalBiz.eventsHeld} Hosted</span>
-              </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Platform GMV</span>
-                <span className="font-black text-orange-600">{overviewModalBiz.revenue}</span>
-              </div>
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-200/60 p-3 rounded-xl flex items-center justify-between text-xs text-emerald-900">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span className="font-bold">KYB & Sanction Clearance Active</span>
-              </div>
-              <span className="text-[10px] font-black uppercase text-emerald-700">Verified</span>
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">Switch Partner Tier</h3>
+              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                Are you sure you want to change &ldquo;{tierConfirmState.biz.name}&rdquo; from{" "}
+                <span className="font-bold text-slate-700">{tierConfirmState.biz.status}</span> to{" "}
+                <span className="font-bold text-orange-600">{tierConfirmState.newTier}</span>?
+              </p>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => setOverviewModalBiz(null)}
+                onClick={() => setTierConfirmState(null)}
                 className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  showToast(`Redirecting to storefront for ${overviewModalBiz.name}...`);
-                  setOverviewModalBiz(null);
-                }}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>View Booth</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. BUSINESS ACTION MENU MODAL */}
-      {actionMenuBiz && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900">Manage Partner</h3>
-                <p className="text-[11px] text-slate-500 font-medium truncate max-w-[200px]">
-                  {actionMenuBiz.name}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActionMenuBiz(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-1.5">
-              <button
-                type="button"
-                onClick={() => handleToggleTier(actionMenuBiz)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-slate-700 hover:text-orange-600 text-xs font-bold transition-colors cursor-pointer text-left"
-              >
-                <Sparkles className="w-4 h-4 text-orange-600" />
-                <span>Switch Tier (Current: {actionMenuBiz.status})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleSuspend(actionMenuBiz)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 hover:text-amber-700 text-xs font-bold transition-colors cursor-pointer text-left"
-              >
-                <Ban className="w-4 h-4 text-amber-600" />
-                <span>
-                  {actionMenuBiz.suspended ? "Reactivate Account" : "Suspend Account"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setDeleteConfirmBiz(actionMenuBiz);
-                  setActionMenuBiz(null);
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-red-50 text-red-600 text-xs font-bold transition-colors cursor-pointer text-left"
-              >
-                <AlertTriangle className="w-4 h-4 text-red-600" />
-                <span>Delete Exhibitor</span>
-              </button>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setActionMenuBiz(null)}
-                className="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
               >
                 Cancel
               </button>
+              <button
+                type="button"
+                onClick={handleConfirmTierChange}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors cursor-pointer shadow-xs"
+              >
+                Update Tier
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 4. CLEAN DELETE CONFIRMATION MODAL (No bulky icon, concise buttons) */}
+      {/* 3. CONFIRM SUSPEND / REACTIVATE MODAL */}
+      {suspendConfirmBiz && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">
+                {suspendConfirmBiz.suspended ? "Reactivate Exhibitor" : "Suspend Exhibitor"}
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                {suspendConfirmBiz.suspended
+                  ? `Are you sure you want to reactivate "${suspendConfirmBiz.name}"? They will regain full access to host events and display booths.`
+                  : `Are you sure you want to suspend "${suspendConfirmBiz.name}"? They will not be able to host events or receive bookings until reactivated.`}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSuspendConfirmBiz(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSuspend}
+                className={`px-4 py-2 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs ${
+                  suspendConfirmBiz.suspended
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-amber-600 hover:bg-amber-700"
+                }`}
+              >
+                {suspendConfirmBiz.suspended ? "Reactivate" : "Suspend"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. CONFIRM DELETE MODAL */}
       {deleteConfirmBiz && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
             <div>
               <h3 className="text-base font-extrabold text-slate-900">Delete Exhibitor</h3>
               <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                Are you sure you want to delete &ldquo;{deleteConfirmBiz.name}&rdquo;? All booth data and event registrations will be removed.
+                Are you sure you want to delete &ldquo;{deleteConfirmBiz.name}&rdquo;? All booth data and event registrations will be permanently removed.
               </p>
             </div>
 

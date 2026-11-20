@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   MoreVertical,
@@ -19,7 +19,7 @@ import {
   QrCode,
   Download,
   ShieldAlert,
-  Sparkles
+  Send
 } from "lucide-react";
 
 interface Visitor {
@@ -88,9 +88,17 @@ export default function AdminVisitorsPage() {
   const [typeFilter, setTypeFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Contextual menu state
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
   // Modals
   const [selectedVisitorForDossier, setSelectedVisitorForDossier] = useState<Visitor | null>(null);
-  const [actionMenuVisitor, setActionMenuVisitor] = useState<Visitor | null>(null);
+  const [resendConfirmVisitor, setResendConfirmVisitor] = useState<Visitor | null>(null);
+  const [tierConfirmState, setTierConfirmState] = useState<{
+    visitor: Visitor;
+    newType: Visitor["type"];
+  } | null>(null);
+  const [revokeConfirmVisitor, setRevokeConfirmVisitor] = useState<Visitor | null>(null);
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -99,8 +107,20 @@ export default function AdminVisitorsPage() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3500);
+    }, 4000);
   };
+
+  // Close contextual menu when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".visitor-menu-container")) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   const filteredVisitors = visitors.filter((visitor) => {
     const matchesSearch =
@@ -117,36 +137,46 @@ export default function AdminVisitorsPage() {
     { label: "Retention", val: "64%", sub: "Repeat visitors", icon: <History className="w-4 h-4 text-purple-600 shrink-0" /> }
   ];
 
-  const handleToggleVip = (v: Visitor) => {
-    const nextType: Visitor["type"] = v.type === "VIP" ? "Standard" : "VIP";
+  const handleConfirmTierChange = () => {
+    if (!tierConfirmState) return;
+    const { visitor, newType } = tierConfirmState;
     setVisitors((prev) =>
-      prev.map((item) => (item.id === v.id ? { ...item, type: nextType } : item))
+      prev.map((item) => (item.id === visitor.id ? { ...item, type: newType } : item))
     );
-    showToast(`${v.name} status updated to ${nextType}`);
-    setActionMenuVisitor(null);
+    showToast(`${visitor.name}'s pass updated to ${newType}`);
+    setTierConfirmState(null);
+    setActiveMenuId(null);
   };
 
-  const handleToggleRevoke = (v: Visitor) => {
-    const nextRevoked = !v.revoked;
+  const handleConfirmRevoke = () => {
+    if (!revokeConfirmVisitor) return;
+    const nextRevoked = !revokeConfirmVisitor.revoked;
     setVisitors((prev) =>
-      prev.map((item) => (item.id === v.id ? { ...item, revoked: nextRevoked } : item))
+      prev.map((item) =>
+        item.id === revokeConfirmVisitor.id ? { ...item, revoked: nextRevoked } : item
+      )
     );
     showToast(
-      nextRevoked ? `Pass revoked for ${v.name}` : `Pass reactivated for ${v.name}`
+      nextRevoked
+        ? `Pass revoked for ${revokeConfirmVisitor.name}`
+        : `Pass reactivated for ${revokeConfirmVisitor.name}`
     );
-    setActionMenuVisitor(null);
+    setRevokeConfirmVisitor(null);
+    setActiveMenuId(null);
   };
 
-  const handleResendConfirmation = (v: Visitor) => {
-    showToast(`Pass confirmation re-dispatched to ${v.email}`);
-    setActionMenuVisitor(null);
+  const handleConfirmResend = () => {
+    if (!resendConfirmVisitor) return;
+    showToast(`Pass confirmation dispatched to ${resendConfirmVisitor.email}`);
+    setResendConfirmVisitor(null);
+    setActiveMenuId(null);
   };
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 relative">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-white/10 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
+        <div className="fixed top-6 right-4 sm:right-8 z-[9999] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 max-w-sm sm:max-w-md animate-in fade-in slide-in-from-top-3">
           <div className="w-7 h-7 rounded-xl bg-orange-600 flex items-center justify-center shrink-0 text-white">
             <CheckCircle2 className="w-4 h-4" />
           </div>
@@ -154,7 +184,7 @@ export default function AdminVisitorsPage() {
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            className="text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-white cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -177,7 +207,7 @@ export default function AdminVisitorsPage() {
           {stats.map((s, i) => (
             <div
               key={i}
-              className="w-[50%] min-w-[168px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+              className="w-[46%] min-w-[150px] sm:w-[180px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
             >
               <div className="flex items-center justify-between gap-1.5 mb-1">
                 <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">
@@ -242,9 +272,9 @@ export default function AdminVisitorsPage() {
       </div>
 
       {/* Visitor Directory */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-visible">
         {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden md:block overflow-x-visible">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-100">
@@ -324,7 +354,7 @@ export default function AdminVisitorsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
+                    <div className="flex items-center justify-end gap-1.5 relative visitor-menu-container">
                       <button
                         type="button"
                         onClick={() => setSelectedVisitorForDossier(visitor)}
@@ -335,12 +365,68 @@ export default function AdminVisitorsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setActionMenuVisitor(visitor)}
-                        className="p-2 bg-white border border-slate-200/80 rounded-lg text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all cursor-pointer"
+                        onClick={() =>
+                          setActiveMenuId(activeMenuId === visitor.id ? null : visitor.id)
+                        }
+                        className={`p-2 rounded-lg transition-all cursor-pointer ${
+                          activeMenuId === visitor.id
+                            ? "bg-orange-600 text-white"
+                            : "bg-white border border-slate-200/80 text-slate-500 hover:text-orange-600"
+                        }`}
                         title="More Options"
                       >
                         <MoreVertical className="w-3.5 h-3.5" />
                       </button>
+
+                      {/* CONTEXTUAL DROPDOWN MENU */}
+                      {activeMenuId === visitor.id && (
+                        <div className="absolute right-0 top-full mt-1.5 z-40 bg-white border border-slate-200 rounded-2xl shadow-xl w-56 p-2 space-y-2 text-left animate-in fade-in zoom-in-95">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase px-2 mb-1">
+                              Pass Tier
+                            </label>
+                            <select
+                              value={visitor.type}
+                              onChange={(e) => {
+                                const newType = e.target.value as Visitor["type"];
+                                setTierConfirmState({ visitor, newType });
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-orange-500 cursor-pointer"
+                            >
+                              <option value="Guest">Guest</option>
+                              <option value="Standard">Standard Pass</option>
+                              <option value="VIP">VIP All-Access</option>
+                            </select>
+                          </div>
+
+                          <div className="pt-1.5 border-t border-slate-100 space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResendConfirmVisitor(visitor);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors cursor-pointer text-left"
+                            >
+                              <Mail className="w-3.5 h-3.5 text-orange-600" />
+                              <span>Resend Pass Email</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRevokeConfirmVisitor(visitor);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer text-left"
+                            >
+                              <ShieldAlert className="w-3.5 h-3.5 text-red-600" />
+                              <span>{visitor.revoked ? "Reactivate Pass" : "Revoke Pass"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -350,9 +436,9 @@ export default function AdminVisitorsPage() {
         </div>
 
         {/* Mobile Stacked List */}
-        <div className="md:hidden divide-y divide-slate-100">
+        <div className="md:hidden divide-y divide-slate-100 overflow-visible">
           {filteredVisitors.map((visitor) => (
-            <div key={visitor.id} className="p-4 space-y-2">
+            <div key={visitor.id} className="p-4 space-y-2 relative visitor-menu-container">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-extrabold text-sm text-slate-900 truncate">
@@ -403,7 +489,9 @@ export default function AdminVisitorsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setActionMenuVisitor(visitor)}
+                    onClick={() =>
+                      setActiveMenuId(activeMenuId === visitor.id ? null : visitor.id)
+                    }
                     className="p-1.5 bg-slate-100 rounded-lg text-slate-600 hover:text-orange-600 cursor-pointer"
                     aria-label="Visitor Options"
                   >
@@ -411,6 +499,53 @@ export default function AdminVisitorsPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Mobile Contextual Menu */}
+              {activeMenuId === visitor.id && (
+                <div className="mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-left animate-in fade-in">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase px-1 mb-1">
+                      Switch Pass Tier
+                    </label>
+                    <select
+                      value={visitor.type}
+                      onChange={(e) => {
+                        const newType = e.target.value as Visitor["type"];
+                        setTierConfirmState({ visitor, newType });
+                        setActiveMenuId(null);
+                      }}
+                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-2 py-1.5 cursor-pointer"
+                    >
+                      <option value="Guest">Guest</option>
+                      <option value="Standard">Standard Pass</option>
+                      <option value="VIP">VIP All-Access</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-200 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResendConfirmVisitor(visitor);
+                        setActiveMenuId(null);
+                      }}
+                      className="flex-1 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 cursor-pointer text-center"
+                    >
+                      Resend Pass
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRevokeConfirmVisitor(visitor);
+                        setActiveMenuId(null);
+                      }}
+                      className="flex-1 py-1.5 bg-red-50 border border-red-200 rounded-lg text-xs font-bold text-red-600 hover:bg-red-100 cursor-pointer text-center"
+                    >
+                      {visitor.revoked ? "Reactivate" : "Revoke"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -457,7 +592,7 @@ export default function AdminVisitorsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedVisitorForDossier(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -538,64 +673,104 @@ export default function AdminVisitorsPage() {
         </div>
       )}
 
-      {/* 2. VISITOR ACTION MENU MODAL */}
-      {actionMenuVisitor && (
+      {/* 2. CONFIRM RESEND TICKET EMAIL MODAL */}
+      {resendConfirmVisitor && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900">Attendee Actions</h3>
-                <p className="text-[11px] text-slate-500 font-medium truncate max-w-[200px]">
-                  {actionMenuVisitor.name}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActionMenuVisitor(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">Resend Ticket Pass</h3>
+              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                Dispatch an updated access pass and QR code to &ldquo;{resendConfirmVisitor.email}&rdquo;?
+              </p>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => handleResendConfirmation(actionMenuVisitor)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-slate-700 hover:text-orange-600 text-xs font-bold transition-colors cursor-pointer text-left"
-              >
-                <Mail className="w-4 h-4 text-orange-600" />
-                <span>Resend Ticket Pass Email</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleVip(actionMenuVisitor)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-purple-600 text-xs font-bold transition-colors cursor-pointer text-left"
-              >
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                <span>
-                  {actionMenuVisitor.type === "VIP" ? "Demote to Standard" : "Upgrade to VIP"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleRevoke(actionMenuVisitor)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-red-50 text-red-600 text-xs font-bold transition-colors cursor-pointer text-left"
-              >
-                <ShieldAlert className="w-4 h-4 text-red-600" />
-                <span>{actionMenuVisitor.revoked ? "Reactivate Pass" : "Revoke Access Pass"}</span>
-              </button>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setActionMenuVisitor(null)}
-                className="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                onClick={() => setResendConfirmVisitor(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmResend}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Send Email</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. CONFIRM TIER CHANGE MODAL */}
+      {tierConfirmState && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">Change Pass Tier</h3>
+              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                Are you sure you want to change &ldquo;{tierConfirmState.visitor.name}&rdquo; from{" "}
+                <span className="font-bold text-slate-700">{tierConfirmState.visitor.type}</span> to{" "}
+                <span className="font-bold text-orange-600">{tierConfirmState.newType}</span>?
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setTierConfirmState(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmTierChange}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors cursor-pointer shadow-xs"
+              >
+                Update Tier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. CONFIRM REVOKE / REACTIVATE MODAL */}
+      {revokeConfirmVisitor && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">
+                {revokeConfirmVisitor.revoked ? "Reactivate Pass" : "Revoke Access Pass"}
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                {revokeConfirmVisitor.revoked
+                  ? `Are you sure you want to restore access for "${revokeConfirmVisitor.name}"? Their pass will become valid immediately.`
+                  : `Are you sure you want to revoke the pass for "${revokeConfirmVisitor.name}"? They will be barred from entry until reactivated.`}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setRevokeConfirmVisitor(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmRevoke}
+                className={`px-4 py-2 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs ${
+                  revokeConfirmVisitor.revoked
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {revokeConfirmVisitor.revoked ? "Reactivate" : "Revoke"}
               </button>
             </div>
           </div>
