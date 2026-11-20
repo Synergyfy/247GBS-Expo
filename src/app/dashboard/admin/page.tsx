@@ -86,22 +86,22 @@ export default function AdminOverview() {
 
       {/* STATS MATRIX — Horizontal Scroll on Mobile with Peeping Card + Dot Indicator */}
       <div>
-        <div className="flex lg:grid lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+        <div className="flex lg:grid lg:grid-cols-4 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
           {stats.map((stat, i) => (
             <div
               key={i}
-              className="w-[62vw] min-w-[200px] max-w-[250px] lg:w-auto shrink-0 snap-start bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+              className="w-[50%] min-w-[168px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                <span className="text-xs font-bold text-slate-500 truncate">
+              <div className="flex items-center justify-between gap-1.5 mb-1">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">
                   {stat.label}
                 </span>
                 {stat.icon}
               </div>
-              <div className="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight">
+              <div className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 leading-tight">
                 {stat.value}
               </div>
-              <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
+              <div className="text-[10px] sm:text-[11px] text-slate-400 font-medium mt-0.5 truncate">
                 {stat.sub}
               </div>
             </div>
