@@ -20,8 +20,10 @@ import {
     Globe,
     MapPin,
     Video,
-    Clock
+    Clock,
+    Info
 } from "lucide-react";
+import Tooltip from "@/app/component/Tooltip";
 
 const ADMIN_TICKET_TEMPLATES = [
     {
@@ -255,8 +257,11 @@ export default function CreateEventPage() {
 
                             {/* Event Format Selection */}
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                                    Attendance Format
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                    <span>Attendance Format</span>
+                                    <Tooltip content="Choose virtual stream, in-person venue, or hybrid format.">
+                                        <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                    </Tooltip>
                                 </label>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                                     {[
@@ -317,8 +322,11 @@ export default function CreateEventPage() {
 
                             {/* Title */}
                             <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                    Event / Session Title
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                    <span>Event / Session Title</span>
+                                    <Tooltip content="The public headline shown across event listings and attendee calendars.">
+                                        <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                    </Tooltip>
                                 </label>
                                 <input
                                     type="text"
@@ -333,8 +341,11 @@ export default function CreateEventPage() {
                             {/* Schedule & Times */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        Event Date
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span>Event Date</span>
+                                        <Tooltip content="The scheduled calendar date for this live event session.">
+                                            <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                        </Tooltip>
                                     </label>
                                     <input
                                         type="date"
@@ -345,8 +356,11 @@ export default function CreateEventPage() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        Start Time
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span>Start Time</span>
+                                        <Tooltip content="Scheduled start time for attendee check-in and broadcast.">
+                                            <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                        </Tooltip>
                                     </label>
                                     <input
                                         type="time"
@@ -357,8 +371,11 @@ export default function CreateEventPage() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        End Time
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span>End Time</span>
+                                        <Tooltip content="Estimated closing time for your presentation or demo.">
+                                            <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                        </Tooltip>
                                     </label>
                                     <input
                                         type="time"
@@ -372,8 +389,11 @@ export default function CreateEventPage() {
                             {/* Conditional Format Fields: Virtual / Meet Link */}
                             {(format === "virtual" || format === "hybrid") && (
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        Online Joining Link (Google Meet / Zoom / Livestream)
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span>Online Joining Link (Google Meet / Zoom / Livestream)</span>
+                                        <Tooltip content="URL link where attendees will stream your virtual session.">
+                                            <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                        </Tooltip>
                                     </label>
                                     <input
                                         type="url"
@@ -389,8 +409,11 @@ export default function CreateEventPage() {
                             {(format === "physical" || format === "hybrid") && (
                                 <>
                                     <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                            Physical Venue Name & Address
+                                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                            <span>Physical Venue Name & Address</span>
+                                            <Tooltip content="Street address and exhibition hall name for in-person visitors.">
+                                                <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                            </Tooltip>
                                         </label>
                                         <input
                                             type="text"
@@ -403,8 +426,11 @@ export default function CreateEventPage() {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                                Physical Space / Seating Capacity
+                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                                <span>Physical Space / Seating Capacity</span>
+                                                <Tooltip content="Maximum seated capacity supported by your physical room or booth.">
+                                                    <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                                </Tooltip>
                                             </label>
                                             <input
                                                 type="number"
@@ -416,8 +442,11 @@ export default function CreateEventPage() {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                                Check-in Terminal Mode
+                                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                                <span>Check-in Terminal Mode</span>
+                                                <Tooltip content="Choose automated QR code scanning terminal or manual guest list check-in.">
+                                                    <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                                </Tooltip>
                                             </label>
                                             <select className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500">
                                                 <option>QR Scanner Terminal Active</option>
@@ -430,8 +459,11 @@ export default function CreateEventPage() {
 
                             {/* Max Total Passes */}
                             <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                    Total Attendee Ticket Cap
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                    <span>Total Attendee Ticket Cap</span>
+                                    <Tooltip content="Maximum tickets that can be issued across all pass holders.">
+                                        <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                    </Tooltip>
                                 </label>
                                 <input
                                     type="number"
@@ -472,8 +504,11 @@ export default function CreateEventPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                     <div>
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">
-                                            Search Registered Business
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
+                                            <span>Search Registered Business</span>
+                                            <Tooltip content="Select an exhibitor from the verified platform registry.">
+                                                <Info className="w-3 h-3 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                            </Tooltip>
                                         </label>
                                         <select
                                             value={selectedPartnerId}
@@ -489,8 +524,11 @@ export default function CreateEventPage() {
                                     </div>
 
                                     <div>
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">
-                                            Contribution Role
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
+                                            <span>Contribution Role</span>
+                                            <Tooltip content="Designated partner role such as guest speaker, co-host, or sponsor.">
+                                                <Info className="w-3 h-3 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                            </Tooltip>
                                         </label>
                                         <select
                                             value={partnerRole}
@@ -633,8 +671,11 @@ export default function CreateEventPage() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        Your Ticket Price (£{activeTemplate.minPrice} – £{activeTemplate.maxPrice} Cap)
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span>Your Ticket Price (£{activeTemplate.minPrice} – £{activeTemplate.maxPrice} Cap)</span>
+                                        <Tooltip content="Set your attendee pass price within the admin-approved price cap.">
+                                            <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                        </Tooltip>
                                     </label>
                                     <input
                                         type="number"
@@ -654,8 +695,11 @@ export default function CreateEventPage() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        MCOM Rewards Complimentary Allocation
+                                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span>Total Pass Quota</span>
+                                        <Tooltip content="Total number of passes allocated for this event session.">
+                                            <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                                        </Tooltip>
                                     </label>
                                     <input
                                         type="number"
@@ -756,7 +800,7 @@ export default function CreateEventPage() {
                                             <span className="font-bold text-slate-900">{capacity} Passes</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-slate-500 font-medium">Rewards Quota</span>
+                                            <span className="text-slate-500 font-medium">Total Pass Quota</span>
                                             <span className="font-bold text-slate-900">{rewardQuota} Passes</span>
                                         </div>
                                     </div>
