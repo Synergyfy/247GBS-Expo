@@ -10,7 +10,8 @@ import {
   Settings,
   X,
   Layers,
-  CheckCircle2
+  CheckCircle2,
+  Check
 } from "lucide-react";
 import {
   DEFAULT_EVENT_CATEGORIES,
@@ -152,66 +153,19 @@ export default function TicketTemplatesPage() {
       </div>
 
       {/* 1. EVENT & PRODUCT CATEGORIES */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-          <div>
-            <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-orange-600" />
-              <span>Event & Product Categories</span>
-            </h3>
-            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-              Platform-wide categories available during event scheduling, news drafting, and booth registration.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsAddingCategory(!isAddingCategory)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200/80 hover:bg-orange-100 transition-colors shrink-0 w-fit cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{isAddingCategory ? "Cancel" : "Add Category"}</span>
-          </button>
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
+        <div className="border-b border-slate-100 pb-2">
+          <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-orange-600" />
+            <span>Event & Product Categories</span>
+          </h3>
+          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+            Platform-wide categories available during event scheduling, news drafting, and booth registration.
+          </p>
         </div>
 
-        {/* Inline Add Category Input */}
-        {isAddingCategory && (
-          <form
-            onSubmit={handleAddCategory}
-            className="p-3 bg-orange-50/70 border border-orange-200 rounded-xl flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-in fade-in"
-          >
-            <input
-              type="text"
-              autoFocus
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="e.g. Artificial Intelligence, Logistics, FinTech..."
-              className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500"
-            />
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="submit"
-                disabled={!newCategoryName.trim()}
-                className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
-              >
-                Add Category
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddingCategory(false);
-                  setNewCategoryName("");
-                }}
-                className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Category Badges */}
-        <div className="flex flex-wrap gap-2">
+        {/* Category Badges with Inline Adder */}
+        <div className="flex flex-wrap items-center gap-2">
           {categories.map((cat, i) => (
             <div
               key={i}
@@ -230,8 +184,58 @@ export default function TicketTemplatesPage() {
             </div>
           ))}
 
-          {categories.length === 0 && (
-            <div className="p-4 text-xs font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-xl w-full text-center">
+          {isAddingCategory ? (
+            <form
+              onSubmit={handleAddCategory}
+              className="inline-flex items-center gap-1.5 bg-white border-2 border-orange-500 rounded-xl px-2.5 py-1 shadow-xs animate-in fade-in"
+            >
+              <input
+                type="text"
+                autoFocus
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setIsAddingCategory(false);
+                    setNewCategoryName("");
+                  }
+                }}
+                placeholder="Category name..."
+                className="w-36 sm:w-44 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent"
+              />
+              <button
+                type="submit"
+                disabled={!newCategoryName.trim()}
+                className="text-orange-600 hover:text-orange-700 disabled:opacity-30 p-0.5 cursor-pointer"
+                title="Add Category"
+              >
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddingCategory(false);
+                  setNewCategoryName("");
+                }}
+                className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title="Cancel"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsAddingCategory(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-400 hover:bg-orange-50/50 transition-all text-xs font-bold cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Category</span>
+            </button>
+          )}
+
+          {categories.length === 0 && !isAddingCategory && (
+            <div className="p-3 text-xs font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-xl w-full text-center">
               No categories configured yet. Click &quot;Add Category&quot; above to create one.
             </div>
           )}
