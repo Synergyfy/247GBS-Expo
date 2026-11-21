@@ -51,17 +51,6 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     ]
   },
   {
-    id: "compliance-audit",
-    title: "Compliance & Audit",
-    iconName: "ShieldCheck",
-    items: [
-      { label: "Compliance Checks", href: "/dashboard/admin/compliance", iconName: "ShieldCheck" },
-      { label: "Risk Management", href: "/dashboard/admin/risk", iconName: "AlertTriangle" },
-      { label: "Audit Trail", href: "/dashboard/admin/audit", iconName: "History" },
-      { label: "System Health", href: "/dashboard/admin/health", iconName: "Activity" }
-    ]
-  },
-  {
     id: "content-media",
     title: "Content & Media",
     iconName: "Newspaper",

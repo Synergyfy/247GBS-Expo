@@ -22,70 +22,7 @@ import {
   Check
 } from "lucide-react";
 
-interface Business {
-  id: string;
-  name: string;
-  owner: string;
-  email: string;
-  cac: string;
-  status: "Standard" | "Verified" | "Premium";
-  dateSynced: string;
-  revenue: string;
-  eventsHeld: number;
-  location: string;
-  suspended?: boolean;
-}
-
-const INITIAL_BUSINESSES: Business[] = [
-  {
-    id: "biz_1",
-    name: "TechGlobal Solutions Ltd",
-    owner: "Abiodun Okoro",
-    email: "contact@techglobal.com",
-    cac: "RC-1234567",
-    status: "Premium",
-    dateSynced: "2026-01-15",
-    revenue: "£1.2M",
-    eventsHeld: 14,
-    location: "Lagos, Nigeria"
-  },
-  {
-    id: "biz_2",
-    name: "Creative Wave Media",
-    owner: "Sarah Jenkins",
-    email: "sarah@creativewave.uk",
-    cac: "UK-998877",
-    status: "Verified",
-    dateSynced: "2026-02-01",
-    revenue: "£450k",
-    eventsHeld: 5,
-    location: "London, UK"
-  },
-  {
-    id: "biz_3",
-    name: "GreenEnergy Pro",
-    owner: "Hans Miller",
-    email: "info@greenpro.de",
-    cac: "DE-443322",
-    status: "Standard",
-    dateSynced: "2026-02-10",
-    revenue: "£890k",
-    eventsHeld: 8,
-    location: "Berlin, Germany"
-  },
-  {
-    id: "biz_4",
-    name: "Finest Retail Corp",
-    owner: "Anita Desai",
-    email: "admin@finestretail.in",
-    cac: "IN-112233",
-    status: "Premium",
-    dateSynced: "2026-01-20",
-    revenue: "£2.5M",
-    eventsHeld: 22,
-    location: "Mumbai, India"
-  }
-];
+import { INITIAL_BUSINESSES, Business } from "./data";
 
 export default function AdminBusinessesPage() {
   const [businesses, setBusinesses] = useState<Business[]>(INITIAL_BUSINESSES);
@@ -383,9 +320,9 @@ export default function AdminBusinessesPage() {
                         <Mail className="w-3.5 h-3.5" />
                       </button>
                       <Link
-                        href={`/dashboard/customer/booths/${biz.id}`}
+                        href={`/dashboard/admin/businesses/${biz.id}/booth`}
                         className="p-2 bg-white border border-slate-200/80 rounded-lg text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all cursor-pointer inline-flex items-center justify-center"
-                        title="View Live Booth"
+                        title="View Booth in Admin"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                       </Link>
@@ -425,6 +362,15 @@ export default function AdminBusinessesPage() {
                           </div>
 
                           <div className="pt-1.5 border-t border-slate-100 space-y-1">
+                            <Link
+                              href={`/dashboard/admin/businesses/${biz.id}/booth`}
+                              onClick={() => setActiveMenuId(null)}
+                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-orange-600 transition-colors cursor-pointer text-left"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                              <span>View Booth in Admin</span>
+                            </Link>
+
                             <button
                               type="button"
                               onClick={() => {
@@ -515,9 +461,9 @@ export default function AdminBusinessesPage() {
                     <Mail className="w-3.5 h-3.5" />
                   </button>
                   <Link
-                    href={`/dashboard/customer/booths/${biz.id}`}
+                    href={`/dashboard/admin/businesses/${biz.id}/booth`}
                     className="p-1.5 bg-slate-100 rounded-lg text-slate-600 hover:text-orange-600 cursor-pointer inline-flex items-center justify-center"
-                    aria-label="View Booth"
+                    aria-label="View Booth in Admin"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
@@ -552,6 +498,17 @@ export default function AdminBusinessesPage() {
                       <option value="Verified">Verified Tier</option>
                       <option value="Premium">Premium Tier</option>
                     </select>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-200">
+                    <Link
+                      href={`/dashboard/admin/businesses/${biz.id}/booth`}
+                      onClick={() => setActiveMenuId(null)}
+                      className="w-full flex items-center justify-center gap-1.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-orange-600 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                      <span>View Booth in Admin</span>
+                    </Link>
                   </div>
 
                   <div className="pt-1.5 border-t border-slate-200 flex gap-2">
