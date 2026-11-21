@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Bold,
   Italic,
@@ -19,14 +19,35 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { DEFAULT_EVENT_CATEGORIES, getStoredCategories } from "@/data/categories";
 
 export default function CreateNewsPage() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Technology");
+  const [availableCategories, setAvailableCategories] = useState<string[]>(DEFAULT_EVENT_CATEGORIES);
   const [excerpt, setExcerpt] = useState("");
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loaded = getStoredCategories();
+    setAvailableCategories(loaded);
+    if (loaded.length > 0 && !loaded.includes(category)) {
+      setCategory(loaded[0]);
+    }
+
+    const handleSync = (e: any) => {
+      if (e?.detail && Array.isArray(e.detail)) {
+        setAvailableCategories(e.detail);
+        if (!e.detail.includes(category) && e.detail.length > 0) {
+          setCategory(e.detail[0]);
+        }
+      }
+    };
+    window.addEventListener("event_categories_changed", handleSync);
+    return () => window.removeEventListener("event_categories_changed", handleSync);
+  }, [category]);
 
   const execCommand = (command: string, value: string = "") => {
     document.execCommand(command, false, value);
@@ -112,13 +133,13 @@ export default function CreateNewsPage() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 appearance-none focus:border-orange-500 outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 appearance-none focus:border-orange-500 outline-none cursor-pointer"
                   >
-                    <option>Technology</option>
-                    <option>Partnership</option>
-                    <option>Community</option>
-                    <option>Event Update</option>
-                    <option>Innovation</option>
+                    {availableCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>

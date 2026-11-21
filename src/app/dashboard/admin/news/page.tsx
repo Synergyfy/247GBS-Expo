@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -18,10 +18,23 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { NEWS_ITEMS } from "@/data/news";
+import { DEFAULT_EVENT_CATEGORIES, getStoredCategories } from "@/data/categories";
 
 export default function NewsManagementPage() {
   const [news, setNews] = useState(NEWS_ITEMS);
   const [searchTerm, setSearchTerm] = useState("");
+  const [availableCategories, setAvailableCategories] = useState<string[]>(DEFAULT_EVENT_CATEGORIES);
+
+  useEffect(() => {
+    setAvailableCategories(getStoredCategories());
+    const handleSync = (e: any) => {
+      if (e?.detail && Array.isArray(e.detail)) {
+        setAvailableCategories(e.detail);
+      }
+    };
+    window.addEventListener("event_categories_changed", handleSync);
+    return () => window.removeEventListener("event_categories_changed", handleSync);
+  }, []);
 
   // Modals
   const [previewItem, setPreviewItem] = useState<(typeof NEWS_ITEMS)[0] | null>(null);
@@ -410,12 +423,13 @@ export default function NewsManagementPage() {
                 <select
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-orange-500 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-orange-500 bg-white cursor-pointer"
                 >
-                  <option value="PLATFORM UPDATE">PLATFORM UPDATE</option>
-                  <option value="PARTNERSHIP">PARTNERSHIP</option>
-                  <option value="COMMUNITY">COMMUNITY</option>
-                  <option value="EXPO HIGHLIGHT">EXPO HIGHLIGHT</option>
+                  {availableCategories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
                 </select>
               </div>
 
