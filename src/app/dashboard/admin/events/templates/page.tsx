@@ -10,15 +10,8 @@ import {
   Settings,
   X,
   Layers,
-  CheckCircle2,
-  Info,
-  DollarSign,
-  ChevronDown,
-  Sparkles,
-  ShieldCheck
+  CheckCircle2
 } from "lucide-react";
-import Modal from "@/app/component/Modal";
-import Tooltip from "@/app/component/Tooltip";
 import {
   DEFAULT_EVENT_CATEGORIES,
   getStoredCategories,
@@ -39,27 +32,6 @@ export default function TicketTemplatesPage() {
 
   // Templates State
   const [templates, setTemplates] = useState<GlobalTicketTemplate[]>(DEFAULT_TICKET_TEMPLATES);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
-
-  // Form State for Create / Edit
-  const [templateForm, setTemplateForm] = useState<{
-    name: string;
-    access: string;
-    minPrice: number;
-    maxPrice: number;
-    isGiftOnly: boolean;
-    commission: string;
-    description: string;
-  }>({
-    name: "",
-    access: "General",
-    minPrice: 0,
-    maxPrice: 50,
-    isGiftOnly: false,
-    commission: "10% Platform Split",
-    description: ""
-  });
 
   // Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -117,104 +89,12 @@ export default function TicketTemplatesPage() {
     showToast(`Category "${catToRemove}" removed`);
   };
 
-  // Template Actions
-  const handleOpenCreateModal = () => {
-    setEditingTemplateId(null);
-    setTemplateForm({
-      name: "",
-      access: "General",
-      minPrice: 0,
-      maxPrice: 50,
-      isGiftOnly: false,
-      commission: "10% Platform Split",
-      description: ""
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEditModal = (tpl: GlobalTicketTemplate) => {
-    setEditingTemplateId(tpl.id);
-    setTemplateForm({
-      name: tpl.name,
-      access: tpl.access,
-      minPrice: tpl.minPrice,
-      maxPrice: tpl.maxPrice,
-      isGiftOnly: Boolean(tpl.isGiftOnly),
-      commission: tpl.commission || "10% Platform Split",
-      description: tpl.description || ""
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSaveTemplate = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedName = templateForm.name.trim();
-    if (!trimmedName) {
-      showToast("Please provide a template name");
-      return;
-    }
-
-    const priceRange = templateForm.isGiftOnly
-      ? "GIFT ONLY"
-      : `£${templateForm.minPrice} - £${templateForm.maxPrice}`;
-
-    if (editingTemplateId) {
-      // Update existing
-      const updated = templates.map((t) =>
-        t.id === editingTemplateId
-          ? {
-              ...t,
-              name: trimmedName,
-              access: templateForm.access,
-              minPrice: templateForm.minPrice,
-              maxPrice: templateForm.maxPrice,
-              isGiftOnly: templateForm.isGiftOnly,
-              priceRange,
-              commission: templateForm.commission,
-              description: templateForm.description
-            }
-          : t
-      );
-      setTemplates(updated);
-      saveStoredTicketTemplates(updated);
-      showToast(`Template "${trimmedName}" updated`);
-    } else {
-      // Create new
-      const newTpl: GlobalTicketTemplate = {
-        id: `tpl_${Date.now()}`,
-        name: trimmedName,
-        access: templateForm.access,
-        minPrice: templateForm.minPrice,
-        maxPrice: templateForm.maxPrice,
-        isGiftOnly: templateForm.isGiftOnly,
-        priceRange,
-        status: "Active",
-        commission: templateForm.commission,
-        description: templateForm.description
-      };
-      const updated = [...templates, newTpl];
-      setTemplates(updated);
-      saveStoredTicketTemplates(updated);
-      showToast(`Ticket Template "${trimmedName}" created successfully`);
-    }
-
-    setIsModalOpen(false);
-  };
-
   const handleDeleteTemplate = (id: string, name: string) => {
     const updated = templates.filter((t) => t.id !== id);
     setTemplates(updated);
     saveStoredTicketTemplates(updated);
     showToast(`Template "${name}" deleted`);
   };
-
-  const accessOptions = [
-    "General",
-    "Full Hall + Lounge",
-    "Specific Booth",
-    "Keynote & Workshop Only",
-    "VIP All-Access Pass"
-  ];
 
   return (
     <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6 relative pb-16">
@@ -262,14 +142,13 @@ export default function TicketTemplatesPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenCreateModal}
+        <Link
+          href="/dashboard/admin/events/templates/create"
           className="inline-flex items-center gap-1.5 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-600 shadow-sm transition-all active:scale-95 shrink-0 w-fit cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Create Template</span>
-        </button>
+        </Link>
       </div>
 
       {/* 1. EVENT & PRODUCT CATEGORIES */}
@@ -372,14 +251,13 @@ export default function TicketTemplatesPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenCreateModal}
+          <Link
+            href="/dashboard/admin/events/templates/create"
             className="inline-flex items-center gap-1.5 bg-slate-900 text-white px-3.5 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all text-xs w-fit cursor-pointer shadow-xs shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Create Template</span>
-          </button>
+          </Link>
         </div>
 
         {templates.length > 0 ? (
@@ -412,14 +290,13 @@ export default function TicketTemplatesPage() {
                     CAP: {temp.priceRange}
                   </span>
                   <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditModal(temp)}
+                    <Link
+                      href={`/dashboard/admin/events/templates/create?edit=${temp.id}`}
                       className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
                       title="Edit Template"
                     >
                       <Settings className="w-3.5 h-3.5" />
-                    </button>
+                    </Link>
                     <button
                       type="button"
                       onClick={() => handleDeleteTemplate(temp.id, temp.name)}
@@ -447,177 +324,16 @@ export default function TicketTemplatesPage() {
                 access tiers, and platform revenue splits for new events.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleOpenCreateModal}
+            <Link
+              href="/dashboard/admin/events/templates/create"
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create New Template</span>
-            </button>
+            </Link>
           </div>
         )}
       </div>
-
-      {/* CREATE / EDIT TEMPLATE MODAL */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingTemplateId ? "Edit Ticket Template" : "Create Ticket Template"}
-      >
-        <form onSubmit={handleSaveTemplate} className="space-y-4">
-          <div>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider">
-                Template Name <span className="text-orange-600">*</span>
-              </label>
-              <Tooltip content="The public name of the ticket tier (e.g. Standard Day Pass, VIP Experience)">
-                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-              </Tooltip>
-            </div>
-            <input
-              type="text"
-              required
-              placeholder="e.g. VIP All-Access Pass"
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-900 outline-none focus:border-orange-500"
-              value={templateForm.name}
-              onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
-              Access Level <span className="text-orange-600">*</span>
-            </label>
-            <div className="relative">
-              <select
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-800 outline-none focus:border-orange-500 appearance-none cursor-pointer"
-                value={templateForm.access}
-                onChange={(e) => setTemplateForm({ ...templateForm, access: e.target.value })}
-              >
-                {accessOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Pricing Type Toggle */}
-          <div>
-            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
-              Pricing Cap Configuration
-            </label>
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="priceType"
-                  checked={!templateForm.isGiftOnly}
-                  onChange={() => setTemplateForm({ ...templateForm, isGiftOnly: false })}
-                  className="w-4 h-4 text-orange-600 focus:ring-orange-500"
-                />
-                <span className="text-xs font-bold text-slate-800">Paid Tier (Capped)</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="priceType"
-                  checked={templateForm.isGiftOnly}
-                  onChange={() => setTemplateForm({ ...templateForm, isGiftOnly: true })}
-                  className="w-4 h-4 text-orange-600 focus:ring-orange-500"
-                />
-                <span className="text-xs font-bold text-slate-800">Gift Only / Free</span>
-              </label>
-            </div>
-          </div>
-
-          {!templateForm.isGiftOnly && (
-            <div>
-              <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
-                Allowed Price Cap Range (£)
-              </label>
-              <div className="flex gap-2.5 items-center">
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                    £
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Min"
-                    className="w-full pl-7 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold outline-none focus:border-orange-500"
-                    value={templateForm.minPrice}
-                    onChange={(e) =>
-                      setTemplateForm({ ...templateForm, minPrice: Number(e.target.value) })
-                    }
-                  />
-                </div>
-                <span className="text-slate-400 font-bold">—</span>
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                    £
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Max Cap"
-                    className="w-full pl-7 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold outline-none focus:border-orange-500"
-                    value={templateForm.maxPrice}
-                    onChange={(e) =>
-                      setTemplateForm({ ...templateForm, maxPrice: Number(e.target.value) })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
-              Platform Split Note
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. 10% Platform Split"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-orange-500"
-              value={templateForm.commission}
-              onChange={(e) => setTemplateForm({ ...templateForm, commission: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
-              Template Description (Optional)
-            </label>
-            <textarea
-              rows={2}
-              placeholder="Describe what access and perks are included..."
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-orange-500 resize-none"
-              value={templateForm.description}
-              onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
-            >
-              {editingTemplateId ? "Save Changes" : "Create Template"}
-            </button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }
