@@ -11,13 +11,13 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans flex text-slate-900 relative overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 font-sans flex text-slate-900 relative overflow-x-clip max-w-full">
       {/* Desktop Collapsible Sidebar */}
       <CustomerSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
       {/* Main Content Wrapper (No mobile left margin, full responsive width) */}
       <main
-        className={`flex-1 min-w-0 w-full max-w-full transition-all duration-300 ml-0 ${
+        className={`flex-1 min-w-0 w-full max-w-full overflow-x-clip transition-all duration-300 ml-0 ${
           sidebarOpen ? "lg:ml-64" : "lg:ml-20"
         }`}
       >
@@ -50,7 +50,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
         </div>
 
         {/* Page Content with Safe Bottom Padding for Mobile Nav */}
-        <div className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 w-full max-w-full overflow-x-clip">{children}</div>
       </main>
 
       {/* Mobile Persistent Bottom Nav + More Drawer */}

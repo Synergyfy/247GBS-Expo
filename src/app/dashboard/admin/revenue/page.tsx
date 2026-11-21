@@ -87,8 +87,8 @@ export default function FinancialHubPage() {
                 <div className="w-[52%] min-w-[172px] sm:w-[200px] md:w-auto shrink-0 snap-start bg-slate-900 rounded-2xl p-3.5 sm:p-5 text-white relative overflow-hidden shadow-md flex flex-col justify-between">
                   <div className="relative z-10">
                     <div className="flex items-center justify-between gap-1.5 mb-1">
-                      <p className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 tracking-wider truncate">
-                        Total Gross Volume
+                      <p className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 tracking-wider">
+                        Total Volume
                       </p>
                       <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     </div>

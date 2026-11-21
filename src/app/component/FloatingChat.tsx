@@ -123,7 +123,7 @@ export default function FloatingChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-20 sm:bottom-24 right-3 sm:right-8 z-50 w-[calc(100vw-24px)] max-w-sm md:w-96 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col h-[460px] sm:h-[500px]"
+            className="fixed bottom-20 sm:bottom-24 left-3 right-3 sm:left-auto sm:right-8 z-50 max-w-sm sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col h-[460px] sm:h-[500px]"
           >
             {/* Header */}
             <div className="bg-slate-900 p-3.5 sm:p-4 flex justify-between items-center text-white">
@@ -198,8 +198,9 @@ export default function FloatingChat() {
       <motion.div
         ref={buttonRef}
         drag
+        dragConstraints={{ left: -320, right: 0, top: -600, bottom: 0 }}
         dragMomentum={false}
-        dragElastic={0.15}
+        dragElastic={0.05}
         animate={controls}
         style={{ x, y }}
         onDragStart={handleDragStart}

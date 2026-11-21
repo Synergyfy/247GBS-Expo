@@ -90,7 +90,7 @@ export default function AdminOverview() {
           {stats.map((stat, i) => (
             <div
               key={i}
-              className="w-[50%] min-w-[168px] sm:w-[190px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+              className="w-[46%] min-w-[150px] sm:w-[180px] lg:w-auto shrink-0 snap-start bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between"
             >
               <div className="flex items-center justify-between gap-1.5 mb-1">
                 <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">

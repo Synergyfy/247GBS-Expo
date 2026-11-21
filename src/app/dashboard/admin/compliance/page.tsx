@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck,
   UserCheck,
@@ -12,17 +13,89 @@ import {
   Eye,
   Database,
   FileText,
-  Gavel
+  Gavel,
+  X,
+  CheckCircle2,
+  Download,
+  Fingerprint
 } from "lucide-react";
+
+interface ComplianceItem {
+  id: string;
+  name: string;
+  type: string;
+  date: string;
+  status: "Verified" | "Reviewing" | "Cleared";
+  hash: string;
+}
+
+const INITIAL_ITEMS: ComplianceItem[] = [
+  {
+    id: "COMP-101",
+    name: "Global Tech Corp",
+    type: "Identity Verification",
+    date: "12m ago",
+    status: "Verified",
+    hash: "0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069"
+  },
+  {
+    id: "COMP-102",
+    name: "Urban Threads Co.",
+    type: "Event Content Audit",
+    date: "2h ago",
+    status: "Reviewing",
+    hash: "0x3a4b9c10284eef11029487bbaec385102948bbcd1947e8529348123abc456789"
+  },
+  {
+    id: "COMP-103",
+    name: "Apex Financial",
+    type: "UK Sanction Check",
+    date: "5h ago",
+    status: "Cleared",
+    hash: "0x98124beef8847192305712957129571029471928471928471928471928471928"
+  }
+];
+
+interface DsarRequest {
+  id: string;
+  type: "Export" | "Deletion";
+  user: string;
+  submitted: string;
+  status: "Pending" | "Processed";
+}
+
+const INITIAL_DSAR: DsarRequest[] = [
+  { id: "REQ-001", type: "Export", user: "user@example.com", submitted: "1 day ago", status: "Pending" },
+  { id: "REQ-002", type: "Deletion", user: "test@domain.com", submitted: "2 days ago", status: "Pending" },
+  { id: "REQ-003", type: "Export", user: "john.doe@web.com", submitted: "3 days ago", status: "Pending" }
+];
 
 export default function ComplianceHubPage() {
   const [activeTab, setActiveTab] = useState("sync");
+  const [complianceItems, setComplianceItems] = useState<ComplianceItem[]>(INITIAL_ITEMS);
+  const [dsarRequests, setDsarRequests] = useState<DsarRequest[]>(INITIAL_DSAR);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const complianceItems = [
-    { name: "Global Tech Corp", type: "Identity Verification", date: "12m ago", status: "Verified" },
-    { name: "Urban Threads Co.", type: "Event Content Audit", date: "2h ago", status: "Reviewing" },
-    { name: "Apex Financial", type: "UK Sanction Check", date: "5h ago", status: "Cleared" }
-  ];
+  // Modals
+  const [inspectLog, setInspectLog] = useState<ComplianceItem | null>(null);
+  const [selectedDsar, setSelectedDsar] = useState<DsarRequest | null>(null);
+  const [showAuditHistory, setShowAuditHistory] = useState(false);
+  const [showLegalRequests, setShowLegalRequests] = useState(false);
+  const [gdprEnforced, setGdprEnforced] = useState(true);
+
+  // Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const filteredItems = complianceItems.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const stats = [
     { label: "Verified Accounts", val: "124.2K", sub: "Active users", icon: <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" /> },
@@ -30,8 +103,53 @@ export default function ComplianceHubPage() {
     { label: "Flagged Entities", val: "3", sub: "Under review", icon: <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" /> }
   ];
 
+  const handleUpdateStatus = (item: ComplianceItem, newStatus: ComplianceItem["status"]) => {
+    setComplianceItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, status: newStatus } : i))
+    );
+    showToast(`${item.name} verification status set to ${newStatus}`);
+    setInspectLog(null);
+  };
+
+  const handleProcessDsar = (req: DsarRequest) => {
+    setDsarRequests((prev) =>
+      prev.map((r) => (r.id === req.id ? { ...r, status: "Processed" } : r))
+    );
+    showToast(
+      req.type === "Export"
+        ? `GDPR data archive generated and dispatched to ${req.user}`
+        : `Personal data purged for ${req.user}`
+    );
+    setSelectedDsar(null);
+  };
+
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto relative">
+      {/* Toast Notification — Smooth Slide-in with framer-motion */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            className="fixed top-20 sm:top-24 right-4 sm:right-6 z-[9999] bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-xl border border-white/10 flex items-center gap-2.5 max-w-xs sm:max-w-sm pointer-events-auto"
+          >
+            <div className="w-5 h-5 rounded-lg bg-orange-600 flex items-center justify-center shrink-0 text-white">
+              <CheckCircle2 className="w-3 h-3" />
+            </div>
+            <p className="text-[11px] sm:text-xs font-semibold flex-1 leading-tight">{toastMessage}</p>
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
@@ -45,14 +163,16 @@ export default function ComplianceHubPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
-            className="bg-white border border-slate-200/80 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs"
+            onClick={() => setShowAuditHistory(true)}
+            className="bg-white border border-slate-200/80 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <History className="w-3.5 h-3.5 text-slate-500" />
             <span>Audit History</span>
           </button>
           <button
             type="button"
-            className="bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-orange-700 inline-flex items-center gap-1.5 shadow-sm"
+            onClick={() => setShowLegalRequests(true)}
+            className="bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-orange-700 inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Gavel className="w-3.5 h-3.5" />
             <span>Legal Requests</span>
@@ -71,7 +191,7 @@ export default function ComplianceHubPage() {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`pb-3 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all relative flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+            className={`pb-3 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all relative flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer ${
               activeTab === tab.id ? "text-orange-600" : "text-slate-400 hover:text-slate-900"
             }`}
           >
@@ -87,7 +207,7 @@ export default function ComplianceHubPage() {
       <div>
         {activeTab === "sync" && (
           <div className="space-y-4 sm:space-y-6">
-            {/* Horizontal Scroll KPI Cards on Mobile with Peeping Card + Dot Indicator */}
+            {/* Horizontal Scroll KPI Cards on Mobile */}
             <div>
               <div className="flex lg:grid lg:grid-cols-3 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
                 {stats.map((s, i) => (
@@ -126,6 +246,8 @@ export default function ComplianceHubPage() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                   <input
                     type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search entity..."
                     className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-orange-500"
                   />
@@ -155,8 +277,8 @@ export default function ComplianceHubPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {complianceItems.map((item, i) => (
-                      <tr key={i} className="hover:bg-slate-50/60 transition-colors">
+                    {filteredItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                         <td className="px-6 py-4 text-xs sm:text-sm font-bold text-slate-900">
                           {item.name}
                         </td>
@@ -180,7 +302,8 @@ export default function ComplianceHubPage() {
                         <td className="px-6 py-4 text-right">
                           <button
                             type="button"
-                            className="text-orange-600 font-black text-xs uppercase tracking-wider hover:underline"
+                            onClick={() => setInspectLog(item)}
+                            className="text-orange-600 font-black text-xs uppercase tracking-wider hover:underline cursor-pointer"
                           >
                             Inspect Log
                           </button>
@@ -191,10 +314,10 @@ export default function ComplianceHubPage() {
                 </table>
               </div>
 
-              {/* Mobile Stacked Rows (Colored Status Text) */}
+              {/* Mobile Stacked Rows */}
               <div className="md:hidden divide-y divide-slate-100">
-                {complianceItems.map((item, i) => (
-                  <div key={i} className="p-4 flex items-center justify-between gap-3">
+                {filteredItems.map((item) => (
+                  <div key={item.id} className="p-4 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-extrabold text-slate-900 truncate">{item.name}</p>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -213,7 +336,8 @@ export default function ComplianceHubPage() {
                       </span>
                       <button
                         type="button"
-                        className="text-[11px] font-bold text-orange-600"
+                        onClick={() => setInspectLog(item)}
+                        className="text-[11px] font-bold text-orange-600 cursor-pointer"
                       >
                         Inspect &rarr;
                       </button>
@@ -242,9 +366,24 @@ export default function ComplianceHubPage() {
                       Auto-anonymize telemetry for UK/EU visitors
                     </p>
                   </div>
-                  <div className="w-11 h-6 bg-emerald-500 rounded-full relative cursor-pointer shrink-0">
-                    <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-xs" />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextVal = !gdprEnforced;
+                      setGdprEnforced(nextVal);
+                      showToast(`GDPR compliance auto-anonymization ${nextVal ? "enabled" : "disabled"}`);
+                    }}
+                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer p-0.5 shrink-0 ${
+                      gdprEnforced ? "bg-emerald-500" : "bg-slate-300"
+                    }`}
+                    aria-label="Toggle GDPR Compliance"
+                  >
+                    <span
+                      className={`block w-5 h-5 bg-white rounded-full shadow-xs transition-transform transform ${
+                        gdprEnforced ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 <div>
@@ -257,7 +396,8 @@ export default function ComplianceHubPage() {
                       min="6"
                       max="60"
                       defaultValue="24"
-                      className="w-full accent-orange-600"
+                      className="w-full accent-orange-600 cursor-pointer"
+                      onChange={(e) => showToast(`Retention adjusted to ${e.target.value} months`)}
                     />
                     <span className="font-black text-slate-900 text-xs w-10 text-right">24m</span>
                   </div>
@@ -276,15 +416,13 @@ export default function ComplianceHubPage() {
                   <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-orange-600" /> Data Requests (DSAR)
                   </h3>
-                  <span className="text-orange-600 text-xs font-black uppercase">3 Pending</span>
+                  <span className="text-orange-600 text-xs font-black uppercase">
+                    {dsarRequests.filter((r) => r.status === "Pending").length} Pending
+                  </span>
                 </div>
                 <div className="divide-y divide-slate-100 flex-1">
-                  {[
-                    { id: "REQ-001", type: "Export", user: "user@example.com" },
-                    { id: "REQ-002", type: "Deletion", user: "test@domain.com" },
-                    { id: "REQ-003", type: "Export", user: "john.doe@web.com" }
-                  ].map((req, i) => (
-                    <div key={i} className="flex items-center justify-between py-3">
+                  {dsarRequests.map((req) => (
+                    <div key={req.id} className="flex items-center justify-between py-3">
                       <div>
                         <div className="flex items-center gap-2 text-xs">
                           <span className="font-black text-slate-900">{req.id}</span>
@@ -296,12 +434,19 @@ export default function ComplianceHubPage() {
                           >
                             {req.type}
                           </span>
+                          {req.status === "Processed" && (
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">
+                              Processed
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-slate-500 mt-0.5">{req.user}</p>
                       </div>
                       <button
                         type="button"
-                        className="p-1.5 text-slate-400 hover:text-orange-600"
+                        onClick={() => setSelectedDsar(req)}
+                        className="p-1.5 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer"
+                        title="View DSAR Request"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -345,16 +490,254 @@ export default function ComplianceHubPage() {
 
         {/* SCREENING */}
         {activeTab === "screening" && (
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-8 sm:p-14 text-center">
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 mb-1 uppercase tracking-tight">
-              Automated Sanction & AML Screening
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto font-medium">
-              UK OFSI sanction checks and AML rules are active across all CHS-connected accounts.
-            </p>
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-8 sm:p-14 text-center space-y-4">
+            <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 mb-1 uppercase tracking-tight">
+                Automated Sanction & AML Screening
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto font-medium">
+                UK OFSI sanction checks and AML rules are active across all CHS-connected accounts.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => showToast("All connected accounts checked against UK OFSI sanctions list (0 hits)")}
+              className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition-colors cursor-pointer"
+            >
+              Run Global AML Scan
+            </button>
           </div>
         )}
       </div>
+
+      {/* 1. INSPECT LOG FORENSIC MODAL */}
+      {inspectLog && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">Compliance Inspection</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {inspectLog.name} • {inspectLog.type}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInspectLog(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between">
+                <span className="text-slate-500 font-bold">Verification Status</span>
+                <span className="font-black uppercase text-emerald-600">{inspectLog.status}</span>
+              </div>
+
+              <div>
+                <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                  Forensic Cryptographic Hash
+                </span>
+                <p className="font-mono text-[11px] bg-slate-900 text-slate-200 p-2.5 rounded-xl break-all">
+                  {inspectLog.hash}
+                </p>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                <p className="font-bold text-slate-700">Audit Checkpoint Summary</p>
+                <p className="text-slate-500 text-[11px] leading-relaxed">
+                  KYB verification submitted via Companies House gateway. Sanction screening returned clear with no PEP flags.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus(inspectLog, "Cleared")}
+                className="px-3.5 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                Mark Cleared
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInspectLog(null)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. DSAR REQUEST PROCESS MODAL */}
+      {selectedDsar && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">DSAR Request Review</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {selectedDsar.id} • {selectedDsar.type} Request
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDsar(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold">Requester Email:</span>
+                <span className="font-bold text-slate-800">{selectedDsar.user}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold">Submitted:</span>
+                <span className="font-bold text-slate-800">{selectedDsar.submitted}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold">UK GDPR SLA:</span>
+                <span className="font-bold text-emerald-600">28 Days Remaining</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              {selectedDsar.type === "Export"
+                ? "This will generate an encrypted zip archive containing all telemetry, booking history, and receipts, sending a secure download link to the requester."
+                : "This will permanently purge this user's profile and marketing telemetry across the platform in compliance with GDPR Right to Erasure."}
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSelectedDsar(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleProcessDsar(selectedDsar)}
+                className={`px-4 py-2 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs ${
+                  selectedDsar.type === "Deletion"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-orange-600 hover:bg-orange-700"
+                }`}
+              >
+                {selectedDsar.type === "Deletion" ? "Purge Data" : "Export Archive"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. AUDIT HISTORY MODAL */}
+      {showAuditHistory && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">Compliance Audit History</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Past regulatory checks and verification logs
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAuditHistory(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 max-h-60 overflow-y-auto divide-y divide-slate-100 text-xs">
+              {[
+                { date: "Feb 05, 2026", title: "Quarterly GDPR Telemetry Audit", result: "100% Pass" },
+                { date: "Jan 18, 2026", title: "OFSI Sanctions Sync Pass", result: "0 Violations" },
+                { date: "Dec 12, 2025", title: "PCI-DSS Level 2 Penetration Test", result: "Certified" }
+              ].map((h, idx) => (
+                <div key={idx} className="pt-2 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-slate-900">{h.title}</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{h.date}</p>
+                  </div>
+                  <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                    {h.result}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  showToast("Compliance audit pack downloaded");
+                  setShowAuditHistory(false);
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export Audit Pack</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. LEGAL REQUESTS MODAL */}
+      {showLegalRequests && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">Legal & Subpoena Registry</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Regulatory subpoenas and law enforcement inquiries
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLegalRequests(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-xl text-xs text-slate-600 text-center space-y-2">
+              <Fingerprint className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="font-bold text-slate-800">No Active Subpoenas</p>
+              <p className="text-slate-400 text-[11px]">
+                Platform is currently in good standing with 0 active legal inquiries.
+              </p>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowLegalRequests(false)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
