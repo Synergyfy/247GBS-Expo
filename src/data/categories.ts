@@ -1,18 +1,20 @@
-export const DEFAULT_EVENT_CATEGORIES: string[] = [
-  "Technology",
-  "Fintech",
-  "Digital Art",
-  "Health & Wellness",
-  "Sustainability",
-  "Global Trade"
+export const DEFAULT_EVENT_TYPES: string[] = [
+  "Workshop",
+  "Demonstration",
+  "Seller Training",
+  "Keynote Showcase",
+  "Product Launch",
+  "Networking Session"
 ];
 
-export const STORAGE_KEY_CATEGORIES = "admin_event_categories";
+export const DEFAULT_EVENT_CATEGORIES = DEFAULT_EVENT_TYPES;
+export const STORAGE_KEY_TYPES = "admin_event_types_v3";
+export const STORAGE_KEY_CATEGORIES = STORAGE_KEY_TYPES;
 
-export function getStoredCategories(): string[] {
-  if (typeof window === "undefined") return DEFAULT_EVENT_CATEGORIES;
+export function getStoredEventTypes(): string[] {
+  if (typeof window === "undefined") return DEFAULT_EVENT_TYPES;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+    const saved = localStorage.getItem(STORAGE_KEY_TYPES);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -20,18 +22,23 @@ export function getStoredCategories(): string[] {
       }
     }
   } catch (e) {
-    console.error("Failed to load event categories from localStorage:", e);
+    console.error("Failed to load event types from localStorage:", e);
   }
-  return DEFAULT_EVENT_CATEGORIES;
+  return DEFAULT_EVENT_TYPES;
 }
 
-export function saveStoredCategories(categories: string[]): void {
+export const getStoredCategories = getStoredEventTypes;
+
+export function saveStoredEventTypes(types: string[]): void {
   if (typeof window === "undefined") return;
   try {
-    const cleaned = Array.from(new Set(categories.map((c) => c.trim()).filter(Boolean)));
-    localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(cleaned));
+    const cleaned = Array.from(new Set(types.map((c) => c.trim()).filter(Boolean)));
+    localStorage.setItem(STORAGE_KEY_TYPES, JSON.stringify(cleaned));
+    window.dispatchEvent(new CustomEvent("event_types_changed", { detail: cleaned }));
     window.dispatchEvent(new CustomEvent("event_categories_changed", { detail: cleaned }));
   } catch (e) {
-    console.error("Failed to save event categories to localStorage:", e);
+    console.error("Failed to save event types to localStorage:", e);
   }
 }
+
+export const saveStoredCategories = saveStoredEventTypes;
