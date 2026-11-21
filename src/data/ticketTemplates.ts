@@ -6,6 +6,7 @@ export interface GlobalTicketTemplate {
   status: "Active" | "Draft" | "Archived";
   minPrice: number;
   maxPrice: number;
+  defaultPrice?: number;
   isGiftOnly?: boolean;
   commission?: string;
   description?: string;
@@ -13,42 +14,45 @@ export interface GlobalTicketTemplate {
 
 export const DEFAULT_TICKET_TEMPLATES: GlobalTicketTemplate[] = [
   {
-    id: "tpl_standard",
-    name: "Standard Day Pass",
+    id: "tpl-general",
+    name: "Standard Season Day Pass Template",
     access: "General",
     priceRange: "£0 - £50",
     status: "Active",
     minPrice: 0,
     maxPrice: 50,
+    defaultPrice: 25,
     commission: "10% Platform Split",
-    description: "Standard daytime exhibition floor and general booth access."
+    description: "Admin-approved general booth & keynote access template. Capped at £50 maximum."
   },
   {
-    id: "tpl_vip",
-    name: "VIP Experience",
+    id: "tpl-vip",
+    name: "VIP Executive Workshop Template",
     access: "Full Hall + Lounge",
-    priceRange: "£99 - £500",
+    priceRange: "£50 - £250",
     status: "Active",
-    minPrice: 99,
-    maxPrice: 500,
+    minPrice: 50,
+    maxPrice: 250,
+    defaultPrice: 120,
     commission: "8% Platform Split",
-    description: "Includes VIP executive lounge, 1-on-1 meeting rooms, and priority seating."
+    description: "Includes 1-on-1 consultation room access & MCOM voucher perk. Capped at £250 maximum."
   },
   {
-    id: "tpl_reward",
-    name: "Reward Pass",
+    id: "tpl-free",
+    name: "Platform-Sponsored Complimentary Pass",
     access: "Specific Booth",
-    priceRange: "Gift Only",
+    priceRange: "GIFT ONLY",
     status: "Active",
     minPrice: 0,
     maxPrice: 0,
+    defaultPrice: 0,
     isGiftOnly: true,
-    commission: "0% Fee • Platform Sponsored",
-    description: "Sponsored reward vouchers for specific exhibitor booths and promotions."
+    commission: "0% Fee • Platform Funded",
+    description: "Free public access pass distributed directly via 247GBS Academy and central marketing."
   }
 ];
 
-export const STORAGE_KEY_TEMPLATES = "admin_global_ticket_templates";
+export const STORAGE_KEY_TEMPLATES = "admin_global_ticket_templates_v2";
 
 export function getStoredTicketTemplates(): GlobalTicketTemplate[] {
   if (typeof window === "undefined") return DEFAULT_TICKET_TEMPLATES;

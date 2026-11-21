@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -26,36 +26,11 @@ import {
     ChevronUp
 } from "lucide-react";
 import Tooltip from "@/app/component/Tooltip";
-
-const ADMIN_TICKET_TEMPLATES = [
-    {
-        id: "tpl-general",
-        name: "Standard Season Day Pass Template",
-        minPrice: 0,
-        maxPrice: 50,
-        defaultPrice: 25,
-        commission: "10% Admin Split",
-        description: "Admin-approved general booth & keynote access template. Capped at £50 maximum.",
-    },
-    {
-        id: "tpl-vip",
-        name: "VIP Executive Workshop Template",
-        minPrice: 50,
-        maxPrice: 250,
-        defaultPrice: 120,
-        commission: "8% Admin Split",
-        description: "Includes 1-on-1 consultation room access & MCOM voucher perk. Capped at £250 maximum.",
-    },
-    {
-        id: "tpl-reward",
-        name: "MCOM Loyalty Reward Pass (Gift Only)",
-        minPrice: 0,
-        maxPrice: 0,
-        defaultPrice: 0,
-        commission: "0% Fee • Loyalty Gift",
-        description: "Complimentary pass distributed via MCOM Rewards and sales referral links.",
-    },
-];
+import {
+    GlobalTicketTemplate,
+    DEFAULT_TICKET_TEMPLATES,
+    getStoredTicketTemplates
+} from "@/data/ticketTemplates";
 
 interface InvitedPartner {
     id: string;
@@ -121,21 +96,51 @@ export default function CreateEventPage() {
         ]);
     };
 
+    const [ticketTemplates, setTicketTemplates] = useState<GlobalTicketTemplate[]>(DEFAULT_TICKET_TEMPLATES);
+
+    useEffect(() => {
+        const list = getStoredTicketTemplates();
+        setTicketTemplates(list);
+        if (list.length > 0 && !list.some((t) => t.id === selectedTemplateId)) {
+            setSelectedTemplateId(list[0].id);
+            setTicketPrice(list[0].defaultPrice ?? (list[0].isGiftOnly || list[0].maxPrice === 0 ? 0 : Math.round((list[0].minPrice + list[0].maxPrice) / 2)));
+        }
+
+        const handleSync = (e: any) => {
+            const updated = e?.detail && Array.isArray(e.detail) ? e.detail : getStoredTicketTemplates();
+            setTicketTemplates(updated);
+        };
+
+        window.addEventListener("ticket_templates_changed", handleSync);
+        window.addEventListener("storage", handleSync);
+        return () => {
+            window.removeEventListener("ticket_templates_changed", handleSync);
+            window.removeEventListener("storage", handleSync);
+        };
+    }, []);
+
     const handleRemovePartner = (id: string) => {
         setInvitedPartners(invitedPartners.filter((p) => p.id !== id));
     };
 
     const activeTemplate =
-        ADMIN_TICKET_TEMPLATES.find((t) => t.id === selectedTemplateId) || ADMIN_TICKET_TEMPLATES[0];
+        ticketTemplates.find((t) => t.id === selectedTemplateId) ||
+        ticketTemplates[0] ||
+        DEFAULT_TICKET_TEMPLATES[0];
 
     const isPriceValid =
         ticketPrice >= activeTemplate.minPrice && ticketPrice <= activeTemplate.maxPrice;
 
     const handleTemplateSelect = (tplId: string) => {
-        const tpl = ADMIN_TICKET_TEMPLATES.find((t) => t.id === tplId);
+        const tpl = ticketTemplates.find((t) => t.id === tplId);
         setSelectedTemplateId(tplId);
         if (tpl) {
-            setTicketPrice(tpl.defaultPrice);
+            if (tpl.isGiftOnly || tpl.maxPrice === 0) {
+                setTicketPrice(0);
+            } else {
+                const def = tpl.defaultPrice ?? Math.round((tpl.minPrice + tpl.maxPrice) / 2);
+                setTicketPrice(def);
+            }
         }
     };
 
@@ -660,7 +665,7 @@ export default function CreateEventPage() {
                             </div>
 
                             <div className="space-y-2">
-                                {ADMIN_TICKET_TEMPLATES.map((tpl) => {
+                                {ticketTemplates.map((tpl) => {
                                     const selected = tpl.id === selectedTemplateId;
                                     return (
                                         <div
@@ -673,9 +678,9 @@ export default function CreateEventPage() {
                                             }`}
                                         >
                                             <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider">
-                                                <span className="text-orange-600 truncate">{tpl.commission}</span>
+                                                <span className="text-orange-600 truncate">{tpl.commission || "10% Platform Split"}</span>
                                                 <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded text-[10px] font-bold shrink-0">
-                                                    {tpl.maxPrice === 0 ? "Free (£0 Cap)" : `Cap: £${tpl.minPrice} – £${tpl.maxPrice}`}
+                                                    {tpl.isGiftOnly || tpl.maxPrice === 0 ? "Free (£0 Cap)" : `Cap: £${tpl.minPrice} – £${tpl.maxPrice}`}
                                                 </span>
                                             </div>
                                             <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
