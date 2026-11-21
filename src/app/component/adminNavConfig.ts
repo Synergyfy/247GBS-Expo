@@ -66,7 +66,6 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Revenue & Settlements", href: "/dashboard/admin/revenue", iconName: "Banknote" },
       { label: "Pass Plans & Pricing", href: "/dashboard/admin/passes", iconName: "CreditCard" },
-      { label: "Global Reporting", href: "/dashboard/admin/reporting", iconName: "BarChart3" },
       { label: "System Configuration", href: "/dashboard/admin/configuration", iconName: "Settings" },
       { label: "Platform Support", href: "/dashboard/admin/support", iconName: "Headphones" }
     ]
