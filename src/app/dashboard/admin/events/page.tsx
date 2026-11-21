@@ -143,14 +143,23 @@ export default function AdminEventsPage() {
           </p>
         </div>
 
-        {/* Natural width button (Never stretches to full width, never squeezes header typography) */}
-        <Link
-          href="/dashboard/admin/events/create"
-          className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-700 shadow-sm transition-all active:scale-95 shrink-0 w-fit self-start sm:self-auto cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Create Event</span>
-        </Link>
+        {/* Header Action Buttons */}
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+          <Link
+            href="/dashboard/admin/events/templates"
+            className="inline-flex items-center gap-1.5 bg-white border border-slate-200/90 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-50 hover:border-orange-300 hover:text-orange-600 shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
+          >
+            <Ticket className="w-3.5 h-3.5 text-orange-600" />
+            <span>Ticket Templates</span>
+          </Link>
+          <Link
+            href="/dashboard/admin/events/create"
+            className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-700 shadow-sm transition-all active:scale-95 shrink-0 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create Event</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}

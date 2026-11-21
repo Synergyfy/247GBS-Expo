@@ -24,84 +24,14 @@ import {
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
 
-interface TicketTemplate {
-  name: string;
-  access: string;
-  priceRange: string;
-  status: string;
-  description?: string;
-  minPrice?: number;
-  maxPrice?: number;
-}
-
 export default function GovernancePage() {
   const [activeTab, setActiveTab] = useState("parameters");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
-  };
-
-  const [templates, setTemplates] = useState<TicketTemplate[]>([
-    { name: "Standard Day Pass", access: "General", priceRange: "£0 - £50", status: "Active" },
-    { name: "VIP Experience", access: "Full Hall + Lounge", priceRange: "£99 - £500", status: "Active" },
-    { name: "Reward Pass", access: "Specific Booth", priceRange: "Gift Only", status: "Active" }
-  ]);
-
-  const [newTemplate, setNewTemplate] = useState<TicketTemplate>({
-    name: "",
-    access: "General Access",
-    priceRange: "",
-    status: "Active",
-    description: "",
-    minPrice: 0,
-    maxPrice: 0
-  });
-
-  const accessOptions = [
-    "General Access",
-    "Full Hall + Lounge",
-    "Specific Booth Only",
-    "Workshop Access",
-    "VIP Area + Networking",
-    "Premium All-Access"
-  ];
-
-  const handleCreateTemplate = () => {
-    if (!newTemplate.name || !newTemplate.access) return;
-
-    setIsSaving(true);
-    setTimeout(() => {
-      const rangeString =
-        newTemplate.minPrice === 0 && newTemplate.maxPrice === 0
-          ? "Gift Only"
-          : `£${newTemplate.minPrice} - £${newTemplate.maxPrice}`;
-
-      const templateToAdd = {
-        ...newTemplate,
-        priceRange: rangeString
-      };
-
-      setTemplates([...templates, templateToAdd]);
-      setNewTemplate({
-        name: "",
-        access: "General Access",
-        priceRange: "",
-        status: "Active",
-        description: "",
-        minPrice: 0,
-        maxPrice: 0
-      });
-      setIsModalOpen(false);
-      setIsSaving(false);
-    }, 800);
-  };
-
-  const handleDeleteTemplate = (index: number) => {
-    setTemplates(templates.filter((_, i) => i !== index));
   };
 
   return (
@@ -155,7 +85,6 @@ export default function GovernancePage() {
       <div className="flex gap-4 sm:gap-7 border-b border-slate-200 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
         {[
           { id: "parameters", label: "System Parameters", icon: <Settings className="w-4 h-4" /> },
-          { id: "templates", label: "Ticket Templates", icon: <Ticket className="w-4 h-4" /> },
           { id: "financial", label: "Commission & Tax", icon: <Percent className="w-4 h-4" /> },
           { id: "ecosystem", label: "Ecosystem & API", icon: <Share2 className="w-4 h-4" /> },
           { id: "policies", label: "SLA & Policies", icon: <ShieldAlert className="w-4 h-4" /> }
@@ -268,94 +197,6 @@ export default function GovernancePage() {
                     <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-xs" />
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TICKET TEMPLATES & CATEGORIES */}
-        {activeTab === "templates" && (
-          <div className="space-y-5 sm:space-y-6">
-            <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs">
-              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2 mb-3.5">
-                <Layers className="w-4 h-4 text-orange-600" /> Event & Product Categories
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "Tech & Innovation",
-                  "Fashion & Apparel",
-                  "Home & Living",
-                  "Gaming & Esports",
-                  "Food & Beverage"
-                ].map((cat, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl"
-                  >
-                    <span className="text-xs font-bold text-slate-700">{cat}</span>
-                    <button type="button" className="text-slate-400 hover:text-red-500">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-300 transition-all text-xs font-bold"
-                >
-                  <Plus className="w-3 h-3" /> Add Category
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
-                  <Ticket className="w-4 h-4 text-orange-600" /> Global Ticket Templates & Pricing Caps
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 bg-slate-900 text-white px-4 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all text-xs w-fit"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Create Template
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {templates.map((temp, i) => (
-                  <div
-                    key={i}
-                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:border-orange-200 transition-all"
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">
-                        {temp.status}
-                      </span>
-                      <Ticket className="w-4 h-4 text-orange-600 shrink-0" />
-                    </div>
-                    <h4 className="font-extrabold text-slate-900 text-sm mb-0.5">{temp.name}</h4>
-                    <p className="text-xs text-slate-500 font-medium mb-3">Access: {temp.access}</p>
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                      <span className="text-xs font-black text-orange-600 uppercase tracking-wider">
-                        Cap: {temp.priceRange}
-                      </span>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          className="p-1.5 text-slate-400 hover:text-slate-700 transition-colors"
-                        >
-                          <Settings className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteTemplate(i)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
@@ -511,104 +352,6 @@ export default function GovernancePage() {
         )}
       </div>
 
-      {/* CREATE TEMPLATE MODAL */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Create Ticket Template"
-      >
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider">
-                Template Name <span className="text-orange-600">*</span>
-              </label>
-              <Tooltip content="The public name of the ticket tier (e.g. VIP Pass)">
-                <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-              </Tooltip>
-            </div>
-            <input
-              type="text"
-              placeholder="e.g. VIP All-Access"
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500"
-              value={newTemplate.name}
-              onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
-              Access Level <span className="text-orange-600">*</span>
-            </label>
-            <div className="relative">
-              <select
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500 appearance-none"
-                value={newTemplate.access}
-                onChange={(e) => setNewTemplate({ ...newTemplate, access: e.target.value })}
-              >
-                {accessOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
-              Allowed Price Cap Range (£)
-            </label>
-            <div className="flex gap-2.5 items-center">
-              <input
-                type="number"
-                placeholder="Min"
-                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500"
-                value={newTemplate.minPrice}
-                onChange={(e) =>
-                  setNewTemplate({ ...newTemplate, minPrice: Number(e.target.value) })
-                }
-              />
-              <span className="text-slate-400 font-bold">—</span>
-              <input
-                type="number"
-                placeholder="Max Cap"
-                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-orange-500"
-                value={newTemplate.maxPrice}
-                onChange={(e) =>
-                  setNewTemplate({ ...newTemplate, maxPrice: Number(e.target.value) })
-                }
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2.5 pt-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 py-2.5 rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-50 border border-slate-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleCreateTemplate}
-              disabled={!newTemplate.name || !newTemplate.access || isSaving}
-              className="flex-1 py-2.5 bg-orange-600 text-white rounded-xl font-bold text-xs hover:bg-orange-700 shadow-md flex justify-center items-center gap-1.5 disabled:opacity-50"
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <span>Create Template</span>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }
