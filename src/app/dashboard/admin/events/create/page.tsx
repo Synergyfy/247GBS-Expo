@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -29,6 +29,7 @@ import {
   ChevronUp
 } from "lucide-react";
 import Tooltip from "@/app/component/Tooltip";
+import { DEFAULT_EVENT_CATEGORIES, getStoredCategories } from "@/data/categories";
 
 export const ADMIN_TICKET_TEMPLATES = [
   {
@@ -144,7 +145,27 @@ export default function AdminCreateEventPage() {
   const [ownershipType, setOwnershipType] = useState<"platform" | "national" | "business">("platform");
   const [isOwnershipOpen, setIsOwnershipOpen] = useState(true);
   const [title, setTitle] = useState("");
+  const [eventCategory, setEventCategory] = useState("Technology");
+  const [availableCategories, setAvailableCategories] = useState<string[]>(DEFAULT_EVENT_CATEGORIES);
   const [category, setCategory] = useState("Workshop");
+
+  useEffect(() => {
+    const loaded = getStoredCategories();
+    setAvailableCategories(loaded);
+    if (loaded.length > 0) {
+      setEventCategory(loaded[0]);
+    }
+    const handleSync = (e: any) => {
+      if (e?.detail && Array.isArray(e.detail)) {
+        setAvailableCategories(e.detail);
+        if (!e.detail.includes(eventCategory) && e.detail.length > 0) {
+          setEventCategory(e.detail[0]);
+        }
+      }
+    };
+    window.addEventListener("event_categories_changed", handleSync);
+    return () => window.removeEventListener("event_categories_changed", handleSync);
+  }, []);
   const [format, setFormat] = useState<"virtual" | "physical" | "hybrid">("virtual");
   const [isFormatOpen, setIsFormatOpen] = useState(true);
   const [eventDate, setEventDate] = useState("2026-10-18");
@@ -385,9 +406,9 @@ export default function AdminCreateEventPage() {
                 )}
               </div>
 
-              {/* Title & Sub-category */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2 space-y-1">
+              {/* Title, Category & Sub-category */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div className="md:col-span-6 space-y-1">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
                     <span>Event Title</span>
                     <Tooltip content="Public headline shown in listings and attendee registrations.">
@@ -404,14 +425,36 @@ export default function AdminCreateEventPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="md:col-span-3 space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <span>Category</span>
+                      <Tooltip content="Configured centrally under Admin > System Configuration > Policy & Templates.">
+                        <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                      </Tooltip>
+                    </span>
+                  </label>
+                  <select
+                    value={eventCategory}
+                    onChange={(e) => setEventCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500 cursor-pointer"
+                  >
+                    {availableCategories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-3 space-y-1">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
                     <span>Sub-Category</span>
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500 cursor-pointer"
                   >
                     <option>Workshop</option>
                     <option>Demonstration</option>
@@ -973,10 +1016,10 @@ export default function AdminCreateEventPage() {
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-600">
                     {ownershipType === "national"
-                      ? "National Expo Flagship"
+                      ? `National Expo Flagship • ${eventCategory}`
                       : ownershipType === "platform"
-                      ? `Platform-Led ${category}`
-                      : "Business-Led Showcase"}
+                      ? `Platform-Led ${category} • ${eventCategory}`
+                      : `Business-Led Showcase • ${eventCategory}`}
                   </span>
                   <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white border border-orange-200 text-orange-700">
                     {format.toUpperCase()}
