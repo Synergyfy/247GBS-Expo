@@ -374,7 +374,7 @@ export default function TicketTemplatesPage() {
                 }}
                 className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer shadow-xs"
               >
-                Yes, Delete Template
+                Delete
               </button>
             </div>
           </div>
