@@ -263,38 +263,38 @@ export default function TicketTemplatesPage() {
         </div>
 
         {templates.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {templates.map((temp) => (
               <div
                 key={temp.id}
-                className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:border-orange-200 transition-all flex flex-col justify-between"
+                className="bg-white p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-2xs hover:border-orange-200 transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="flex justify-between items-center mb-1.5">
                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                       {temp.status}
                     </span>
-                    <div className="w-7 h-7 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600">
-                      <Ticket className="w-4 h-4" />
+                    <div className="w-6 h-6 rounded-md bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600">
+                      <Ticket className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <h4 className="font-extrabold text-slate-900 text-sm mb-0.5">{temp.name}</h4>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Access: {temp.access}</p>
+                  <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug">{temp.name}</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Access: {temp.access}</p>
                   {temp.description && (
-                    <p className="text-[11px] text-slate-400 line-clamp-2 mb-3">
+                    <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
                       {temp.description}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
                   <span className="text-xs font-black text-orange-600 uppercase tracking-wider font-mono">
                     CAP: {temp.priceRange}
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
                     <Link
                       href={`/dashboard/admin/events/templates/create?edit=${temp.id}`}
-                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+                      className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-md transition-colors cursor-pointer"
                       title="Edit Template"
                     >
                       <Settings className="w-3.5 h-3.5" />
@@ -302,7 +302,7 @@ export default function TicketTemplatesPage() {
                     <button
                       type="button"
                       onClick={() => setTemplateToDelete(temp)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                       title="Delete Template"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
