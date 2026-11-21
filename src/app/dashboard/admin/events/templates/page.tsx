@@ -33,6 +33,7 @@ export default function TicketTemplatesPage() {
 
   // Templates State
   const [templates, setTemplates] = useState<GlobalTicketTemplate[]>(DEFAULT_TICKET_TEMPLATES);
+  const [templateToDelete, setTemplateToDelete] = useState<GlobalTicketTemplate | null>(null);
 
   // Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -303,7 +304,7 @@ export default function TicketTemplatesPage() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => handleDeleteTemplate(temp.id, temp.name)}
+                      onClick={() => setTemplateToDelete(temp)}
                       className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                       title="Delete Template"
                     >
@@ -338,6 +339,47 @@ export default function TicketTemplatesPage() {
           </div>
         )}
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {templateToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-4 sm:p-5 space-y-3 animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-200">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Delete Ticket Template</h3>
+                <p className="text-[11px] text-slate-500 font-medium">Confirmation required</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to delete <strong className="text-slate-900">&quot;{templateToDelete.name}&quot;</strong>? This template will no longer be available for newly scheduled events.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setTemplateToDelete(null)}
+                className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleDeleteTemplate(templateToDelete.id, templateToDelete.name);
+                  setTemplateToDelete(null);
+                }}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer shadow-xs"
+              >
+                Yes, Delete Template
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
