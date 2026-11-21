@@ -152,11 +152,12 @@ export default function CreateTicketTemplatePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Card 1: Template Identity & Access Tier */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
               <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                <Ticket className="w-4 h-4 text-orange-600" /> Template Identity & Access Tier
+                <Ticket className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>Template Identity & Access Tier</span>
               </h2>
-              <span className="text-[10px] font-black uppercase tracking-wider bg-orange-50 text-orange-600 border border-orange-200/80 px-2 py-0.5 rounded-full">
+              <span className="self-start sm:self-auto text-[10px] font-black uppercase tracking-wider bg-orange-50 text-orange-600 border border-orange-200/80 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
                 Global Preset
               </span>
             </div>
@@ -220,7 +221,8 @@ export default function CreateTicketTemplatePage() {
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 space-y-4">
             <div className="border-b border-slate-100 pb-2.5">
               <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                <DollarSign className="w-4 h-4 text-orange-600" /> Pricing Cap & Tier Boundaries
+                <DollarSign className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>Pricing Cap & Tier Boundaries</span>
               </h2>
               <p className="text-[11px] text-slate-500 font-medium mt-0.5">
                 Set maximum and minimum ticket price boundaries enforced when organizers create events under this template.
@@ -228,34 +230,34 @@ export default function CreateTicketTemplatePage() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 hover:bg-orange-50/50 hover:border-orange-200 transition-colors flex-1">
+              <div className="flex flex-wrap items-center gap-6 py-1">
+                <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
                   <input
                     type="radio"
                     name="priceType"
                     checked={!isGiftOnly}
                     onChange={() => setIsGiftOnly(false)}
-                    className="w-4 h-4 text-orange-600 focus:ring-orange-500"
+                    className="w-4 h-4 text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer"
                   />
-                  <div>
-                    <span className="text-xs font-extrabold text-slate-900 block">Paid Tier (Capped)</span>
-                    <span className="text-[10px] text-slate-500 font-medium">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-900">Paid Tier (Capped)</span>
+                    <span className="text-[11px] text-slate-500 font-medium">
                       Exhibitors can price tickets freely within the defined bounds
                     </span>
                   </div>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 hover:bg-orange-50/50 hover:border-orange-200 transition-colors flex-1">
+                <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
                   <input
                     type="radio"
                     name="priceType"
                     checked={isGiftOnly}
                     onChange={() => setIsGiftOnly(true)}
-                    className="w-4 h-4 text-orange-600 focus:ring-orange-500"
+                    className="w-4 h-4 text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer"
                   />
-                  <div>
-                    <span className="text-xs font-extrabold text-slate-900 block">Gift Only / Free</span>
-                    <span className="text-[10px] text-slate-500 font-medium">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-900">Gift Only / Free</span>
+                    <span className="text-[11px] text-slate-500 font-medium">
                       Complimentary attendee admission, platform-sponsored
                     </span>
                   </div>
@@ -302,8 +304,8 @@ export default function CreateTicketTemplatePage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2.5 text-xs text-blue-900">
-                  <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="pt-1 flex items-center gap-2 text-xs font-medium text-slate-600">
+                  <Info className="w-4 h-4 text-orange-600 shrink-0" />
                   <span>
                     This ticket template will be designated as complimentary/gift-only. Attendees will not be charged admission.
                   </span>
@@ -316,7 +318,8 @@ export default function CreateTicketTemplatePage() {
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 space-y-4">
             <div className="border-b border-slate-100 pb-2.5">
               <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                <Percent className="w-4 h-4 text-orange-600" /> Platform Split & Status
+                <Percent className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>Platform Split & Status</span>
               </h2>
             </div>
 
@@ -351,34 +354,39 @@ export default function CreateTicketTemplatePage() {
           </div>
 
           {/* Live Template Showcase Preview */}
-          <div className="bg-orange-50/60 border border-orange-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> Live Preset Preview
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>Live Preset Preview</span>
               </span>
-              <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
                 {status}
               </span>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2">
-              <div className="flex justify-between items-start gap-2">
+            <div className="space-y-2 pt-0.5">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                 <div>
                   <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">
-                    {name || "Untitled Ticket Template"}
+                    {name.trim() || "Untitled Ticket Template"}
                   </h4>
                   <p className="text-xs text-slate-500 font-medium">Access: {access}</p>
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right">
                   <span className="text-xs sm:text-sm font-black text-orange-600 uppercase font-mono block">
                     CAP: {isGiftOnly ? "GIFT ONLY" : `£${minPrice} - £${maxPrice}`}
                   </span>
                   <span className="text-[10px] font-bold text-slate-400 block">{commission}</span>
                 </div>
               </div>
-              {description && (
-                <p className="text-[11px] text-slate-500 border-t border-slate-100 pt-1.5 leading-relaxed">
+              {description.trim() ? (
+                <p className="text-[11px] text-slate-500 border-t border-slate-100 pt-2 leading-relaxed">
                   {description}
+                </p>
+              ) : (
+                <p className="text-[11px] text-slate-400 italic border-t border-slate-100 pt-2">
+                  No description provided yet.
                 </p>
               )}
             </div>
