@@ -26,7 +26,7 @@ import {
 } from "@/data/ticketTemplates";
 
 export default function TicketTemplatesPage() {
-  // Categories State
+  // Event Types State
   const [categories, setCategories] = useState<string[]>(DEFAULT_EVENT_CATEGORIES);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -59,21 +59,23 @@ export default function TicketTemplatesPage() {
       }
     };
 
+    window.addEventListener("event_types_changed", handleCategorySync);
     window.addEventListener("event_categories_changed", handleCategorySync);
     window.addEventListener("ticket_templates_changed", handleTemplateSync);
     return () => {
+      window.removeEventListener("event_types_changed", handleCategorySync);
       window.removeEventListener("event_categories_changed", handleCategorySync);
       window.removeEventListener("ticket_templates_changed", handleTemplateSync);
     };
   }, []);
 
-  // Category Actions
+  // Event Type Actions
   const handleAddCategory = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const trimmed = newCategoryName.trim();
     if (!trimmed) return;
     if (categories.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
-      showToast(`Category "${trimmed}" already exists`);
+      showToast(`Event type "${trimmed}" already exists`);
       return;
     }
     const updated = [...categories, trimmed];
@@ -81,14 +83,14 @@ export default function TicketTemplatesPage() {
     saveStoredCategories(updated);
     setNewCategoryName("");
     setIsAddingCategory(false);
-    showToast(`Category "${trimmed}" added successfully`);
+    showToast(`Event type "${trimmed}" added successfully`);
   };
 
   const handleRemoveCategory = (catToRemove: string) => {
     const updated = categories.filter((c) => c !== catToRemove);
     setCategories(updated);
     saveStoredCategories(updated);
-    showToast(`Category "${catToRemove}" removed`);
+    showToast(`Event type "${catToRemove}" removed`);
   };
 
   const handleDeleteTemplate = (id: string, name: string) => {
@@ -136,11 +138,11 @@ export default function TicketTemplatesPage() {
               <Ticket className="w-4 h-4" />
             </span>
             <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase leading-snug">
-              Ticket Templates & Event Categories
+              Ticket Templates & Event Type
             </h1>
           </div>
           <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1">
-            Global ticket pricing caps, attendee access presets, and centralized event categories.
+            Global ticket pricing caps, attendee access presets, and centralized event types.
           </p>
         </div>
 
@@ -153,16 +155,16 @@ export default function TicketTemplatesPage() {
         </Link>
       </div>
 
-      {/* 1. EVENT & PRODUCT CATEGORIES */}
+      {/* 1. EVENT TYPE */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
           <div>
             <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
               <Layers className="w-4 h-4 text-orange-600" />
-              <span>Event & Product Categories</span>
+              <span>Event Type</span>
             </h3>
             <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-              Platform-wide categories available during event scheduling, news drafting, and booth registration.
+              Platform-wide event types available during event scheduling and registration.
             </p>
           </div>
 
@@ -172,11 +174,11 @@ export default function TicketTemplatesPage() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-orange-600 hover:text-orange-700 border border-slate-200 hover:border-orange-300 bg-white transition-colors shrink-0 w-fit cursor-pointer shadow-2xs"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{isAddingCategory ? "Cancel" : "Add Category"}</span>
+            <span>{isAddingCategory ? "Cancel" : "Add Type"}</span>
           </button>
         </div>
 
-        {/* Add Category Input (No Orange Background) */}
+        {/* Add Type Input (No Orange Background) */}
         {isAddingCategory && (
           <form
             onSubmit={handleAddCategory}
@@ -187,7 +189,7 @@ export default function TicketTemplatesPage() {
               autoFocus
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="e.g. Artificial Intelligence, Logistics, FinTech..."
+              placeholder="e.g. Workshop, Demonstration, Keynote Showcase..."
               className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 shadow-2xs"
             />
             <div className="flex items-center gap-1.5 shrink-0">
@@ -196,7 +198,7 @@ export default function TicketTemplatesPage() {
                 disabled={!newCategoryName.trim()}
                 className="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
               >
-                Add Category
+                Add Type
               </button>
               <button
                 type="button"
@@ -212,7 +214,7 @@ export default function TicketTemplatesPage() {
           </form>
         )}
 
-        {/* Category Badges */}
+        {/* Event Type Badges */}
         <div className="flex flex-wrap items-center gap-2">
           {categories.map((cat, i) => (
             <div
@@ -234,7 +236,7 @@ export default function TicketTemplatesPage() {
 
           {categories.length === 0 && !isAddingCategory && (
             <div className="p-3 text-xs font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-xl w-full text-center">
-              No categories configured yet. Click &quot;Add Category&quot; above to create one.
+              No event types configured yet. Click &quot;Add Type&quot; above to create one.
             </div>
           )}
         </div>
