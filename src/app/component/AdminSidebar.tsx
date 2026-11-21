@@ -79,36 +79,29 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
   };
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {
-      "platform-ops": true,
-      "compliance-audit": true,
-      "content-media": false,
-      "financials-access": false
-    };
     const active = getActiveGroupId(pathname);
-    initial[active] = true;
-    return initial;
+    return { [active]: true };
   });
 
-  // Keep active group expanded when navigating
+  // Keep ONLY the active category expanded when navigating; others remain collapsed
   useEffect(() => {
     const activeId = getActiveGroupId(pathname);
-    setExpandedGroups(prev => ({
-      ...prev,
+    setExpandedGroups({
       [activeId]: true
-    }));
+    });
   }, [pathname]);
 
   const toggleGroup = (groupId: string) => {
     if (!isOpen) {
       setIsOpen(true);
-      setExpandedGroups(prev => ({ ...prev, [groupId]: true }));
+      setExpandedGroups({ [groupId]: true });
       return;
     }
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
+    setExpandedGroups(prev => {
+      const willOpen = !prev[groupId];
+      // When opening a dropdown, collapse all other dropdowns
+      return willOpen ? { [groupId]: true } : {};
+    });
   };
 
   const renderIcon = (name: string, className = "w-4 h-4") => {

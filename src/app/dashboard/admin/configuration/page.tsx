@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Settings,
   DollarSign,
@@ -13,22 +13,55 @@ import {
   HelpCircle,
   Lock,
   Server,
-  X
+  X,
+  CheckCircle2
 } from "lucide-react";
-
 export default function ConfigurationPage() {
   const [activeTab, setActiveTab] = useState("system");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  };
+
+  const handleSaveChanges = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      showToast("System configuration saved successfully!");
+    }, 400);
+  };
 
   const tabs = [
     { id: "system", label: "System Rules", icon: <Settings className="w-4 h-4" /> },
     { id: "financial", label: "Finance & Tax", icon: <DollarSign className="w-4 h-4" /> },
     { id: "security", label: "Security", icon: <Lock className="w-4 h-4" /> },
-    { id: "templates", label: "Policy & Templates", icon: <FileText className="w-4 h-4" /> },
     { id: "gateways", label: "Payment Gateways", icon: <Globe className="w-4 h-4" /> }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">
+    <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6 relative">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 sm:top-24 right-4 sm:right-6 z-[9999] bg-slate-900/95 backdrop-blur-md text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-white/10 flex items-center gap-2.5 max-w-xs sm:max-w-sm pointer-events-auto animate-in fade-in slide-in-from-top-2">
+          <div className="w-5 h-5 rounded-lg bg-orange-600 flex items-center justify-center shrink-0 text-white">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+          </div>
+          <p className="text-xs font-semibold flex-1 leading-tight">{toastMessage}</p>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -41,10 +74,12 @@ export default function ConfigurationPage() {
         </div>
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md w-fit shrink-0"
+          onClick={handleSaveChanges}
+          disabled={isSaving}
+          className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md w-fit shrink-0 cursor-pointer disabled:opacity-75"
         >
           <Save className="w-4 h-4" />
-          <span>Save Changes</span>
+          <span>{isSaving ? "Saving..." : "Save Changes"}</span>
         </button>
       </div>
 
@@ -278,77 +313,6 @@ export default function ConfigurationPage() {
               >
                 <Plus className="w-3.5 h-3.5" /> Add Tax Jurisdiction
               </button>
-            </section>
-          </div>
-        )}
-
-        {/* TEMPLATES & CATEGORIES */}
-        {activeTab === "templates" && (
-          <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-            <section className="space-y-3">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-tight">
-                  Event Categories
-                </h3>
-                <button
-                  type="button"
-                  className="text-orange-600 font-bold text-xs inline-flex items-center gap-1 hover:underline"
-                >
-                  <Plus className="w-3.5 h-3.5" /> New Category
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "Technology",
-                  "Fintech",
-                  "Digital Art",
-                  "Health & Wellness",
-                  "Sustainability",
-                  "Global Trade"
-                ].map((cat) => (
-                  <div
-                    key={cat}
-                    className="bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl flex items-center gap-2"
-                  >
-                    <span className="text-xs font-bold text-slate-700">{cat}</span>
-                    <button type="button" className="text-slate-400 hover:text-red-500">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="space-y-3 pt-4 border-t border-slate-100">
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-tight">
-                Ticket Policy Presets
-              </h3>
-              <div className="divide-y divide-slate-100">
-                <div className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                      Standard Early Bird
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      15% discount, limited to first 100 tickets or 14 days before start.
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider shrink-0">
-                    ID: T-EB15
-                  </span>
-                </div>
-                <div className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">VIP Bundle</h4>
-                    <p className="text-xs text-slate-500">
-                      Includes Digital Guide, VIP Lounge access, and Session Recordings.
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider shrink-0">
-                    ID: T-VIPB
-                  </span>
-                </div>
-              </div>
             </section>
           </div>
         )}

@@ -24,28 +24,41 @@ export default function BusinessSidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    "booth-products": true,
-    "events-ticketing": true,
-    "sales-revenue": false,
-    "communication-settings": false
+  const getActiveBusinessGroupId = (currentPath: string) => {
+    for (const group of BUSINESS_NAV_GROUPS) {
+      if (group.items.some((item) => isBusinessRouteActive(currentPath, item))) {
+        return group.id;
+      }
+    }
+    return BUSINESS_NAV_GROUPS[0].id;
+  };
+
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const active = getActiveBusinessGroupId(pathname);
+    return { [active]: true };
   });
 
+  // Keep ONLY the active category expanded when navigating; others remain collapsed
   useEffect(() => {
-    for (const group of BUSINESS_NAV_GROUPS) {
-      if (group.items.some((item) => isBusinessRouteActive(pathname, item))) {
-        setExpandedGroups((prev) => ({ ...prev, [group.id]: true }));
-      }
+    const activeGroup = BUSINESS_NAV_GROUPS.find((group) =>
+      group.items.some((item) => isBusinessRouteActive(pathname, item))
+    );
+    if (activeGroup) {
+      setExpandedGroups({ [activeGroup.id]: true });
     }
   }, [pathname]);
 
   const toggleGroup = (groupId: string) => {
     if (!isOpen) {
       setIsOpen(true);
-      setExpandedGroups((prev) => ({ ...prev, [groupId]: true }));
+      setExpandedGroups({ [groupId]: true });
       return;
     }
-    setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+    setExpandedGroups((prev) => {
+      const willOpen = !prev[groupId];
+      // When opening a dropdown, collapse all other dropdowns
+      return willOpen ? { [groupId]: true } : {};
+    });
   };
 
   const handleLogout = () => {
