@@ -18,7 +18,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     }, [searchParams]);
 
     return (
-        <div className="min-h-screen bg-slate-100 flex font-sans relative overflow-x-hidden">
+        <div className="min-h-screen bg-slate-100 flex font-sans relative overflow-x-clip max-w-full">
             {/* Desktop Collapsible Sidebar (hidden on mobile) */}
             <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
@@ -26,7 +26,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
             <AdminMobileNav />
 
             {/* MAIN CONTENT WRAPPER */}
-            <main className={`flex-1 min-w-0 w-full max-w-full transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'} ml-0 relative min-h-screen flex flex-col`}>
+            <main className={`flex-1 min-w-0 w-full max-w-full overflow-x-clip transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'} ml-0 relative min-h-screen flex flex-col`}>
                 <DashboardHeader
                     user={{
                         name: "Super Admin",
@@ -41,7 +41,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 {/* Top Header Placeholder / Blur background */}
                 <div className="absolute top-16 sm:top-20 w-full h-48 bg-gradient-to-b from-orange-50 to-transparent pointer-events-none -z-0 opacity-50"></div>
 
-                <div className="relative z-10 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 flex-1">
+                <div className="relative z-10 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 flex-1 w-full max-w-full overflow-x-clip">
                     {children}
                 </div>
             </main>

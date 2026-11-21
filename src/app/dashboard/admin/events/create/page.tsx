@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -29,36 +29,14 @@ import {
   ChevronUp
 } from "lucide-react";
 import Tooltip from "@/app/component/Tooltip";
+import { DEFAULT_EVENT_TYPES, getStoredEventTypes } from "@/data/categories";
+import {
+  GlobalTicketTemplate,
+  DEFAULT_TICKET_TEMPLATES,
+  getStoredTicketTemplates
+} from "@/data/ticketTemplates";
 
-export const ADMIN_TICKET_TEMPLATES = [
-  {
-    id: "tpl-general",
-    name: "Standard Season Day Pass Template",
-    minPrice: 0,
-    maxPrice: 50,
-    defaultPrice: 25,
-    commission: "10% Platform Split",
-    description: "Admin-approved general booth & keynote access template. Capped at £50 maximum.",
-  },
-  {
-    id: "tpl-vip",
-    name: "VIP Executive Workshop Template",
-    minPrice: 50,
-    maxPrice: 250,
-    defaultPrice: 120,
-    commission: "8% Platform Split",
-    description: "Includes 1-on-1 consultation room access & MCOM voucher perk. Capped at £250 maximum.",
-  },
-  {
-    id: "tpl-free",
-    name: "Platform-Sponsored Complimentary Pass",
-    minPrice: 0,
-    maxPrice: 0,
-    defaultPrice: 0,
-    commission: "0% Fee • Platform Funded",
-    description: "Free public access pass distributed directly via 247GBS Academy and central marketing.",
-  },
-];
+export const ADMIN_TICKET_TEMPLATES = DEFAULT_TICKET_TEMPLATES;
 
 export interface RegisteredBusiness {
   id: string;
@@ -144,7 +122,30 @@ export default function AdminCreateEventPage() {
   const [ownershipType, setOwnershipType] = useState<"platform" | "national" | "business">("platform");
   const [isOwnershipOpen, setIsOwnershipOpen] = useState(true);
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Workshop");
+  const [eventType, setEventType] = useState("Workshop");
+  const [availableTypes, setAvailableTypes] = useState<string[]>(DEFAULT_EVENT_TYPES);
+
+  useEffect(() => {
+    const loaded = getStoredEventTypes();
+    setAvailableTypes(loaded);
+    if (loaded.length > 0) {
+      setEventType(loaded[0]);
+    }
+    const handleSync = (e: any) => {
+      if (e?.detail && Array.isArray(e.detail)) {
+        setAvailableTypes(e.detail);
+        if (!e.detail.includes(eventType) && e.detail.length > 0) {
+          setEventType(e.detail[0]);
+        }
+      }
+    };
+    window.addEventListener("event_types_changed", handleSync);
+    window.addEventListener("event_categories_changed", handleSync);
+    return () => {
+      window.removeEventListener("event_types_changed", handleSync);
+      window.removeEventListener("event_categories_changed", handleSync);
+    };
+  }, []);
   const [format, setFormat] = useState<"virtual" | "physical" | "hybrid">("virtual");
   const [isFormatOpen, setIsFormatOpen] = useState(true);
   const [eventDate, setEventDate] = useState("2026-10-18");
@@ -161,14 +162,38 @@ export default function AdminCreateEventPage() {
   const [selectedBusinessIds, setSelectedBusinessIds] = useState<string[]>(["biz_1"]);
 
   // Step 3: Tickets & Pricing
+  const [ticketTemplates, setTicketTemplates] = useState<GlobalTicketTemplate[]>(DEFAULT_TICKET_TEMPLATES);
   const [pricingType, setPricingType] = useState<"free" | "paid">("free");
   const [selectedTemplateId, setSelectedTemplateId] = useState("tpl-general");
   const [ticketPrice, setTicketPrice] = useState<number>(25);
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    const list = getStoredTicketTemplates();
+    setTicketTemplates(list);
+    if (list.length > 0 && !list.some((t) => t.id === selectedTemplateId)) {
+      setSelectedTemplateId(list[0].id);
+      setTicketPrice(list[0].defaultPrice ?? (list[0].isGiftOnly || list[0].maxPrice === 0 ? 0 : Math.round((list[0].minPrice + list[0].maxPrice) / 2)));
+    }
+
+    const handleSync = (e: any) => {
+      const updated = e?.detail && Array.isArray(e.detail) ? e.detail : getStoredTicketTemplates();
+      setTicketTemplates(updated);
+    };
+
+    window.addEventListener("ticket_templates_changed", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("ticket_templates_changed", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
+
   const activeTemplate =
-    ADMIN_TICKET_TEMPLATES.find((t) => t.id === selectedTemplateId) || ADMIN_TICKET_TEMPLATES[0];
+    ticketTemplates.find((t) => t.id === selectedTemplateId) ||
+    ticketTemplates[0] ||
+    DEFAULT_TICKET_TEMPLATES[0];
 
   const isPriceValid =
     pricingType === "free" ||
@@ -199,10 +224,15 @@ export default function AdminCreateEventPage() {
   };
 
   const handleTemplateSelect = (tplId: string) => {
-    const tpl = ADMIN_TICKET_TEMPLATES.find((t) => t.id === tplId);
+    const tpl = ticketTemplates.find((t) => t.id === tplId);
     setSelectedTemplateId(tplId);
     if (tpl) {
-      setTicketPrice(tpl.defaultPrice);
+      if (tpl.isGiftOnly || tpl.maxPrice === 0) {
+        setTicketPrice(0);
+      } else {
+        const def = tpl.defaultPrice ?? Math.round((tpl.minPrice + tpl.maxPrice) / 2);
+        setTicketPrice(def);
+      }
     }
   };
 
@@ -240,24 +270,36 @@ export default function AdminCreateEventPage() {
           <div className="absolute left-4 right-4 top-3.5 sm:top-4 -translate-y-1/2 h-0.5 bg-slate-200 z-0 overflow-hidden">
             <div
               className="h-full bg-orange-600 transition-all duration-300"
-              style={{ width: `${((step - 1) / 3) * 100}%` }}
+              style={{
+                width:
+                  ownershipType === "business"
+                    ? `${((step - 1) / 3) * 100}%`
+                    : `${step === 1 ? 0 : step === 3 ? 50 : 100}%`,
+              }}
             />
           </div>
 
-          {[
-            { num: 1, title: "Schedule" },
-            { num: 2, title: "Businesses" },
-            { num: 3, title: "Tickets" },
-            { num: 4, title: "Review" },
-          ].map((s) => {
-            const isCompleted = step > s.num;
-            const isCurrent = step === s.num;
+          {(ownershipType === "business"
+            ? [
+                { num: 1, title: "Schedule", target: 1 },
+                { num: 2, title: "Businesses", target: 2 },
+                { num: 3, title: "Tickets", target: 3 },
+                { num: 4, title: "Review", target: 4 },
+              ]
+            : [
+                { num: 1, title: "Schedule", target: 1 },
+                { num: 2, title: "Tickets", target: 3 },
+                { num: 3, title: "Review", target: 4 },
+              ]
+          ).map((s) => {
+            const isCompleted = step > s.target;
+            const isCurrent = step === s.target;
 
             return (
               <button
-                key={s.num}
+                key={s.target}
                 type="button"
-                onClick={() => setStep(s.num)}
+                onClick={() => setStep(s.target)}
                 className="relative z-10 flex flex-col items-center group cursor-pointer"
               >
                 <div
@@ -373,9 +415,9 @@ export default function AdminCreateEventPage() {
                 )}
               </div>
 
-              {/* Title & Sub-category */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2 space-y-1">
+              {/* Title & Event Type */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div className="md:col-span-6 space-y-1">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
                     <span>Event Title</span>
                     <Tooltip content="Public headline shown in listings and attendee registrations.">
@@ -392,21 +434,25 @@ export default function AdminCreateEventPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                    <span>Sub-Category</span>
+                <div className="md:col-span-6 space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <span>Event Type</span>
+                      <Tooltip content="Configured centrally under Admin > Events Directory > Ticket Templates & Event Type.">
+                        <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help shrink-0" />
+                      </Tooltip>
+                    </span>
                   </label>
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500"
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-orange-500 cursor-pointer"
                   >
-                    <option>Workshop</option>
-                    <option>Demonstration</option>
-                    <option>Seller Training</option>
-                    <option>Keynote Showcase</option>
-                    <option>Product Launch</option>
-                    <option>Networking Session</option>
+                    {availableTypes.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -650,7 +696,7 @@ export default function AdminCreateEventPage() {
                 <button
                   type="button"
                   disabled={!title.trim()}
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(ownershipType === "business" ? 2 : 3)}
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
                 >
                   Continue →
@@ -659,8 +705,8 @@ export default function AdminCreateEventPage() {
             </div>
           )}
 
-          {/* STEP 2: Business Assignment ("On Behalf Of" Search & Multi-Select) */}
-          {step === 2 && (
+          {/* STEP 2: Business Assignment ("On Behalf Of" Search & Multi-Select) - ONLY FOR BUSINESS-LED */}
+          {step === 2 && ownershipType === "business" && (
             <div className="space-y-4">
               <div className="pb-3 border-b border-slate-100">
                 <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -846,7 +892,7 @@ export default function AdminCreateEventPage() {
                   </label>
 
                   <div className="space-y-2">
-                    {ADMIN_TICKET_TEMPLATES.map((tpl) => {
+                    {ticketTemplates.map((tpl) => {
                       const selected = tpl.id === selectedTemplateId;
                       return (
                         <div
@@ -860,9 +906,9 @@ export default function AdminCreateEventPage() {
                         >
                           {/* Top Row: Commission and Cap Badges */}
                           <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider">
-                            <span className="text-orange-600">{tpl.commission}</span>
+                            <span className="text-orange-600">{tpl.commission || "10% Platform Split"}</span>
                             <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded text-[10px] font-bold shrink-0">
-                              {tpl.maxPrice === 0 ? "Free (£0 Cap)" : `Cap: £${tpl.minPrice} – £${tpl.maxPrice}`}
+                              {tpl.isGiftOnly || tpl.maxPrice === 0 ? "Free (£0 Cap)" : `Cap: £${tpl.minPrice} – £${tpl.maxPrice}`}
                             </span>
                           </div>
 
@@ -927,7 +973,7 @@ export default function AdminCreateEventPage() {
               <div className="flex items-center justify-between pt-2">
                 <button
                   type="button"
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(ownershipType === "business" ? 2 : 1)}
                   className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 cursor-pointer"
                 >
                   ← Back
@@ -961,10 +1007,10 @@ export default function AdminCreateEventPage() {
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-600">
                     {ownershipType === "national"
-                      ? "National Expo Flagship"
+                      ? `National Expo Flagship • ${eventType}`
                       : ownershipType === "platform"
-                      ? `Platform-Led ${category}`
-                      : "Business-Led Showcase"}
+                      ? `Platform-Led • ${eventType}`
+                      : `Business-Led Showcase • ${eventType}`}
                   </span>
                   <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white border border-orange-200 text-orange-700">
                     {format.toUpperCase()}
@@ -1013,23 +1059,40 @@ export default function AdminCreateEventPage() {
 
                 <div className="sm:col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Participating Hosts ({selectedBusinessIds.length})
+                    {ownershipType === "business"
+                      ? `Participating Hosts (${selectedBusinessIds.length})`
+                      : "Organizer & Platform Authority"}
                   </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedBusinessIds.map((id) => {
-                      const biz = REGISTERED_BUSINESSES.find((b) => b.id === id);
-                      if (!biz) return null;
-                      return (
-                        <span
-                          key={id}
-                          className="px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-800 text-[11px] font-semibold flex items-center gap-1 shadow-2xs"
-                        >
-                          <Building2 className="w-3 h-3 text-orange-600" />
-                          {biz.name}
-                        </span>
-                      );
-                    })}
-                  </div>
+                  {ownershipType === "business" ? (
+                    selectedBusinessIds.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedBusinessIds.map((id) => {
+                          const biz = REGISTERED_BUSINESSES.find((b) => b.id === id);
+                          if (!biz) return null;
+                          return (
+                            <span
+                              key={id}
+                              className="px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-800 text-[11px] font-semibold flex items-center gap-1 shadow-2xs"
+                            >
+                              <Building2 className="w-3 h-3 text-orange-600" />
+                              {biz.name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic">No specific partner businesses attached.</p>
+                    )
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-800 text-[11px] font-bold flex items-center gap-1.5 shadow-2xs">
+                        <Building2 className="w-3.5 h-3.5 text-orange-600" />
+                        {ownershipType === "platform"
+                          ? "247GBS Central Platform (100% Platform-Led)"
+                          : "247GBS National Expo Flagship"}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -18,9 +18,11 @@ import {
   ShieldCheck,
   Video,
   MapPin,
-  Ticket
+  Ticket,
+  AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
+import Modal from "@/app/component/Modal";
 
 interface AdminEvent {
   id: string;
@@ -41,6 +43,10 @@ export default function AdminEventsPage() {
   const [activeTab, setActiveTab] = useState<"all" | "national" | "platform" | "business">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [rulesExpanded, setRulesExpanded] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: "publish" | "unpublish" | "delete";
+    event: AdminEvent;
+  } | null>(null);
 
   const [events, setEvents] = useState<AdminEvent[]>([
     {
@@ -137,14 +143,23 @@ export default function AdminEventsPage() {
           </p>
         </div>
 
-        {/* Natural width button (Never stretches to full width, never squeezes header typography) */}
-        <Link
-          href="/dashboard/admin/events/create"
-          className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-700 shadow-sm transition-all active:scale-95 shrink-0 w-fit self-start sm:self-auto cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Create Event</span>
-        </Link>
+        {/* Header Action Buttons */}
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+          <Link
+            href="/dashboard/admin/events/templates"
+            className="inline-flex items-center gap-1.5 bg-white border border-slate-200/90 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-50 hover:border-orange-300 hover:text-orange-600 shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
+          >
+            <Ticket className="w-3.5 h-3.5 text-orange-600" />
+            <span>Ticket Templates</span>
+          </Link>
+          <Link
+            href="/dashboard/admin/events/create"
+            className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-700 shadow-sm transition-all active:scale-95 shrink-0 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create Event</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
@@ -238,24 +253,19 @@ export default function AdminEventsPage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setEvents((prev) =>
-                      prev.map((item) =>
-                        item.id === event.id
-                          ? { ...item, status: item.status === "Published" ? "Draft" : "Published" }
-                          : item
-                      )
-                    );
-                  }}
+                  onClick={() =>
+                    setConfirmAction({
+                      type: event.status === "Published" ? "unpublish" : "publish",
+                      event
+                    })
+                  }
                   className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 shadow-2xs transition-colors cursor-pointer"
                 >
                   {event.status === "Published" ? "Unpublish" : "Publish"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setEvents((prev) => prev.filter((item) => item.id !== event.id));
-                  }}
+                  onClick={() => setConfirmAction({ type: "delete", event })}
                   className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold transition-colors cursor-pointer"
                 >
                   Delete
@@ -361,6 +371,80 @@ export default function AdminEventsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal for Publish / Unpublish / Delete */}
+      {confirmAction && (
+        <Modal
+          isOpen={!!confirmAction}
+          onClose={() => setConfirmAction(null)}
+          title={
+            confirmAction.type === "delete"
+              ? "Confirm Delete Event"
+              : confirmAction.type === "publish"
+              ? "Confirm Publish Event"
+              : "Confirm Unpublish Event"
+          }
+          maxWidth="md"
+        >
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-900">
+                {confirmAction.type === "delete"
+                  ? `Are you sure you want to delete "${confirmAction.event.title}"?`
+                  : confirmAction.type === "publish"
+                  ? `Publish "${confirmAction.event.title}" to public directory?`
+                  : `Unpublish "${confirmAction.event.title}"?`}
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {confirmAction.type === "delete"
+                  ? "This action cannot be undone. All registrations and directory listings associated with this event will be permanently removed."
+                  : confirmAction.type === "publish"
+                  ? "This event will immediately appear in the public events directory and calendar for attendees to view and book passes."
+                  : "This event will be moved to Draft status and hidden from public visitors. Existing ticket holders will retain their booking records."}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfirmAction(null)}
+                className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmAction.type === "delete") {
+                    setEvents((prev) => prev.filter((item) => item.id !== confirmAction.event.id));
+                  } else {
+                    const newStatus = confirmAction.type === "publish" ? "Published" : "Draft";
+                    setEvents((prev) =>
+                      prev.map((item) =>
+                        item.id === confirmAction.event.id ? { ...item, status: newStatus } : item
+                      )
+                    );
+                  }
+                  setConfirmAction(null);
+                }}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-white rounded-lg transition-all shadow-xs cursor-pointer ${
+                  confirmAction.type === "delete"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : confirmAction.type === "publish"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-slate-900 hover:bg-slate-800"
+                }`}
+              >
+                {confirmAction.type === "delete"
+                  ? "Delete"
+                  : confirmAction.type === "publish"
+                  ? "Publish"
+                  : "Unpublish"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
