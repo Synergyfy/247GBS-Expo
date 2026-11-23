@@ -42,11 +42,23 @@ This rulebook is permanently recorded in the codebase to govern all work on the 
   5. MCOM Mall: auto-import products (or clean fields with Buy Now linking to MCOM Mall).
   6. Enforce admin ticket pricing caps when creating events.
   7. Auto-pull branding logo/banner from CHS profile.
+- **Admin Dashboard Architecture**:
+  1. **Ticket Templates**: Moved from Governance/Configuration to dedicated page under Events Directory (`/dashboard/admin/events/templates`). Creation is full-screen (`/dashboard/admin/events/templates/create`).
+  2. **Event Types**: Unified Category + Sub-Category into single platform-wide **`Event Type`** (`Workshop`, `Demonstration`, `Seller Training`, `Keynote Showcase`, `Product Launch`, `Networking Session`), dynamically synced to event creation.
+  3. **Admin Booth View**: `/dashboard/admin/businesses/[id]/booth` rendered directly inside Admin layout with sticky back banner.
+  4. **Disputes**: Dedicated detail page (`/dashboard/admin/disputes/[id]`) with arbitration ruling workflows.
+  5. **Navigation Removals**: Global Reporting, Compliance, and Audit navigation items removed.
 - **Navigation Shell**: Persistent bottom bar + `More` slide-up sheet drawer with scroll lock.
 
+## 7. UI Craft & Anti-Patterns (User Enforced)
+- **No Double / Nested Boxes**: Never wrap cards or radio options inside outer tinted/bordered container boxes.
+- **Concise Button Wording**: Use short action names (`Delete`, not `Yes, Delete Template`; `Cancel`, `Next`, `Back`).
+- **Badge Whitespace Protection**: Every pill badge (`GLOBAL PRESET`, `ACTIVE`, status tags) must have `whitespace-nowrap shrink-0` to prevent ugly wrapping.
+- **Compact Card Proportions**: Use `p-3.5 sm:p-4`, compact `w-6 h-6` icon boxes, and `line-clamp-1` to keep card heights tidy and prevent excessive blank space.
 
-## 7. Implementation & Verification Status
+## 8. Implementation & Verification Status
 - **Public-Facing Pages**: 100% Complete & Verified (Home, National Events, Galleries, News, News Detail, Partnership).
-- **Admin Dashboard (`/dashboard/admin`)**: 100% Complete & Verified (All 18 pages + navigation shell, small typography, 3-line event approval cards, collapsible rules).
+- **Admin Dashboard (`/dashboard/admin`)**: 100% Complete & Verified (Ticket Templates & Event Types, Booth View in Admin, Dispute Detail Page, Navigation cleanups).
 - **Customer Dashboard (`/dashboard/customer`)**: 100% Complete & Verified (All 8 pages + navigation shell, Event Day Access Pass Gate, MCOM Mall product shelf integration).
-- **Business Dashboard (`/dashboard/business`)**: 100% Complete & Verified (All 20+ pages + navigation shell, CHS branding sync, MCOM Mall 1-click Auto-Import & Buy Now links, Admin-enforced ticket templates & price caps, MCOM Rewards sync, CHS live chat, zero TypeScript errors).
+- **Business Dashboard (`/dashboard/business`)**: 100% Complete & Verified (Dynamic ticket template import, event type sync, CHS branding sync, MCOM Mall 1-click Auto-Import & Buy Now links).
+
