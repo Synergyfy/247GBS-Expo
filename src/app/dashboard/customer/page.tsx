@@ -111,6 +111,10 @@ export default function CustomerDashboard() {
           </div>
           <button
             type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPassport(true);
+            }}
             className="w-full mt-3.5 bg-white text-slate-900 py-2 rounded-xl font-bold text-[11px] hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-1.5"
           >
             <QrCode className="w-3.5 h-3.5" />

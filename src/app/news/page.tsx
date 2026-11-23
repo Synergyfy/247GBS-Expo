@@ -21,6 +21,8 @@ function NewsContent() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("q") || searchParams.get("search") || "";
   const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
     const q = searchParams.get("q") || searchParams.get("search");
@@ -162,16 +164,36 @@ function NewsContent() {
           <p className="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-6 max-w-xl mx-auto">
             Get seasonal trend reports, keynote announcements, and exclusive exhibitor deals delivered to your inbox.
           </p>
-          <form onSubmit={(e) => e.preventDefault()} className="flex flex-row gap-2 max-w-md mx-auto">
-            <input 
-              type="email" 
-              placeholder="Enter your business email" 
-              className="px-4 py-2.5 rounded-full bg-white/10 border border-white/15 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 flex-1 text-xs sm:text-sm"
-            />
-            <button className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md shrink-0">
-              Subscribe
-            </button>
-          </form>
+          {subscribed ? (
+            <div className="max-w-md mx-auto px-5 py-3 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs sm:text-sm font-bold">
+              Subscribed! Updates will be sent to {newsletterEmail}.
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (newsletterEmail.trim()) {
+                  setSubscribed(true);
+                }
+              }}
+              className="flex flex-row gap-2 max-w-md mx-auto"
+            >
+              <input
+                type="email"
+                required
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                placeholder="Enter your business email"
+                className="px-4 py-2.5 rounded-full bg-white/10 border border-white/15 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 flex-1 text-xs sm:text-sm"
+              />
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md shrink-0 cursor-pointer"
+              >
+                Subscribe
+              </button>
+            </form>
+          )}
         </div>
       </section>
 

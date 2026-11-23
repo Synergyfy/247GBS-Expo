@@ -1,11 +1,54 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, Bell, ChevronDown, LogOut, User, Settings, Gift } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Search, Bell, ChevronDown, LogOut, User, Settings, Gift, ArrowUpRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { clearStoredUser } from "@/lib/auth";
+import { getStoredNotifications, INITIAL_NOTIFICATIONS } from "@/data/notifications";
+
+const QUICK_SEARCH_ROUTES: Record<
+    "admin" | "business" | "customer",
+    Array<{ label: string; category: string; href: string; keywords: string }>
+> = {
+    admin: [
+        { label: "Command Center", category: "Overview", href: "/dashboard/admin", keywords: "home overview dashboard kpi stats" },
+        { label: "Notifications", category: "Alerts", href: "/dashboard/admin/notifications", keywords: "alerts bell inbox messages" },
+        { label: "Event Types & Templates", category: "Events", href: "/dashboard/admin/events/templates", keywords: "templates events categories" },
+        { label: "Season Passes & Plans", category: "Ticketing", href: "/dashboard/admin/passes", keywords: "passes tickets pricing caps" },
+        { label: "Live Ticker Manager", category: "Broadcast", href: "/dashboard/admin/ticker", keywords: "ticker banner news announcements" },
+        { label: "Create News Story", category: "Media", href: "/dashboard/admin/news/create", keywords: "news article blog publish" },
+        { label: "Revenue & Settlements", category: "Finance", href: "/dashboard/admin/revenue", keywords: "finance money payout treasury gateway" },
+        { label: "Support Desk", category: "Operations", href: "/dashboard/admin/support", keywords: "tickets helpdesk issues disputes" },
+        { label: "System Health & Logs", category: "Infrastructure", href: "/dashboard/admin/health", keywords: "logs console uptime status" },
+        { label: "Governance & API Keys", category: "Security", href: "/dashboard/admin/governance", keywords: "api keys webhooks mfa security" },
+        { label: "Platform Configuration", category: "Settings", href: "/dashboard/admin/configuration", keywords: "settings tax rbac gateway firewall" },
+    ],
+    business: [
+        { label: "Exhibitor Overview", category: "Overview", href: "/dashboard/business", keywords: "home overview dashboard stats" },
+        { label: "Notifications", category: "Alerts", href: "/dashboard/business/notifications", keywords: "alerts bell inbox messages" },
+        { label: "My Booth Studio", category: "Booth", href: "/dashboard/business/booth", keywords: "booth design branding setup" },
+        { label: "Live Booth Preview", category: "Booth", href: "/dashboard/business/booth/preview", keywords: "preview live customer view" },
+        { label: "Products & MCOM Mall", category: "Catalog", href: "/dashboard/business/products", keywords: "products catalog inventory mcom mall" },
+        { label: "My Events", category: "Events", href: "/dashboard/business/events", keywords: "events schedule sessions live" },
+        { label: "Ticket Tiers & Event Passes", category: "Ticketing", href: "/dashboard/business/events/tickets", keywords: "tickets passes tiers pricing caps" },
+        { label: "Live Demos & Studio", category: "Broadcast", href: "/dashboard/business/demos", keywords: "demos livestream video studio" },
+        { label: "Marketplace Events", category: "Discovery", href: "/dashboard/business/marketplace", keywords: "marketplace exhibit host discover" },
+        { label: "Revenue & Settlements", category: "Finance", href: "/dashboard/business/revenue", keywords: "revenue payouts csv ledger earnings" },
+        { label: "Exhibitor Settings", category: "Settings", href: "/dashboard/business/settings", keywords: "settings profile account preferences" },
+    ],
+    customer: [
+        { label: "Visitor Overview", category: "Overview", href: "/dashboard/customer", keywords: "home overview dashboard qr entry" },
+        { label: "Notifications", category: "Alerts", href: "/dashboard/customer/notifications", keywords: "alerts bell inbox messages" },
+        { label: "My Tickets & Passes", category: "Access", href: "/dashboard/customer/tickets", keywords: "tickets passes qr code receipt" },
+        { label: "My Schedule & Agenda", category: "Events", href: "/dashboard/customer/schedule", keywords: "schedule agenda pdf reminders sessions" },
+        { label: "MCOM Rewards", category: "Loyalty", href: "/dashboard/customer/rewards", keywords: "rewards points redeem cashback" },
+        { label: "Explore Booths", category: "Expo Hall", href: "/dashboard/customer/booths/101", keywords: "booths exhibitors chat consultation" },
+        { label: "Profile", category: "Account", href: "/dashboard/customer/profile", keywords: "profile bio identity" },
+        { label: "Settings", category: "Account", href: "/dashboard/customer/settings", keywords: "settings preferences security" },
+    ],
+};
 
 interface DashboardHeaderProps {
     user: {
@@ -20,7 +63,45 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ user, searchPlaceholder, dashboardType }: DashboardHeaderProps) {
     const [profileOpen, setProfileOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
+    const [unreadCount, setUnreadCount] = useState(
+        () => INITIAL_NOTIFICATIONS[dashboardType].filter((n) => !n.read).length
+    );
     const router = useRouter();
+
+    const routes = QUICK_SEARCH_ROUTES[dashboardType] || [];
+    const filteredRoutes = searchQuery.trim()
+        ? routes.filter((item) => {
+            const q = searchQuery.toLowerCase();
+            return (
+                item.label.toLowerCase().includes(q) ||
+                item.category.toLowerCase().includes(q) ||
+                item.keywords.toLowerCase().includes(q)
+            );
+        })
+        : routes.slice(0, 6);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setSearchOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        const refreshUnread = () => {
+            const list = getStoredNotifications(dashboardType);
+            setUnreadCount(list.filter((n) => !n.read).length);
+        };
+        refreshUnread();
+        window.addEventListener("chs_notifications_changed", refreshUnread);
+        return () => window.removeEventListener("chs_notifications_changed", refreshUnread);
+    }, [dashboardType]);
 
     const handleLogout = () => {
         setProfileOpen(false);
@@ -52,6 +133,8 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
         }
     };
 
+    const getNotificationsLink = () => `/dashboard/${dashboardType}/notifications`;
+
     return (
         <header className="h-16 sm:h-20 bg-white border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
             {/* Mobile Brand / Context Badge (visible on < lg) */}
@@ -74,22 +157,106 @@ export default function DashboardHeader({ user, searchPlaceholder, dashboardType
             </div>
 
             {/* Desktop Search Bar */}
-            <div className="relative w-80 hidden xl:block">
+            <div ref={searchRef} className="relative w-80 hidden xl:block">
                 <input
                     type="text"
+                    value={searchQuery}
+                    onFocus={() => setSearchOpen(true)}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setSearchOpen(true);
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && filteredRoutes.length > 0) {
+                            e.preventDefault();
+                            router.push(filteredRoutes[0].href);
+                            setSearchOpen(false);
+                            setSearchQuery("");
+                        } else if (e.key === "Escape") {
+                            setSearchOpen(false);
+                        }
+                    }}
                     placeholder={searchPlaceholder || "Search..."}
-                    className="w-full pl-12 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all text-sm"
+                    className="w-full pl-12 pr-9 py-2.5 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all text-sm"
                 />
                 <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                {searchQuery && (
+                    <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        aria-label="Clear search"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+
+                <AnimatePresence>
+                    {searchOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50 overflow-hidden"
+                        >
+                            <div className="px-3.5 py-1.5 border-b border-slate-50 flex items-center justify-between">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    {searchQuery.trim() ? "Matching Pages" : "Quick Jump"}
+                                </span>
+                                <span className="text-[10px] font-medium text-slate-400">
+                                    {filteredRoutes.length} {filteredRoutes.length === 1 ? "result" : "results"}
+                                </span>
+                            </div>
+                            {filteredRoutes.length > 0 ? (
+                                <div className="max-h-72 overflow-y-auto py-1">
+                                    {filteredRoutes.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            onClick={() => {
+                                                setSearchOpen(false);
+                                                setSearchQuery("");
+                                            }}
+                                            className="flex items-center justify-between px-3.5 py-2.5 hover:bg-orange-50 transition-colors group"
+                                        >
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-900 group-hover:text-orange-600">
+                                                    {item.label}
+                                                </p>
+                                                <p className="text-[10px] font-medium text-slate-400">
+                                                    {item.category}
+                                                </p>
+                                            </div>
+                                            <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-orange-600 shrink-0" />
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="px-4 py-6 text-center">
+                                    <p className="text-xs font-semibold text-slate-500">
+                                        No matching pages for &ldquo;{searchQuery}&rdquo;
+                                    </p>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            <div className="flex items-center gap-4">
-                <button className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-all relative group">
+            <div className="flex items-center gap-3 sm:gap-4">
+                {/* Notifications Page Link */}
+                <Link
+                    href={getNotificationsLink()}
+                    aria-label="Notifications"
+                    className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-all relative group"
+                >
                     <Bell className="w-5 h-5" />
-                    <div className="absolute top-2.5 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white ring-2 ring-red-500/20 group-hover:scale-110 transition-transform"></div>
-                </button>
+                    {unreadCount > 0 && (
+                        <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white ring-2 ring-red-500/20 group-hover:scale-110 transition-transform" />
+                    )}
+                </Link>
 
-                <div className="h-8 w-px bg-slate-200 mx-2"></div>
+                <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
 
                 {/* Profile Dropdown */}
                 <div className="relative">

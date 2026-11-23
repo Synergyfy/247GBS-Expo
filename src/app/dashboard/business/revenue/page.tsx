@@ -145,7 +145,26 @@ export default function BusinessRevenuePage() {
                     <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                         Recent Settlement Ledger
                     </h2>
-                    <button className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-orange-600">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const header = "ID,Source,Title,Qty,Ref,Gross,Split,Net,Status,Time";
+                            const rows = transactions.map(
+                                (t) =>
+                                    `"${t.id}","${t.source}","${t.title}","${t.qty}","${t.ref}","${t.gross}","${t.split}","${t.net}","${t.status}","${t.time}"`
+                            );
+                            const blob = new Blob([[header, ...rows].join("\n")], {
+                                type: "text/csv;charset=utf-8;"
+                            });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = "247GBS-Settlement-Ledger.csv";
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-orange-600 cursor-pointer"
+                    >
                         <Download className="w-3.5 h-3.5" /> Export CSV
                     </button>
                 </div>

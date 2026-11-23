@@ -30,6 +30,7 @@ export default function TicketTemplatesPage() {
   const [categories, setCategories] = useState<string[]>(DEFAULT_EVENT_CATEGORIES);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   // Templates State
   const [templates, setTemplates] = useState<GlobalTicketTemplate[]>(DEFAULT_TICKET_TEMPLATES);
@@ -224,7 +225,7 @@ export default function TicketTemplatesPage() {
               <span className="text-xs font-bold text-slate-700">{cat}</span>
               <button
                 type="button"
-                onClick={() => handleRemoveCategory(cat)}
+                onClick={() => setCategoryToDelete(cat)}
                 className="text-slate-400 hover:text-red-500 transition-colors p-0.5 cursor-pointer rounded"
                 title={`Remove ${cat}`}
                 aria-label={`Remove ${cat}`}
@@ -370,6 +371,47 @@ export default function TicketTemplatesPage() {
                 onClick={() => {
                   handleDeleteTemplate(templateToDelete.id, templateToDelete.name);
                   setTemplateToDelete(null);
+                }}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer shadow-xs"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EVENT TYPE DELETE CONFIRMATION MODAL */}
+      {categoryToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Delete Event Type</h3>
+                <p className="text-[11px] text-slate-500 font-medium">Confirmation required</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to remove <strong className="text-slate-900">&quot;{categoryToDelete}&quot;</strong> from platform-wide event types?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setCategoryToDelete(null)}
+                className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleRemoveCategory(categoryToDelete);
+                  setCategoryToDelete(null);
                 }}
                 className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer shadow-xs"
               >

@@ -65,7 +65,7 @@ export default function BusinessDashboardPage() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            href="/dashboard/customer/booths/101"
+            href="/dashboard/business/booth/preview"
             className="bg-white border border-slate-200/80 text-slate-700 px-3 py-1.5 rounded-xl text-[11px] font-bold hover:bg-slate-50 inline-flex items-center gap-1 shadow-2xs"
           >
             <span>Preview Booth</span>

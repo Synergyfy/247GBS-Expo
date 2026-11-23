@@ -21,6 +21,7 @@ export default function AdminPassesPage() {
   const [typeFilter, setTypeFilter] = useState<"all" | "visitor" | "business">("all");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<PassPlan | null>(null);
+  const [deletePlanTarget, setDeletePlanTarget] = useState<PassPlan | null>(null);
   const [newFeature, setNewFeature] = useState("");
 
   const filteredPlans = plans.filter((plan) => {
@@ -48,9 +49,14 @@ export default function AdminPassesPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this pass plan?")) {
-      setPlans(plans.filter((p) => p.id !== id));
-    }
+    const target = plans.find((p) => p.id === id);
+    if (target) setDeletePlanTarget(target);
+  };
+
+  const confirmDeletePlan = () => {
+    if (!deletePlanTarget) return;
+    setPlans(plans.filter((p) => p.id !== deletePlanTarget.id));
+    setDeletePlanTarget(null);
   };
 
   const handleSave = () => {
@@ -483,6 +489,34 @@ export default function AdminPassesPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Pass Plan Confirmation Modal */}
+      {deletePlanTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl p-5 space-y-4">
+            <h3 className="text-sm font-extrabold text-slate-900">Delete Pass Plan</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to delete <strong className="text-slate-900">{deletePlanTarget.name}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDeletePlanTarget(null)}
+                className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePlan}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

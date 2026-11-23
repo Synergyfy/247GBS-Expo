@@ -28,6 +28,13 @@ export default function GovernancePage() {
   const [activeTab, setActiveTab] = useState("parameters");
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [allowChsWebhooks, setAllowChsWebhooks] = useState(true);
+  const [sandboxMode, setSandboxMode] = useState(false);
+  const [enforceMfa, setEnforceMfa] = useState(true);
+  const [geoFencing, setGeoFencing] = useState(false);
+  const [publicApiKey, setPublicApiKey] = useState("pk_live_51Msz...234xS");
+  const [showRegenModal, setShowRegenModal] = useState(false);
+  const [configPartner, setConfigPartner] = useState<{ name: string; type: string; status: string } | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -180,9 +187,26 @@ export default function GovernancePage() {
                       Require multi-factor authentication for all administrative roles
                     </p>
                   </div>
-                  <div className="w-11 h-6 bg-orange-600 rounded-full relative cursor-pointer shrink-0">
-                    <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-xs" />
-                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={enforceMfa}
+                    onClick={() => {
+                      setEnforceMfa((prev) => {
+                        showToast(`Admin MFA enforcement ${!prev ? "enabled" : "disabled"}.`);
+                        return !prev;
+                      });
+                    }}
+                    className={`w-11 h-6 rounded-full relative cursor-pointer shrink-0 transition-colors ${
+                      enforceMfa ? "bg-orange-600" : "bg-slate-200"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-xs transition-all ${
+                        enforceMfa ? "right-1" : "left-1"
+                      }`}
+                    />
+                  </button>
                 </div>
                 <div className="flex items-center justify-between pt-3.5">
                   <div>
@@ -193,9 +217,26 @@ export default function GovernancePage() {
                       Restrict live verification terminals by authorized IP location
                     </p>
                   </div>
-                  <div className="w-11 h-6 bg-slate-200 rounded-full relative cursor-pointer shrink-0">
-                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-xs" />
-                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={geoFencing}
+                    onClick={() => {
+                      setGeoFencing((prev) => {
+                        showToast(`Geo-Fencing Validation ${!prev ? "enabled" : "disabled"}.`);
+                        return !prev;
+                      });
+                    }}
+                    className={`w-11 h-6 rounded-full relative cursor-pointer shrink-0 transition-colors ${
+                      geoFencing ? "bg-orange-600" : "bg-slate-200"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-xs transition-all ${
+                        geoFencing ? "right-1" : "left-1"
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
             </div>
@@ -284,7 +325,12 @@ export default function GovernancePage() {
                       <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
                         {partner.status}
                       </span>
-                      <button type="button" className="p-1 text-slate-400 hover:text-orange-600">
+                      <button
+                        type="button"
+                        onClick={() => setConfigPartner(partner)}
+                        className="p-1 text-slate-400 hover:text-orange-600 cursor-pointer"
+                        title={`Configure ${partner.name}`}
+                      >
                         <Settings className="w-4 h-4" />
                       </button>
                     </div>
@@ -310,26 +356,66 @@ export default function GovernancePage() {
               <div className="py-3 border-y border-white/10">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-xs font-bold">Public API Key</span>
-                  <span className="text-[11px] text-orange-400 cursor-pointer hover:underline font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setShowRegenModal(true)}
+                    className="text-[11px] text-orange-400 cursor-pointer hover:underline font-bold"
+                  >
                     Regenerate
-                  </span>
+                  </button>
                 </div>
                 <div className="font-mono text-xs text-slate-400 break-all">
-                  pk_live_51Msz...234xS
+                  {publicApiKey}
                 </div>
               </div>
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300 font-medium">Allow CHS Webhooks</span>
-                  <div className="w-10 h-5 bg-emerald-500 rounded-full relative">
-                    <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
-                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={allowChsWebhooks}
+                    onClick={() => {
+                      setAllowChsWebhooks((prev) => {
+                        const next = !prev;
+                        showToast(`CHS Webhooks ${next ? "enabled" : "disabled"}.`);
+                        return next;
+                      });
+                    }}
+                    className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
+                      allowChsWebhooks ? "bg-emerald-500" : "bg-slate-600"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${
+                        allowChsWebhooks ? "right-1" : "left-1"
+                      }`}
+                    />
+                  </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300 font-medium">Sandbox Mode</span>
-                  <div className="w-10 h-5 bg-slate-600 rounded-full relative">
-                    <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
-                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={sandboxMode}
+                    onClick={() => {
+                      setSandboxMode((prev) => {
+                        const next = !prev;
+                        showToast(`Sandbox Mode ${next ? "activated" : "deactivated"}.`);
+                        return next;
+                      });
+                    }}
+                    className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
+                      sandboxMode ? "bg-orange-500" : "bg-slate-600"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${
+                        sandboxMode ? "right-1" : "left-1"
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
             </div>
@@ -352,6 +438,75 @@ export default function GovernancePage() {
         )}
       </div>
 
+      {/* Regenerate API Key Confirmation Modal */}
+      <Modal
+        isOpen={showRegenModal}
+        onClose={() => setShowRegenModal(false)}
+        title="Regenerate Public API Key"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Regenerating the public API key will immediately invalidate <code className="font-mono text-slate-900">{publicApiKey}</code>. Existing integrations will need the new key.
+          </p>
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowRegenModal(false)}
+              className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const suffix = Math.random().toString(36).substring(2, 7);
+                setPublicApiKey(`pk_live_51Msz...${suffix}`);
+                setShowRegenModal(false);
+                showToast("New Public API Key generated!");
+              }}
+              className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700"
+            >
+              Regenerate
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Partner Sync Configuration Modal */}
+      <Modal
+        isOpen={!!configPartner}
+        onClose={() => setConfigPartner(null)}
+        title={configPartner ? `Configure ${configPartner.name}` : "Partner Config"}
+      >
+        {configPartner && (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-600">
+              Integration scope: <strong className="text-slate-900">{configPartner.type}</strong> • Status:{" "}
+              <strong className="text-emerald-600">{configPartner.status}</strong>
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfigPartner(null)}
+                className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const name = configPartner.name;
+                  setConfigPartner(null);
+                  showToast(`${name} sync verified and updated!`);
+                }}
+                className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700"
+              >
+                Test & Save Sync
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

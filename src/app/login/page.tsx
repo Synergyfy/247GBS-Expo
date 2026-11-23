@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { User, Store, ShieldCheck, ArrowLeft, Ticket } from "lucide-react";
+import { User, Store, ShieldCheck, ArrowLeft, Ticket, X, CheckCircle2, Mail } from "lucide-react";
 import { setStoredUser } from "@/lib/auth";
 
 export default function LoginPage() {
@@ -27,6 +27,9 @@ function LoginForm() {
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
 
   const isFromTickets = redirect.startsWith("/tickets");
 
@@ -129,7 +132,17 @@ function LoginForm() {
         <div className="space-y-1">
           <div className="flex justify-between items-center">
             <label className="text-xs font-bold text-slate-700">Password</label>
-            <a href="#" className="text-[11px] font-semibold text-orange-600 hover:underline">Forgot password?</a>
+            <button
+              type="button"
+              onClick={() => {
+                setResetEmail(email);
+                setResetSent(false);
+                setForgotOpen(true);
+              }}
+              className="text-[11px] font-semibold text-orange-600 hover:underline cursor-pointer"
+            >
+              Forgot password?
+            </button>
           </div>
           <input
             type="password"
@@ -201,6 +214,87 @@ function LoginForm() {
           </button>
         </div>
       </div>
+
+      {/* Reset Password Modal */}
+      {forgotOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-sm font-extrabold text-slate-900">Reset Password</h2>
+              <button
+                type="button"
+                onClick={() => setForgotOpen(false)}
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              {resetSent ? (
+                <div className="text-center space-y-3 py-2">
+                  <div className="w-11 h-11 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">Reset link sent</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      If an account exists for <span className="font-semibold text-slate-700">{resetEmail}</span>, you will receive password reset instructions shortly.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForgotOpen(false)}
+                    className="w-full py-2.5 rounded-xl bg-slate-950 text-white text-xs font-bold hover:bg-orange-600 transition-colors cursor-pointer"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <form
+                  className="space-y-3.5"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (resetEmail.trim()) setResetSent(true);
+                  }}
+                >
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Enter your account email and we&apos;ll send you a secure link to reset your password.
+                  </p>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Email Address</label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="email"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        placeholder="name@company.com"
+                        required
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setForgotOpen(false)}
+                      className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-colors cursor-pointer"
+                    >
+                      Send Link
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

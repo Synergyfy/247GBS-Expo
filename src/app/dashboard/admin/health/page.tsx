@@ -8,11 +8,35 @@ import {
   Cpu,
   Terminal,
   History,
-  Download
+  Download,
+  X
 } from "lucide-react";
 
 export default function SystemHealthPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showConsoleModal, setShowConsoleModal] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const handleExportLogs = () => {
+    const content = [
+      "247GBS DIGITAL EXPO — SYSTEM TELEMETRY & AUDIT LOGS",
+      `Generated: ${new Date().toISOString()}`,
+      "===================================================",
+      "[OK] API Latency: 42ms (Optimal)",
+      "[OK] DB Clusters: Healthy (99.99% Uptime)",
+      "[OK] CHS Gateway: Active (Primary Connected)",
+      "[OK] CPU Load: 14% (Stable)"
+    ].join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `247GBS-Health-Logs-${Date.now()}.log`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setToastMsg("System telemetry logs exported!");
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   const healthStats = [
     {
@@ -64,14 +88,16 @@ export default function SystemHealthPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
-            className="bg-white border border-slate-200/80 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs"
+            onClick={() => setShowConsoleModal(true)}
+            className="bg-white border border-slate-200/80 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <Terminal className="w-3.5 h-3.5 text-slate-500" />
             <span>Live Console</span>
           </button>
           <button
             type="button"
-            className="bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-orange-700 shadow-sm inline-flex items-center gap-1.5"
+            onClick={handleExportLogs}
+            className="bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-orange-700 shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export Logs</span>
@@ -217,6 +243,48 @@ export default function SystemHealthPage() {
           </div>
         )}
       </div>
+
+      {toastMsg && (
+        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold">
+          {toastMsg}
+        </div>
+      )}
+
+      {showConsoleModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 text-slate-100 rounded-2xl w-full max-w-2xl border border-slate-700 shadow-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider">Live Telemetry Console</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConsoleModal(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 font-mono text-[11px] space-y-1.5 max-h-72 overflow-y-auto text-emerald-300">
+              <p>[15:42:01] INFO  CHS Gateway heartbeat OK (latency: 38ms)</p>
+              <p>[15:42:05] INFO  MCOM Mall Product Feed synced (4 active items)</p>
+              <p>[15:42:12] INFO  Stripe Sandbox Webhook listener ready</p>
+              <p>[15:42:18] INFO  PostgreSQL Primary Cluster pool: 4/20 active</p>
+              <p className="text-slate-400">[15:42:22] DEBUG Listening for incoming telemetry events...</p>
+            </div>
+            <div className="px-4 py-3 border-t border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowConsoleModal(false)}
+                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white"
+              >
+                Close Console
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -125,14 +125,19 @@ function TicketsContent() {
 
   // Authentication Enforcement - Redirect to Sign Up / Sign In if not logged in
   useEffect(() => {
+    const wantsPass = searchParams.get("pass") === "true";
     const user = getStoredUser();
     if (!user) {
-      router.replace("/signup?role=customer&redirect=/tickets");
+      const target = wantsPass ? "/tickets?pass=true" : "/tickets";
+      router.replace(`/signup?role=customer&redirect=${encodeURIComponent(target)}`);
     } else {
       setCurrentUser(user);
       setAuthChecking(false);
+      if (wantsPass) {
+        setShowPassModal(true);
+      }
     }
-  }, [router]);
+  }, [router, searchParams]);
 
   // Access Pass Token State
   const [enteredToken, setEnteredToken] = useState("");
@@ -809,31 +814,70 @@ function TicketsContent() {
                       className="overflow-hidden pt-4 mt-4 border-t border-slate-100"
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                        {products.map((product) => (
-                          <div
-                            key={product.id}
-                            className="bg-slate-50 p-4 rounded-xl border border-slate-200/70 flex flex-col justify-between"
-                          >
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-orange-600 shadow-2xs">
-                                  {product.icon}
-                                </div>
-                                <span className="text-base sm:text-lg font-black text-slate-900">£{product.price}</span>
-                              </div>
-                              <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-1">{product.name}</h3>
-                              <p className="text-slate-500 text-[11px] leading-relaxed mb-3">{product.description}</p>
-                            </div>
+                        {products.map((product) => {
+                          const cartItem = cart.find((i) => i.id === product.id && i.type === "product");
+                          const qty = cartItem?.quantity || 0;
 
-                            <button
-                              type="button"
-                              onClick={() => addToCart(product, "product")}
-                              className="w-full py-2 bg-white text-slate-900 border border-slate-200 rounded-lg font-bold text-xs hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                          return (
+                            <div
+                              key={product.id}
+                              className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${
+                                qty > 0
+                                  ? "bg-white border-orange-500 ring-1 ring-orange-500/15 shadow-xs"
+                                  : "bg-slate-50 border-slate-200/70"
+                              }`}
                             >
-                              <Plus className="w-3.5 h-3.5" /> Add to Order
-                            </button>
-                          </div>
-                        ))}
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-orange-600 shadow-2xs border border-slate-100">
+                                    {product.icon}
+                                  </div>
+                                  <span className="text-base sm:text-lg font-black text-slate-900">£{product.price}</span>
+                                </div>
+                                <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-1">{product.name}</h3>
+                                <p className="text-slate-500 text-[11px] leading-relaxed mb-3">{product.description}</p>
+                              </div>
+
+                              {qty > 0 ? (
+                                <div className="w-full flex items-center justify-between bg-orange-600 text-white rounded-lg p-1 shadow-xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (qty <= 1) {
+                                        removeFromCart(product.id);
+                                      } else {
+                                        updateQuantity(product.id, -1);
+                                      }
+                                    }}
+                                    className="w-7 h-7 rounded-md bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors cursor-pointer"
+                                    aria-label={`Decrease ${product.name} quantity`}
+                                  >
+                                    <Minus className="w-3.5 h-3.5" />
+                                  </button>
+                                  <span className="text-xs font-extrabold tracking-tight px-2">
+                                    {qty} in Order
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => addToCart(product, "product")}
+                                    className="w-7 h-7 rounded-md bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors cursor-pointer"
+                                    aria-label={`Add another ${product.name}`}
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => addToCart(product, "product")}
+                                  className="w-full py-2 bg-white text-slate-900 border border-slate-200 rounded-lg font-bold text-xs hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                >
+                                  <Plus className="w-3.5 h-3.5" /> Add to Order
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   )}

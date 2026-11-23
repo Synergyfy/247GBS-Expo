@@ -69,6 +69,9 @@ const CHAT_MESSAGES = [
   }
 ];
 
+const MCOM_MALL_BASE_URL =
+  process.env.NEXT_PUBLIC_MCOM_MALL_URL || "https://mcommall.centralhubsolution.com";
+
 const LIVE_SHOWCASE_PRODUCTS = [
   {
     id: "mcom-1",
@@ -76,7 +79,7 @@ const LIVE_SHOWCASE_PRODUCTS = [
     booth: "FutureTech Systems",
     price: "£499.00",
     image: "/ideal.png",
-    mcomUrl: "https://mcommall.com/products/cloud-core-hub",
+    mcomUrl: `${MCOM_MALL_BASE_URL}/products/cloud-core-hub`,
     buttonLabel: "Buy Now"
   },
   {
@@ -85,7 +88,7 @@ const LIVE_SHOWCASE_PRODUCTS = [
     booth: "TechFlow Solutions",
     price: "£199.00",
     image: "/hero.webp",
-    mcomUrl: "https://mcommall.com/products/edge-guard-pro",
+    mcomUrl: `${MCOM_MALL_BASE_URL}/products/edge-guard-pro`,
     buttonLabel: "Book Now"
   },
   {
@@ -94,7 +97,7 @@ const LIVE_SHOWCASE_PRODUCTS = [
     booth: "GreenGrid Energy",
     price: "£349.00",
     image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
-    mcomUrl: "https://mcommall.com/products/solar-micro-inverter",
+    mcomUrl: `${MCOM_MALL_BASE_URL}/products/solar-micro-inverter`,
     buttonLabel: "Buy Now"
   }
 ];
@@ -160,8 +163,24 @@ export default function EventLobbyPage() {
     }
   ];
 
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
+  const handleShareEvent = () => {
+    if (typeof window !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href).catch(() => {});
+    }
+    setShareToast("Event lobby link copied to clipboard!");
+    setTimeout(() => setShareToast(null), 3000);
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5">
+      {shareToast && (
+        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{shareToast}</span>
+        </div>
+      )}
       {/* Compact Lobby Header (Colored text instead of pills) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
@@ -188,8 +207,10 @@ export default function EventLobbyPage() {
           )}
           <button
             type="button"
+            onClick={handleShareEvent}
             className="p-2 bg-white border border-slate-200/80 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs text-slate-600"
             aria-label="Share event"
+            title="Copy event link"
           >
             <Share2 className="w-3.5 h-3.5" />
           </button>

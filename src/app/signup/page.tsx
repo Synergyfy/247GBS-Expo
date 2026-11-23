@@ -29,6 +29,8 @@ function SignupForm() {
   const [lastName, setLastName] = useState(preLastName);
   const [email, setEmail] = useState(preEmail);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [roleText, setRoleText] = useState("Explorer");
 
   const isFromTickets = redirect.startsWith("/tickets");
@@ -43,6 +45,15 @@ function SignupForm() {
 
   const handleSignup = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setError("");
     const fullName = `${firstName} ${lastName}`.trim() || "Expo Visitor";
     setStoredUser({
       name: fullName,
@@ -130,7 +141,10 @@ function SignupForm() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError("");
+              }}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-xs sm:text-sm"
               placeholder="••••••••"
               required
@@ -140,12 +154,23 @@ function SignupForm() {
             <label className="text-xs font-bold text-slate-700">Confirm</label>
             <input
               type="password"
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                if (error) setError("");
+              }}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-xs sm:text-sm"
               placeholder="••••••••"
               required
             />
           </div>
         </div>
+
+        {error && (
+          <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
