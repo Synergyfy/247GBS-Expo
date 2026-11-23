@@ -80,6 +80,46 @@ const scheduleData = [
 export default function SchedulePage() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [savedSlotIds, setSavedSlotIds] = useState<number[]>([2, 3]);
+  const [showRemindersModal, setShowRemindersModal] = useState(false);
+  const [reminders, setReminders] = useState({
+    email15Min: true,
+    pushLive: true,
+    smsUrgent: false
+  });
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleToggleSaveSlot = (id: number, title: string) => {
+    setSavedSlotIds((prev) => {
+      const exists = prev.includes(id);
+      showToast(exists ? `Removed "${title}" from saved plan.` : `Saved "${title}" to your agenda!`);
+      return exists ? prev.filter((item) => item !== id) : [...prev, id];
+    });
+  };
+
+  const handleDownloadAgenda = () => {
+    const lines = [
+      "247GBS DIGITAL EXPO — LIVE EVENT SCHEDULE",
+      "=========================================",
+      "",
+      ...scheduleData.map(
+        (ev) => `[${ev.time} • ${ev.duration}] ${ev.title} (${ev.track}) — ${ev.speaker} [${ev.status}]`
+      ),
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "247GBS-Expo-Agenda.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("Agenda downloaded!");
+  };
 
   const filteredEvents = scheduleData.filter((e) => {
     const matchesTab =
@@ -131,6 +171,7 @@ export default function SchedulePage() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
+            onClick={handleDownloadAgenda}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/80 rounded-xl text-slate-700 text-[11px] font-bold hover:bg-slate-50 transition-all shadow-2xs"
           >
             <Download className="w-3.5 h-3.5 text-orange-600" />
@@ -138,6 +179,7 @@ export default function SchedulePage() {
           </button>
           <button
             type="button"
+            onClick={() => setShowRemindersModal(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-600 text-white rounded-xl text-[11px] font-bold hover:bg-orange-700 transition-all shadow-xs"
           >
             <Bell className="w-3.5 h-3.5" />
@@ -277,10 +319,15 @@ export default function SchedulePage() {
                   ) : (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 bg-slate-900 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-all"
+                      onClick={() => handleToggleSaveSlot(event.id, event.title)}
+                      className={`inline-flex items-center gap-1 font-bold text-[11px] px-3 py-1.5 rounded-lg transition-all ${
+                        savedSlotIds.includes(event.id)
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                          : "bg-slate-900 text-white hover:bg-orange-600"
+                      }`}
                     >
-                      <span>Save Slot</span>
-                      <ArrowRight className="w-3 h-3" />
+                      <span>{savedSlotIds.includes(event.id) ? "Saved ✓" : "Save Slot"}</span>
+                      {!savedSlotIds.includes(event.id) && <ArrowRight className="w-3 h-3" />}
                     </button>
                   )}
                 </div>
@@ -289,6 +336,81 @@ export default function SchedulePage() {
           </div>
         ))}
       </div>
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2">
+          <Bell className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Session Reminders Modal */}
+      {showRemindersModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
+                Session Reminders
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowRemindersModal(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              {[
+                { key: "email15Min" as const, label: "Email 15 mins before saved sessions" },
+                { key: "pushLive" as const, label: "Browser alert when keynote goes live" },
+                { key: "smsUrgent" as const, label: "SMS updates for schedule changes" }
+              ].map((item) => (
+                <div key={item.key} className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 last:border-0">
+                  <span className="text-xs font-medium text-slate-700">{item.label}</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={reminders[item.key]}
+                    onClick={() =>
+                      setReminders((prev) => ({ ...prev, [item.key]: !prev[item.key] }))
+                    }
+                    className={`w-10 h-5 rounded-full transition-colors p-0.5 shrink-0 ${
+                      reminders[item.key] ? "bg-orange-600" : "bg-slate-200"
+                    }`}
+                  >
+                    <span
+                      className={`block w-4 h-4 rounded-full bg-white shadow-xs transition-transform ${
+                        reminders[item.key] ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowRemindersModal(false)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRemindersModal(false);
+                    showToast("Reminder preferences saved!");
+                  }}
+                  className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

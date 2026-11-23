@@ -25,6 +25,7 @@ export default function BusinessMarketplacePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [detailEvent, setDetailEvent] = useState<any>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const categories = [
@@ -164,13 +165,15 @@ export default function BusinessMarketplacePage() {
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>Inquire to Exhibit</span>
               </button>
-              <Link
-                href="/dashboard/business/events/create"
-                className="p-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all"
-                aria-label="Apply for event"
+              <button
+                type="button"
+                onClick={() => setDetailEvent(event)}
+                className="p-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all cursor-pointer"
+                aria-label="View event details"
+                title="View Event Details"
               >
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </div>
         ))}
@@ -197,6 +200,85 @@ export default function BusinessMarketplacePage() {
           </div>
         )}
       </div>
+
+      {/* Event Details Modal */}
+      {detailEvent && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg border border-slate-200 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+            <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900 truncate">
+                Event Details
+              </h3>
+              <button
+                type="button"
+                onClick={() => setDetailEvent(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center shrink-0 cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                  <span className="text-orange-600">{detailEvent.organizer}</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-500">{detailEvent.category}</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-emerald-600">{detailEvent.date}</span>
+                </div>
+                <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+                  {detailEvent.name}
+                </h2>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                {detailEvent.description}
+              </p>
+
+              {detailEvent.benefits && detailEvent.benefits.length > 0 && (
+                <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                  <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Exhibitor Benefits & Highlights
+                  </h4>
+                  <ul className="space-y-1.5 text-xs text-slate-700 font-medium">
+                    {detailEvent.benefits.map((b: string, i: number) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-orange-600 font-black">•</span>
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ev = detailEvent;
+                    setDetailEvent(null);
+                    handleInquire(ev);
+                  }}
+                  className="flex-1 bg-slate-900 text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:bg-orange-600 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Inquire to Exhibit</span>
+                </button>
+                <Link
+                  href="/dashboard/business/events/create"
+                  onClick={() => setDetailEvent(null)}
+                  className="flex-1 bg-orange-600 text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span>Host Similar Event</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* B2B Chatbot Instance */}
       {selectedEvent && (

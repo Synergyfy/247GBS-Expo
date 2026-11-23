@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     Ticket,
@@ -13,8 +13,14 @@ import {
     Sliders,
     AlertCircle,
     Info,
+    CheckCircle2,
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
+import {
+    GlobalTicketTemplate,
+    DEFAULT_TICKET_TEMPLATES,
+    getStoredTicketTemplates,
+} from "@/data/ticketTemplates";
 
 interface TicketTier {
     id: string;
@@ -33,6 +39,71 @@ export default function TicketTiersPage() {
     const [editingTier, setEditingTier] = useState<TicketTier | null>(null);
     const [priceInput, setPriceInput] = useState<number | string>(0);
     const [quotaInput, setQuotaInput] = useState<number | string>(0);
+
+    // Create New Event Pass Modal state (synced with Admin Ticket Templates)
+    const [adminTemplates, setAdminTemplates] = useState<GlobalTicketTemplate[]>(DEFAULT_TICKET_TEMPLATES);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [selectedTemplateId, setSelectedTemplateId] = useState(DEFAULT_TICKET_TEMPLATES[0].id);
+    const [newPassName, setNewPassName] = useState("");
+    const [newPassPrice, setNewPassPrice] = useState<number | string>(25);
+    const [newPassQuota, setNewPassQuota] = useState<number | string>(100);
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+    useEffect(() => {
+        const load = () => {
+            const loaded = getStoredTicketTemplates().filter((t) => t.status === "Active");
+            if (loaded.length > 0) {
+                setAdminTemplates(loaded);
+                setSelectedTemplateId((prev) =>
+                    loaded.some((t) => t.id === prev) ? prev : loaded[0].id
+                );
+            }
+        };
+        load();
+        window.addEventListener("ticket_templates_changed", load);
+        return () => window.removeEventListener("ticket_templates_changed", load);
+    }, []);
+
+    const activeTemplate =
+        adminTemplates.find((t) => t.id === selectedTemplateId) || adminTemplates[0];
+    const newPriceNum = Number(newPassPrice);
+    const newQuotaNum = Number(newPassQuota);
+    const isNewFree = activeTemplate?.maxPrice === 0 || activeTemplate?.isGiftOnly;
+    const isNewOverCap = !isNewFree && activeTemplate ? newPriceNum > activeTemplate.maxPrice : false;
+    const isNewUnderCap = !isNewFree && activeTemplate ? newPriceNum < activeTemplate.minPrice : false;
+    const isNewPriceValid = isNewFree
+        ? newPriceNum === 0
+        : newPassPrice !== "" && !isNewOverCap && !isNewUnderCap;
+    const isNewQuotaValid = newPassQuota !== "" && newQuotaNum >= 1;
+
+    const openCreateModal = () => {
+        const first = adminTemplates[0];
+        setSelectedTemplateId(first.id);
+        setNewPassName("");
+        setNewPassPrice(first.maxPrice === 0 ? 0 : (first.defaultPrice ?? first.minPrice));
+        setNewPassQuota(100);
+        setIsCreateOpen(true);
+    };
+
+    const handleCreatePass = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newPassName.trim() || !isNewPriceValid || !isNewQuotaValid || !activeTemplate) return;
+        const created: TicketTier = {
+            id: `T-0${tiers.length + 1}`,
+            name: newPassName.trim(),
+            templateName: activeTemplate.name,
+            minCap: activeTemplate.minPrice,
+            maxCap: activeTemplate.maxPrice,
+            currentPrice: isNewFree ? 0 : newPriceNum,
+            sold: 0,
+            quota: newQuotaNum,
+            status: isNewFree ? "Synced with MCOM Rewards" : "Active",
+        };
+        setTiers((prev) => [created, ...prev]);
+        setIsCreateOpen(false);
+        setToastMsg(`Created "${created.name}" under ${activeTemplate.name}!`);
+        setTimeout(() => setToastMsg(null), 3500);
+    };
 
     const [tiers, setTiers] = useState<TicketTier[]>([
         {
@@ -124,12 +195,13 @@ export default function TicketTiersPage() {
                     >
                         Assign Pass Links
                     </Link>
-                    <Link
-                        href="/dashboard/business/events/create"
-                        className="px-3.5 py-1.5 bg-orange-600 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-700 transition-all"
+                    <button
+                        type="button"
+                        onClick={openCreateModal}
+                        className="px-3.5 py-1.5 bg-orange-600 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-700 transition-all cursor-pointer"
                     >
                         + New Event Pass
-                    </Link>
+                    </button>
                 </div>
             </div>
 
@@ -379,6 +451,152 @@ export default function TicketTiersPage() {
                         </div>
                     </form>
                 )}
+            </Modal>
+
+            {/* Floating Toast */}
+            {toastMsg && (
+                <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2 max-w-sm">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{toastMsg}</span>
+                </div>
+            )}
+
+            {/* Create New Event Pass Modal (Mobile Responsive + Admin Cap Enforced) */}
+            <Modal
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                title="Create New Event Pass"
+            >
+                <form onSubmit={handleCreatePass} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                            Admin Ticket Template
+                        </label>
+                        <select
+                            value={selectedTemplateId}
+                            onChange={(e) => {
+                                const tplId = e.target.value;
+                                setSelectedTemplateId(tplId);
+                                const tpl = adminTemplates.find((t) => t.id === tplId);
+                                if (tpl) {
+                                    setNewPassPrice(tpl.maxPrice === 0 ? 0 : (tpl.defaultPrice ?? tpl.minPrice));
+                                }
+                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 bg-white cursor-pointer"
+                        >
+                            {adminTemplates.map((tpl) => (
+                                <option key={tpl.id} value={tpl.id}>
+                                    {tpl.name} ({tpl.priceRange})
+                                </option>
+                            ))}
+                        </select>
+                        {activeTemplate?.description && (
+                            <p className="text-[11px] text-slate-500">{activeTemplate.description}</p>
+                        )}
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                            Event Pass Name
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={newPassName}
+                            onChange={(e) => setNewPassName(e.target.value)}
+                            placeholder="e.g. Early Bird Workshop Pass"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                    Pass Price (£)
+                                </label>
+                                <span className="text-[10px] font-bold text-orange-600">
+                                    Cap: {isNewFree ? "£0 (Free)" : `£${activeTemplate?.minPrice}–£${activeTemplate?.maxPrice}`}
+                                </span>
+                            </div>
+                            <input
+                                type="number"
+                                min={activeTemplate?.minPrice ?? 0}
+                                max={activeTemplate?.maxPrice ?? 0}
+                                disabled={isNewFree}
+                                value={newPassPrice}
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    setNewPassPrice(raw === "" ? "" : Number(raw));
+                                }}
+                                className={`w-full px-3 py-2 rounded-lg border text-xs font-bold focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 ${
+                                    !isNewPriceValid
+                                        ? "border-red-500 ring-1 ring-red-500 bg-red-50/20 text-red-900"
+                                        : "border-slate-200 text-slate-900 focus:border-orange-500"
+                                }`}
+                            />
+                            {isNewOverCap && (
+                                <p className="text-[11px] font-bold text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Max cap is £{activeTemplate?.maxPrice}.
+                                </p>
+                            )}
+                            {isNewUnderCap && (
+                                <p className="text-[11px] font-bold text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Min price is £{activeTemplate?.minPrice}.
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                                Total Pass Quota
+                            </label>
+                            <input
+                                type="number"
+                                min={1}
+                                value={newPassQuota}
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    setNewPassQuota(raw === "" ? "" : Number(raw));
+                                }}
+                                className={`w-full px-3 py-2 rounded-lg border text-xs font-bold focus:outline-none ${
+                                    !isNewQuotaValid
+                                        ? "border-red-500 ring-1 ring-red-500 bg-red-50/20 text-red-900"
+                                        : "border-slate-200 text-slate-900 focus:border-orange-500"
+                                }`}
+                            />
+                            {!isNewQuotaValid && (
+                                <p className="text-[11px] font-bold text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Quota must be at least 1.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                        <button
+                            type="button"
+                            onClick={() => setIsCreateOpen(false)}
+                            className="px-3.5 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={!newPassName.trim() || !isNewPriceValid || !isNewQuotaValid}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+                                !newPassName.trim() || !isNewPriceValid || !isNewQuotaValid
+                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                    : "bg-orange-600 text-white hover:bg-orange-700 cursor-pointer shadow-sm"
+                            }`}
+                        >
+                            Create
+                        </button>
+                    </div>
+                </form>
             </Modal>
         </div>
     );

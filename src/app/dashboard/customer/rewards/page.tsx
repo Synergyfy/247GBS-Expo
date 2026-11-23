@@ -10,11 +10,35 @@ import {
   Wallet,
   ExternalLink,
   ChevronDown,
-  RefreshCw
+  RefreshCw,
+  CheckCircle2,
+  X
 } from "lucide-react";
 
 export default function RewardsPage() {
   const [tiersExpanded, setTiersExpanded] = useState(false);
+  const [pointsBalance, setPointsBalance] = useState(850);
+  const [redeemTarget, setRedeemTarget] = useState<{ id: number; title: string; cost: string; points: number; type: string } | null>(null);
+  const [redeemedIds, setRedeemedIds] = useState<number[]>([]);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleConfirmRedeem = () => {
+    if (!redeemTarget) return;
+    if (pointsBalance < redeemTarget.points) {
+      showToast(`Insufficient points — you need ${redeemTarget.points.toLocaleString()} pts.`);
+      setRedeemTarget(null);
+      return;
+    }
+    setPointsBalance((prev) => prev - redeemTarget.points);
+    setRedeemedIds((prev) => [...prev, redeemTarget.id]);
+    showToast(`Redeemed "${redeemTarget.title}"! Voucher code sent to your CHS account.`);
+    setRedeemTarget(null);
+  };
 
   const transactions = [
     {
@@ -126,7 +150,7 @@ export default function RewardsPage() {
           </p>
         </div>
         <a
-          href="https://mcomrewards.com"
+          href={process.env.NEXT_PUBLIC_MCOM_REWARDS_URL || "https://mcomreward.centralhubsolution.com"}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-[11px] font-bold hover:bg-orange-600 transition-colors w-fit shrink-0"
@@ -179,7 +203,7 @@ export default function RewardsPage() {
                 Redeem Reward Points
               </h3>
               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold">
-                850 pts available
+                {pointsBalance.toLocaleString()} pts available
               </span>
             </div>
             <p className="text-[11px] text-slate-500">
@@ -209,9 +233,18 @@ export default function RewardsPage() {
                   </div>
                   <button
                     type="button"
-                    className="w-full py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold hover:bg-orange-600 transition-colors"
+                    onClick={() => {
+                      const pts = parseInt(reward.cost.replace(/[^0-9]/g, ""), 10) || 0;
+                      setRedeemTarget({ id: reward.id, title: reward.title, cost: reward.cost, points: pts, type: reward.type });
+                    }}
+                    disabled={redeemedIds.includes(reward.id)}
+                    className={`w-full py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                      redeemedIds.includes(reward.id)
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
+                        : "bg-slate-900 text-white hover:bg-orange-600"
+                    }`}
                   >
-                    Redeem via MCOM
+                    {redeemedIds.includes(reward.id) ? "Redeemed ✓" : "Redeem via MCOM"}
                   </button>
                 </div>
               );
@@ -378,6 +411,62 @@ export default function RewardsPage() {
           ))}
         </div>
       </div>
+
+      {/* Floating Toast */}
+      {toastMsg && (
+        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2 max-w-sm">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Redemption Confirmation Modal */}
+      {redeemTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
+                Confirm Redemption
+              </h3>
+              <button
+                type="button"
+                onClick={() => setRedeemTarget(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Redeem <strong className="text-slate-900">{redeemTarget.title}</strong> for{" "}
+                <strong className="text-orange-600">{redeemTarget.cost}</strong> from your MCOM Reward balance ({pointsBalance.toLocaleString()} pts available)?
+              </p>
+              {pointsBalance < redeemTarget.points && (
+                <p className="text-[11px] font-bold text-red-600">
+                  You need {(redeemTarget.points - pointsBalance).toLocaleString()} more points to redeem this reward.
+                </p>
+              )}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRedeemTarget(null)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmRedeem}
+                  disabled={pointsBalance < redeemTarget.points}
+                  className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 disabled:opacity-40"
+                >
+                  Redeem
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

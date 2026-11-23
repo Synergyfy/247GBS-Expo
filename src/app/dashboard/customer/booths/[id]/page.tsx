@@ -70,6 +70,43 @@ export default function VirtualBoothPage() {
 
   const [liveProducts, setLiveProducts] = useState<any[]>([]);
   const [isLiveSynced, setIsLiveSynced] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [showLiveChat, setShowLiveChat] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState([
+    { sender: "Jane Smith", text: "Welcome to FutureTech Systems! How can I help you today?", time: "Just now", isSelf: false }
+  ]);
+  const [showConsultModal, setShowConsultModal] = useState(false);
+  const [consultSlot, setConsultSlot] = useState("Today • 04:30 PM");
+  const [consultNote, setConsultNote] = useState("");
+  const [boothToast, setBoothToast] = useState<string | null>(null);
+
+  const triggerToast = (msg: string) => {
+    setBoothToast(msg);
+    setTimeout(() => setBoothToast(null), 3000);
+  };
+
+  const handleSendBoothChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    const text = chatInput.trim();
+    setChatMessages((prev) => [
+      ...prev,
+      { sender: "You", text, time: "Now", isSelf: true }
+    ]);
+    setChatInput("");
+    setTimeout(() => {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: "Jane Smith",
+          text: "Thanks for reaching out! Our solutions engineer has received your message and will reply shortly.",
+          time: "Now",
+          isSelf: false
+        }
+      ]);
+    }, 600);
+  };
 
   useEffect(() => {
     async function fetchMallCatalog() {
@@ -168,6 +205,7 @@ export default function VirtualBoothPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
+              onClick={() => setShowLiveChat(true)}
               className="bg-white text-slate-900 px-3 py-1.5 rounded-xl font-bold text-[11px] hover:bg-orange-50 transition-all inline-flex items-center gap-1.5 shadow-xs"
             >
               <MessageSquare className="w-3.5 h-3.5 text-orange-600" />
@@ -175,9 +213,20 @@ export default function VirtualBoothPage() {
             </button>
             <button
               type="button"
-              className="bg-orange-600 text-white px-3.5 py-1.5 rounded-xl font-bold text-[11px] hover:bg-orange-700 transition-all shadow-xs"
+              onClick={() => {
+                setIsFollowing((prev) => {
+                  const next = !prev;
+                  triggerToast(next ? `Now following ${booth.name}!` : `Unfollowed ${booth.name}.`);
+                  return next;
+                });
+              }}
+              className={`px-3.5 py-1.5 rounded-xl font-bold text-[11px] transition-all shadow-xs ${
+                isFollowing
+                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  : "bg-orange-600 text-white hover:bg-orange-700"
+              }`}
             >
-              Follow Booth
+              {isFollowing ? "Following ✓" : "Follow Booth"}
             </button>
           </div>
         </div>
@@ -461,6 +510,7 @@ export default function VirtualBoothPage() {
                 </div>
                 <button
                   type="button"
+                  onClick={() => setShowConsultModal(true)}
                   className="w-full py-2 rounded-xl bg-slate-900 hover:bg-orange-600 text-white transition-all font-bold text-xs"
                 >
                   Book 1-on-1 Consultation
@@ -470,6 +520,133 @@ export default function VirtualBoothPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating Toast */}
+      {boothToast && (
+        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold">
+          {boothToast}
+        </div>
+      )}
+
+      {/* Live Booth Chat Modal */}
+      {showLiveChat && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md border border-slate-200 shadow-xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
+                  Live Chat • {booth.name}
+                </h3>
+                <p className="text-[11px] text-emerald-600 font-semibold">Jane Smith is online</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLiveChat(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3 overflow-y-auto flex-1 bg-slate-50/50">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex flex-col ${msg.isSelf ? "items-end" : "items-start"}`}>
+                  <div
+                    className={`px-3 py-2 rounded-xl text-xs max-w-[85%] ${
+                      msg.isSelf
+                        ? "bg-orange-600 text-white"
+                        : "bg-white border border-slate-200 text-slate-800"
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                  <span className="text-[10px] text-slate-400 mt-0.5">
+                    {msg.sender} • {msg.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <form onSubmit={handleSendBoothChat} className="p-3 border-t border-slate-100 flex gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask a question about products or pricing..."
+                className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-orange-500"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700"
+              >
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 1-on-1 Consultation Booking Modal */}
+      {showConsultModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
+                Book 1-on-1 Consultation
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowConsultModal(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600">Select Time Slot</label>
+                <select
+                  value={consultSlot}
+                  onChange={(e) => setConsultSlot(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-orange-500"
+                >
+                  <option>Today • 04:30 PM</option>
+                  <option>Tomorrow • 10:00 AM</option>
+                  <option>Tomorrow • 02:00 PM</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600">Topic / Notes (Optional)</label>
+                <textarea
+                  rows={2}
+                  value={consultNote}
+                  onChange={(e) => setConsultNote(e.target.value)}
+                  placeholder="Enterprise migration, volume pricing, etc."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-orange-500"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowConsultModal(false)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowConsultModal(false);
+                    setConsultNote("");
+                    triggerToast(`1-on-1 Consultation booked for ${consultSlot}!`);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700"
+                >
+                  Confirm Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

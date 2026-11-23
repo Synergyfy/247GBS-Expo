@@ -12,7 +12,8 @@ import {
   Edit3,
   X,
   Upload,
-  Sparkles
+  Sparkles,
+  Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -29,9 +30,14 @@ interface ExpoProduct {
 
 export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ExpoProduct | null>(null);
   const [importToast, setImportToast] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [imageMode, setImageMode] = useState<"upload" | "url">("upload");
+
+  const MCOM_MALL_BASE_URL =
+    process.env.NEXT_PUBLIC_MCOM_MALL_URL || "https://mcommall.centralhubsolution.com";
 
   const [products, setProducts] = useState<ExpoProduct[]>([
     {
@@ -41,7 +47,7 @@ export default function ProductsPage() {
         "High-availability enterprise cloud router with automated failover and hardware encryption.",
       price: "499.00",
       image: "/ideal.png",
-      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1",
+      mcomUrl: `${MCOM_MALL_BASE_URL}/products/cloud-core-hub-x1`,
       buttonLabel: "Buy Now",
       source: "MCOM Auto-Import"
     },
@@ -52,7 +58,7 @@ export default function ProductsPage() {
         "Real-time zero-trust firewall and DDoS mitigation node for distributed retail branches.",
       price: "199.00",
       image: "/main_stage_banner.png",
-      mcomUrl: "https://mcommall.com/products/edge-guard-pro",
+      mcomUrl: `${MCOM_MALL_BASE_URL}/products/edge-guard-pro`,
       buttonLabel: "Buy Now",
       source: "MCOM Auto-Import"
     },
@@ -63,7 +69,7 @@ export default function ProductsPage() {
         "Multi-region storage replication server with plug-and-play MCOM inventory synchronization.",
       price: "899.00",
       image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
-      mcomUrl: "https://mcommall.com/products/global-sync-node",
+      mcomUrl: `${MCOM_MALL_BASE_URL}/products/global-sync-node`,
       buttonLabel: "Book Now",
       source: "MCOM Auto-Import"
     }
@@ -97,24 +103,44 @@ export default function ProductsPage() {
     }
   };
 
-  // Add Product with customizable CTA button label and dual image input
+  // Add or Edit Product with customizable CTA button label and dual image input
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProd.name.trim()) return;
-    setProducts([
-      {
-        id: Date.now(),
-        name: newProd.name,
-        description:
-          newProd.description || "Direct exhibition showcase item linked to product checkout.",
-        price: newProd.price || "199.00",
-        image: newProd.image || "/hero.webp",
-        mcomUrl: newProd.mcomUrl || "https://mcommall.com/products/item",
-        buttonLabel: newProd.buttonLabel || "Buy Now",
-        source: "Manual Link"
-      },
-      ...products
-    ]);
+    if (editingProductId !== null) {
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === editingProductId
+            ? {
+                ...p,
+                name: newProd.name,
+                description:
+                  newProd.description || "Direct exhibition showcase item linked to product checkout.",
+                price: newProd.price || "199.00",
+                image: newProd.image || "/hero.webp",
+                mcomUrl: newProd.mcomUrl || `${MCOM_MALL_BASE_URL}/products/item`,
+                buttonLabel: newProd.buttonLabel || "Buy Now"
+              }
+            : p
+        )
+      );
+      setEditingProductId(null);
+    } else {
+      setProducts([
+        {
+          id: Date.now(),
+          name: newProd.name,
+          description:
+            newProd.description || "Direct exhibition showcase item linked to product checkout.",
+          price: newProd.price || "199.00",
+          image: newProd.image || "/hero.webp",
+          mcomUrl: newProd.mcomUrl || `${MCOM_MALL_BASE_URL}/products/item`,
+          buttonLabel: newProd.buttonLabel || "Buy Now",
+          source: "Manual Link"
+        },
+        ...products
+      ]);
+    }
     setNewProd({
       name: "",
       description: "",
@@ -126,8 +152,22 @@ export default function ProductsPage() {
     setIsModalOpen(false);
   };
 
+  const handleOpenEdit = (item: ExpoProduct) => {
+    setEditingProductId(item.id);
+    setNewProd({
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      image: item.image,
+      mcomUrl: item.mcomUrl,
+      buttonLabel: item.buttonLabel || "Buy Now"
+    });
+    setIsModalOpen(true);
+  };
+
   const handleDelete = (id: number) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
+    setDeleteTarget(null);
   };
 
   const filteredProducts = products.filter(
@@ -148,7 +188,7 @@ export default function ProductsPage() {
             className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3 max-w-sm"
           >
             <div className="w-8 h-8 rounded-xl bg-orange-600 flex items-center justify-center shrink-0">
-              <RefreshCw className="w-4 h-4 text-white animate-spin" />
+              <Clock className="w-4 h-4 text-white" />
             </div>
             <div>
               <p className="text-xs font-bold text-white">Auto-Import from MCOM Mall</p>
@@ -270,6 +310,7 @@ export default function ProductsPage() {
                     <div className="flex justify-end gap-1.5">
                       <button
                         type="button"
+                        onClick={() => handleOpenEdit(item)}
                         className="p-1.5 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50 cursor-pointer"
                         aria-label="Edit product"
                       >
@@ -277,7 +318,7 @@ export default function ProductsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => setDeleteTarget(item)}
                         className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
                         aria-label="Delete product"
                       >
@@ -325,25 +366,38 @@ export default function ProductsPage() {
                   <span>{item.buttonLabel || "Buy Now"}</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(item.id)}
-                  className="text-slate-400 hover:text-red-600 p-1"
-                  aria-label="Remove product"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(item)}
+                    className="text-slate-400 hover:text-orange-600 p-1"
+                    aria-label="Edit product"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(item)}
+                    className="text-slate-400 hover:text-red-600 p-1"
+                    aria-label="Remove product"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* STREAMLINED ADD PRODUCT MODAL */}
+      {/* STREAMLINED ADD / EDIT PRODUCT MODAL */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Add Product or Service"
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingProductId(null);
+        }}
+        title={editingProductId !== null ? "Edit Product or Service" : "Add Product or Service"}
       >
         <form className="space-y-3.5" onSubmit={handleAddProduct}>
           <div>
@@ -467,7 +521,7 @@ export default function ProductsPage() {
                 value={newProd.mcomUrl}
                 onChange={(e) => setNewProd({ ...newProd, mcomUrl: e.target.value })}
                 className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-orange-500 outline-none text-xs font-mono"
-                placeholder="https://mcommall.com/products/item"
+                placeholder={`${MCOM_MALL_BASE_URL}/products/item`}
               />
             </div>
           </div>
@@ -488,6 +542,37 @@ export default function ProductsPage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* DELETE PRODUCT CONFIRMATION MODAL */}
+      <Modal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Product"
+      >
+        {deleteTarget && (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to remove <strong className="text-slate-900">{deleteTarget.name}</strong> from your booth showcase?
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deleteTarget.id)}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

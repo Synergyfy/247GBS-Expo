@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Calendar, 
@@ -11,7 +11,8 @@ import {
   Facebook, 
   Linkedin,
   TrendingUp,
-  Bookmark
+  Bookmark,
+  Check
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
@@ -22,6 +23,48 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   const resolvedParams = use(params);
   const id = parseInt(resolvedParams.id);
   const item = NEWS_ITEMS.find(n => n.id === id);
+
+  const [saved, setSaved] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("expo_saved_articles") || "[]") as number[];
+      setSaved(stored.includes(id));
+    } catch {
+      setSaved(false);
+    }
+  }, [id]);
+
+  const showToast = (msg: string) => {
+    setFeedback(msg);
+    setTimeout(() => setFeedback(null), 2500);
+  };
+
+  const handleToggleSave = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("expo_saved_articles") || "[]") as number[];
+      const next = saved ? stored.filter((x) => x !== id) : [...new Set([...stored, id])];
+      localStorage.setItem("expo_saved_articles", JSON.stringify(next));
+      setSaved(!saved);
+      showToast(!saved ? "Article saved to reading list." : "Removed from reading list.");
+    } catch {
+      setSaved(!saved);
+    }
+  };
+
+  const handleShare = (platform: "twitter" | "facebook" | "linkedin") => {
+    if (typeof window === "undefined" || !item) return;
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(item.title);
+    const shareUrls = {
+      twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+    };
+    window.open(shareUrls[platform], "_blank", "noopener,noreferrer");
+    showToast(`Opened ${platform.charAt(0).toUpperCase() + platform.slice(1)} share dialog.`);
+  };
 
   if (!item) {
     return (
@@ -98,17 +141,44 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 <div>
                   <h4 className="font-bold text-slate-900 mb-2 uppercase tracking-wider text-[10px]">Share Story</h4>
                   <div className="flex gap-2">
-                    {[Twitter, Facebook, Linkedin].map((Icon, i) => (
-                      <button key={i} className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-orange-600 hover:border-orange-600 transition-all">
+                    {[
+                      { Icon: Twitter, platform: "twitter" as const, label: "Share on X / Twitter" },
+                      { Icon: Facebook, platform: "facebook" as const, label: "Share on Facebook" },
+                      { Icon: Linkedin, platform: "linkedin" as const, label: "Share on LinkedIn" },
+                    ].map(({ Icon, platform, label }) => (
+                      <button
+                        key={platform}
+                        type="button"
+                        aria-label={label}
+                        onClick={() => handleShare(platform)}
+                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-orange-600 hover:border-orange-600 transition-all cursor-pointer"
+                      >
                         <Icon className="w-4 h-4" />
                       </button>
                     ))}
                   </div>
                 </div>
-                <button className="w-full flex items-center justify-between px-3.5 py-2 bg-white border border-slate-200 rounded-xl hover:border-orange-600 transition-all font-bold text-xs text-slate-700">
-                  <span>Save Article</span>
-                  <Bookmark className="w-3.5 h-3.5 text-orange-600" />
+                <button
+                  type="button"
+                  onClick={handleToggleSave}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 border rounded-xl transition-all font-bold text-xs cursor-pointer ${
+                    saved
+                      ? "bg-orange-50 border-orange-300 text-orange-700"
+                      : "bg-white border-slate-200 hover:border-orange-600 text-slate-700"
+                  }`}
+                >
+                  <span>{saved ? "Saved" : "Save Article"}</span>
+                  {saved ? (
+                    <Check className="w-3.5 h-3.5 text-orange-600" />
+                  ) : (
+                    <Bookmark className="w-3.5 h-3.5 text-orange-600" />
+                  )}
                 </button>
+                {feedback && (
+                  <p className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5">
+                    {feedback}
+                  </p>
+                )}
               </div>
             </aside>
           </div>

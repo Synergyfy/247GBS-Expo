@@ -89,7 +89,7 @@ export default function MyTicketsPage() {
           </p>
         </div>
         <Link
-          href="/tickets"
+          href="/tickets?pass=true"
           className="inline-flex items-center gap-1 bg-orange-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-xs hover:bg-orange-700 transition-all shadow-xs shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -225,8 +225,29 @@ export default function MyTicketsPage() {
                     )}
                     <button
                       type="button"
+                      onClick={() => {
+                        const content = [
+                          `247GBS DIGITAL EXPO — OFFICIAL ACCESS PASS`,
+                          `==========================================`,
+                          `Event:    ${ticket.event}`,
+                          `Pass:     ${ticket.type}`,
+                          `Pass ID:  ${ticket.id}`,
+                          `QR Code:  ${ticket.qrCode}`,
+                          `Date:     ${ticket.date}`,
+                          `Location: ${ticket.location}`,
+                          `Status:   ${ticket.status}`,
+                        ].join("\n");
+                        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `247GBS-Pass-${ticket.qrCode}.txt`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
                       className="p-2 border border-slate-200/80 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                       aria-label="Download pass"
+                      title="Download pass receipt"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>

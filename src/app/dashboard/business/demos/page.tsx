@@ -17,6 +17,12 @@ import Modal from "@/app/component/Modal";
 
 export default function LiveDemosPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [activeBroadcast, setActiveBroadcast] = useState<{
+        id: string;
+        title: string;
+        hall: string;
+        pinnedProduct: string;
+    } | null>(null);
     const [sessionTitle, setSessionTitle] = useState("");
     const [sessionDate, setSessionDate] = useState("Tomorrow, 10:00 AM");
     const [hall, setHall] = useState("Virtual Main Hall A");
@@ -166,7 +172,8 @@ export default function LiveDemosPage() {
 
                         <div className="flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
                             <button
-                                onClick={() => alert("Launching live stream test environment...")}
+                                type="button"
+                                onClick={() => setActiveBroadcast(item)}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-600 transition-colors"
                             >
                                 <Play className="w-3.5 h-3.5" /> Start Broadcast
@@ -270,6 +277,46 @@ export default function LiveDemosPage() {
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Live Broadcast Preview Modal */}
+            <Modal
+                isOpen={!!activeBroadcast}
+                onClose={() => setActiveBroadcast(null)}
+                title={activeBroadcast ? `Live Studio • ${activeBroadcast.id}` : "Live Studio"}
+            >
+                {activeBroadcast && (
+                    <div className="space-y-4">
+                        <div className="aspect-video rounded-xl bg-slate-900 overflow-hidden relative border border-slate-800">
+                            <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
+                                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                                <span>LIVE BROADCAST STUDIO</span>
+                            </div>
+                            <iframe
+                                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1"
+                                title={activeBroadcast.title}
+                                className="w-full h-full"
+                                allow="autoplay; encrypted-media"
+                                allowFullScreen
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900">{activeBroadcast.title}</h4>
+                            <p className="text-[11px] text-slate-500">
+                                {activeBroadcast.hall} • Pinned: <strong className="text-orange-600">{activeBroadcast.pinnedProduct}</strong>
+                            </p>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                            <button
+                                type="button"
+                                onClick={() => setActiveBroadcast(null)}
+                                className="px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700"
+                            >
+                                End Broadcast
+                            </button>
+                        </div>
+                    </div>
+                )}
             </Modal>
         </div>
     );

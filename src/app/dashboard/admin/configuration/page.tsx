@@ -21,6 +21,32 @@ export default function ConfigurationPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Interactive Security & System state
+  const [mfaEnforced, setMfaEnforced] = useState(true);
+  const [ipInput, setIpInput] = useState("");
+  const [whitelistedIps, setWhitelistedIps] = useState<string[]>(["192.168.1.1"]);
+  const [showRbacModal, setShowRbacModal] = useState(false);
+  const [securityPolicies, setSecurityPolicies] = useState([
+    { label: "Web Application Firewall (WAF)", desc: "Enable advanced Layer 7 protection.", active: true },
+    { label: "DDoS Protection", desc: "Automated traffic scrubbing and rate limiting.", active: true },
+    { label: "Key Management System (KMS)", desc: "Rotate encryption keys every 90 days.", active: false },
+    { label: "Backup Encryption", desc: "AES-256 for all cross-region database backups.", active: true }
+  ]);
+
+  // Interactive Tax Jurisdictions
+  const [taxes, setTaxes] = useState([
+    { code: "UK", name: "VAT (United Kingdom)", desc: "Standard rate for exhibition tickets", rate: "20%" }
+  ]);
+  const [showAddTaxModal, setShowAddTaxModal] = useState(false);
+  const [newTax, setNewTax] = useState({ code: "", name: "", rate: "" });
+
+  // Interactive Payment Gateways with Disconnect Confirmation Modal
+  const [gateways, setGateways] = useState([
+    { name: "Stripe", status: "Connected" as "Connected" | "Disconnected", desc: "Primary gateway for UK cards, Apple Pay, and bank transfers." },
+    { name: "PayPal Express", status: "Disconnected" as "Connected" | "Disconnected", desc: "Alternative checkout gateway for international buyers." }
+  ]);
+  const [disconnectTarget, setDisconnectTarget] = useState<string | null>(null);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -149,9 +175,26 @@ export default function ConfigurationPage() {
                       <p className="font-bold text-slate-900 text-xs sm:text-sm">MFA Enforcement</p>
                       <p className="text-[11px] text-slate-500">Mandatory for all Admin roles</p>
                     </div>
-                    <div className="w-11 h-6 bg-orange-600 rounded-full relative cursor-pointer">
-                      <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
-                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={mfaEnforced}
+                      onClick={() => {
+                        setMfaEnforced((prev) => {
+                          showToast(`MFA Enforcement ${!prev ? "enabled" : "disabled"}.`);
+                          return !prev;
+                        });
+                      }}
+                      className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
+                        mfaEnforced ? "bg-orange-600" : "bg-slate-200"
+                      }`}
+                    >
+                      <div
+                        className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
+                          mfaEnforced ? "right-1" : "left-1"
+                        }`}
+                      />
+                    </button>
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <p className="font-bold text-slate-900 text-xs sm:text-sm">
@@ -172,20 +215,48 @@ export default function ConfigurationPage() {
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      value={ipInput}
+                      onChange={(e) => setIpInput(e.target.value)}
                       placeholder="Add IP Address (e.g. 192.168.1.1)"
                       className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-orange-500"
                     />
                     <button
                       type="button"
-                      className="bg-slate-900 text-white px-3 rounded-xl hover:bg-orange-600"
+                      onClick={() => {
+                        const clean = ipInput.trim();
+                        if (!clean) return;
+                        if (!whitelistedIps.includes(clean)) {
+                          setWhitelistedIps((prev) => [...prev, clean]);
+                          showToast(`Added ${clean} to IP Whitelist.`);
+                        }
+                        setIpInput("");
+                      }}
+                      className="bg-slate-900 text-white px-3 rounded-xl hover:bg-orange-600 cursor-pointer"
+                      aria-label="Add IP address"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
-                    <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-700 inline-flex items-center gap-1.5">
-                      192.168.1.1 <X className="w-3 h-3 cursor-pointer hover:text-red-500" />
-                    </span>
+                    {whitelistedIps.map((ip) => (
+                      <span
+                        key={ip}
+                        className="bg-slate-100 px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-700 inline-flex items-center gap-1.5"
+                      >
+                        {ip}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setWhitelistedIps((prev) => prev.filter((item) => item !== ip));
+                            showToast(`Removed ${ip} from whitelist.`);
+                          }}
+                          className="hover:text-red-500 cursor-pointer"
+                          aria-label={`Remove ${ip}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -201,7 +272,8 @@ export default function ConfigurationPage() {
                 </div>
                 <button
                   type="button"
-                  className="text-xs font-black text-orange-600 hover:underline shrink-0"
+                  onClick={() => setShowRbacModal(true)}
+                  className="text-xs font-black text-orange-600 hover:underline shrink-0 cursor-pointer"
                 >
                   Configure &rarr;
                 </button>
@@ -213,34 +285,22 @@ export default function ConfigurationPage() {
                 <Server className="w-4 h-4 text-orange-600" /> Infrastructure Security
               </h3>
               <div className="divide-y divide-slate-100">
-                {[
-                  {
-                    label: "Web Application Firewall (WAF)",
-                    desc: "Enable advanced Layer 7 protection.",
-                    active: true
-                  },
-                  {
-                    label: "DDoS Protection",
-                    desc: "Automated traffic scrubbing and rate limiting.",
-                    active: true
-                  },
-                  {
-                    label: "Key Management System (KMS)",
-                    desc: "Rotate encryption keys every 90 days.",
-                    active: false
-                  },
-                  {
-                    label: "Backup Encryption",
-                    desc: "AES-256 for all cross-region database backups.",
-                    active: true
-                  }
-                ].map((policy, i) => (
+                {securityPolicies.map((policy, i) => (
                   <div key={i} className="flex items-center justify-between py-3">
                     <div>
                       <p className="font-bold text-slate-900 text-xs sm:text-sm">{policy.label}</p>
                       <p className="text-[11px] text-slate-500">{policy.desc}</p>
                     </div>
-                    <div
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={policy.active}
+                      onClick={() => {
+                        setSecurityPolicies((prev) =>
+                          prev.map((item, idx) => (idx === i ? { ...item, active: !item.active } : item))
+                        );
+                        showToast(`${policy.label} ${!policy.active ? "enabled" : "disabled"}.`);
+                      }}
                       className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors shrink-0 ${
                         policy.active ? "bg-orange-600" : "bg-slate-200"
                       }`}
@@ -250,7 +310,7 @@ export default function ConfigurationPage() {
                           policy.active ? "right-1" : "left-1"
                         }`}
                       />
-                    </div>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -293,23 +353,26 @@ export default function ConfigurationPage() {
               <h3 className="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-tight">
                 Tax Configuration
               </h3>
-              <div className="flex items-center justify-between py-3 border-y border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center font-black text-xs">
-                    UK
+              <div className="divide-y divide-slate-100 border-y border-slate-100">
+                {taxes.map((tx, idx) => (
+                  <div key={idx} className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center font-black text-xs">
+                        {tx.code}
+                      </div>
+                      <div>
+                        <p className="font-bold text-xs sm:text-sm text-slate-900">{tx.name}</p>
+                        <p className="text-[11px] text-slate-500">{tx.desc}</p>
+                      </div>
+                    </div>
+                    <span className="font-black text-sm text-slate-900">{tx.rate}</span>
                   </div>
-                  <div>
-                    <p className="font-bold text-xs sm:text-sm text-slate-900">
-                      VAT (United Kingdom)
-                    </p>
-                    <p className="text-[11px] text-slate-500">Standard rate for exhibition tickets</p>
-                  </div>
-                </div>
-                <span className="font-black text-sm text-slate-900">20%</span>
+                ))}
               </div>
               <button
                 type="button"
-                className="w-full py-2.5 border border-dashed border-slate-300 rounded-xl text-slate-500 font-bold text-xs hover:border-orange-300 hover:text-orange-600 transition-all inline-flex items-center justify-center gap-1.5"
+                onClick={() => setShowAddTaxModal(true)}
+                className="w-full py-2.5 border border-dashed border-slate-300 rounded-xl text-slate-500 font-bold text-xs hover:border-orange-300 hover:text-orange-600 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Tax Jurisdiction
               </button>
@@ -324,18 +387,7 @@ export default function ConfigurationPage() {
               Connected Payment Gateways
             </h3>
             <div className="divide-y divide-slate-100">
-              {[
-                {
-                  name: "Stripe",
-                  status: "Connected",
-                  desc: "Primary gateway for UK cards, Apple Pay, and bank transfers."
-                },
-                {
-                  name: "PayPal Express",
-                  status: "Disconnected",
-                  desc: "Alternative checkout gateway for international buyers."
-                }
-              ].map((gw, i) => (
+              {gateways.map((gw, i) => (
                 <div
                   key={i}
                   className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
@@ -355,7 +407,19 @@ export default function ConfigurationPage() {
                   </div>
                   <button
                     type="button"
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all w-fit shrink-0 ${
+                    onClick={() => {
+                      if (gw.status === "Connected") {
+                        setDisconnectTarget(gw.name);
+                      } else {
+                        setGateways((prev) =>
+                          prev.map((item) =>
+                            item.name === gw.name ? { ...item, status: "Connected" } : item
+                          )
+                        );
+                        showToast(`${gw.name} connected successfully!`);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all w-fit shrink-0 cursor-pointer ${
                       gw.status === "Connected"
                         ? "bg-white text-red-600 border border-red-200 hover:bg-red-50"
                         : "bg-slate-900 text-white hover:bg-orange-600"
@@ -369,6 +433,102 @@ export default function ConfigurationPage() {
           </div>
         )}
       </div>
+
+      {/* RBAC Matrix Modal */}
+      {showRbacModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md border border-slate-200 shadow-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-900">RBAC Permission Matrix</h3>
+              <button type="button" onClick={() => setShowRbacModal(false)} className="w-7 h-7 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="divide-y divide-slate-100 text-xs">
+              {[
+                { role: "Super Admin", perms: "Full Platform Control, Gateways, Governance" },
+                { role: "Finance Admin", perms: "Settlements, Payout Releases, Tax Rules" },
+                { role: "Support Lead", perms: "Tickets, Disputes, Pass Verification" }
+              ].map((r) => (
+                <div key={r.role} className="py-2.5 flex justify-between gap-2">
+                  <span className="font-bold text-slate-900">{r.role}</span>
+                  <span className="text-slate-500 text-right">{r.perms}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => { setShowRbacModal(false); showToast("RBAC matrix confirmed."); }} className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700">
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Tax Jurisdiction Modal */}
+      {showAddTaxModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl p-5 space-y-3.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-900">Add Tax Jurisdiction</h3>
+              <button type="button" onClick={() => setShowAddTaxModal(false)} className="w-7 h-7 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <input type="text" placeholder="Country Code (e.g. EU, US)" value={newTax.code} onChange={(e) => setNewTax({ ...newTax, code: e.target.value.toUpperCase() })} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-orange-500" />
+            <input type="text" placeholder="Tax Name (e.g. EU VAT)" value={newTax.name} onChange={(e) => setNewTax({ ...newTax, name: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-orange-500" />
+            <input type="text" placeholder="Rate (e.g. 19%)" value={newTax.rate} onChange={(e) => setNewTax({ ...newTax, rate: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-orange-500" />
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setShowAddTaxModal(false)} className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">Cancel</button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newTax.code.trim() || !newTax.name.trim()) return;
+                  setTaxes((prev) => [...prev, { code: newTax.code.trim(), name: newTax.name.trim(), desc: "Custom regional tax rate", rate: newTax.rate.trim() || "0%" }]);
+                  setNewTax({ code: "", name: "", rate: "" });
+                  setShowAddTaxModal(false);
+                  showToast("Tax jurisdiction added!");
+                }}
+                className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Disconnect Gateway Confirmation Modal */}
+      {disconnectTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl p-5 space-y-4">
+            <h3 className="text-sm font-extrabold text-slate-900">Disconnect Payment Gateway</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to disconnect <strong className="text-slate-900">{disconnectTarget}</strong>? Live checkout transactions using this gateway will be paused.
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setDisconnectTarget(null)} className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGateways((prev) =>
+                    prev.map((item) =>
+                      item.name === disconnectTarget ? { ...item, status: "Disconnected" } : item
+                    )
+                  );
+                  showToast(`${disconnectTarget} disconnected.`);
+                  setDisconnectTarget(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -66,22 +66,13 @@ export default function AdminOverview() {
   return (
     <div className="space-y-4 sm:space-y-5 max-w-7xl mx-auto">
       {/* HEADER — Compact typography, no decorative pills */}
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
-            Command Center
-          </h1>
-          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-            Platform performance monitoring and event oversight.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/admin/reporting"
-          className="inline-flex items-center gap-1.5 bg-white border border-slate-200/80 text-slate-700 px-3 py-1.5 rounded-xl text-[11px] font-bold shadow-2xs hover:bg-slate-50 transition-all shrink-0"
-        >
-          <FileBarChart className="w-3.5 h-3.5 text-orange-600" />
-          <span>Reports</span>
-        </Link>
+      <div>
+        <h1 className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+          Command Center
+        </h1>
+        <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+          Platform performance monitoring and event oversight.
+        </p>
       </div>
 
       {/* STATS MATRIX — Horizontal Scroll on Mobile with Peeping Card + Dot Indicator */}

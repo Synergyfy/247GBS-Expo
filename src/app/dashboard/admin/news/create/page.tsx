@@ -28,7 +28,30 @@ export default function CreateNewsPage() {
   const [excerpt, setExcerpt] = useState("");
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
+  const [isTrending, setIsTrending] = useState(true);
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkUrlInput, setLinkUrlInput] = useState("https://");
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handlePublishStory = () => {
+    if (!title.trim()) {
+      showToast("Please enter a story title before publishing.");
+      return;
+    }
+    setIsPublishing(true);
+    setTimeout(() => {
+      setIsPublishing(false);
+      showToast(`"${title.trim()}" published to Platform Pulse!`);
+    }, 500);
+  };
 
   useEffect(() => {
     const loaded = getStoredCategories();
@@ -98,10 +121,12 @@ export default function CreateNewsPage() {
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-orange-600 transition-all shadow-md"
+            onClick={handlePublishStory}
+            disabled={isPublishing}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-orange-600 transition-all shadow-md cursor-pointer disabled:opacity-60"
           >
             <Save className="w-4 h-4" />
-            <span>Publish Story</span>
+            <span>{isPublishing ? "Publishing..." : "Publish Story"}</span>
           </button>
         </div>
       </div>
@@ -152,7 +177,8 @@ export default function CreateNewsPage() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      defaultChecked
+                      checked={isTrending}
+                      onChange={(e) => setIsTrending(e.target.checked)}
                       className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
                     />
                     <span className="text-xs font-bold text-slate-700">Trending Tag</span>
@@ -160,6 +186,8 @@ export default function CreateNewsPage() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
+                      checked={isFeatured}
+                      onChange={(e) => setIsFeatured(e.target.checked)}
                       className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
                     />
                     <span className="text-xs font-bold text-slate-700">Featured</span>
@@ -264,10 +292,11 @@ export default function CreateNewsPage() {
                   type="button"
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    const url = prompt("Enter link URL:");
-                    if (url) execCommand("createLink", url);
+                    setLinkUrlInput("https://");
+                    setShowLinkModal(true);
                   }}
                   className="p-1.5 hover:bg-orange-50 hover:text-orange-600 rounded text-slate-600"
+                  title="Insert Link"
                 >
                   <LinkIcon className="w-3.5 h-3.5" />
                 </button>
@@ -368,6 +397,55 @@ export default function CreateNewsPage() {
           </div>
         )}
       </div>
+
+      {toastMsg && (
+        <div className="fixed top-6 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold">
+          {toastMsg}
+        </div>
+      )}
+
+      {showLinkModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-900">Insert Link</h3>
+              <button
+                type="button"
+                onClick={() => setShowLinkModal(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <input
+              type="url"
+              value={linkUrlInput}
+              onChange={(e) => setLinkUrlInput(e.target.value)}
+              placeholder="https://example.com"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-orange-500"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowLinkModal(false)}
+                className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (linkUrlInput.trim()) execCommand("createLink", linkUrlInput.trim());
+                  setShowLinkModal(false);
+                }}
+                className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700"
+              >
+                Insert
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
