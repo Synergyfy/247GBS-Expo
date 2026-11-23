@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -13,7 +13,8 @@ import {
   Mail,
   MapPin,
   Calendar,
-  ChevronDown
+  ChevronDown,
+  ShoppingBag
 } from "lucide-react";
 
 export default function VirtualBoothPage() {
@@ -36,15 +37,15 @@ export default function VirtualBoothPage() {
     live: true
   };
 
-  // Products & services showcase with customizable CTA button label per business setting
-  const products = [
+  // Default fallback products
+  const defaultProducts = [
     {
       name: "Cloud Core Hub X1",
       description:
         "High-availability enterprise cloud router with automated failover and hardware encryption.",
       price: "499.00",
       image: "/ideal.png",
-      mcomUrl: "https://mcommall.com/products/cloud-core-hub-x1",
+      mcomUrl: "http://localhost:3003/marketplace",
       buttonLabel: "Buy Now"
     },
     {
@@ -53,7 +54,7 @@ export default function VirtualBoothPage() {
         "Real-time zero-trust firewall and DDoS mitigation node for distributed retail branches.",
       price: "199.00",
       image: "/main_stage_banner.png",
-      mcomUrl: "https://mcommall.com/products/edge-guard-pro",
+      mcomUrl: "http://localhost:3003/marketplace",
       buttonLabel: "Book Now"
     },
     {
@@ -62,10 +63,64 @@ export default function VirtualBoothPage() {
         "Multi-region storage replication server with plug-and-play MCOM inventory synchronization.",
       price: "899.00",
       image: "/f265f1748035f3fe5d0e6839698aecfc.jpg",
-      mcomUrl: "https://mcommall.com/products/global-sync-node",
+      mcomUrl: "http://localhost:3003/marketplace",
       buttonLabel: "Order Now"
     }
   ];
+
+  const [liveProducts, setLiveProducts] = useState<any[]>([]);
+  const [isLiveSynced, setIsLiveSynced] = useState(false);
+
+  useEffect(() => {
+    async function fetchMallCatalog() {
+      try {
+        const mallApiUrl =
+          process.env.NEXT_PUBLIC_MCOM_MALL_API_URL || "http://localhost:3006/api/v1";
+        const mallWebUrl =
+          process.env.NEXT_PUBLIC_MCOM_MALL_URL || "http://localhost:3003";
+
+        const res = await fetch(`${mallApiUrl}/product/public?limit=6`, {
+          headers: { Accept: "application/json" }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+            const mapped = json.data.map((item: any) => {
+              // Convert minor units (pence) to pounds if price is > 1000
+              const rawPrice = Number(item.price) || 0;
+              const formattedPrice =
+                rawPrice >= 1000 ? (rawPrice / 100).toFixed(2) : rawPrice.toFixed(2);
+
+              const firstMedia = Array.isArray(item.media)
+                ? item.media[0]
+                : typeof item.media === "string" && item.media.startsWith("http")
+                ? item.media
+                : "/ideal.png";
+
+              return {
+                id: item.id,
+                name: item.title,
+                description: item.shortDescription || item.description || "",
+                price: formattedPrice,
+                image: firstMedia,
+                mcomUrl: item.productUrl || `${mallWebUrl}/marketplace?product=${item.id}`,
+                buttonLabel: item.buttonLabel || "Buy Now"
+              };
+            });
+
+            setLiveProducts(mapped);
+            setIsLiveSynced(true);
+          }
+        }
+      } catch (err) {
+        console.warn("MCOM Mall live catalog fetch: fallback active", err);
+      }
+    }
+
+    fetchMallCatalog();
+  }, []);
+
+  const displayProducts = liveProducts.length > 0 ? liveProducts : defaultProducts;
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5">
@@ -218,45 +273,64 @@ export default function VirtualBoothPage() {
           {/* Tab Content */}
           <div>
             {activeTab === "products" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-                {products.map((product, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
-                  >
-                    <div>
-                      <div className="h-36 rounded-xl bg-slate-100 relative mb-3 overflow-hidden">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                      <div className="flex justify-between items-start gap-2 mb-1">
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                          {product.name}
-                        </h4>
-                        <span className="text-xs sm:text-sm font-extrabold text-orange-600 shrink-0">
-                          £{product.price}
-                        </span>
-                      </div>
-                      <p className="text-slate-500 text-[11px] leading-relaxed mb-3 line-clamp-2">
-                        {product.description}
-                      </p>
-                    </div>
-
-                    <a
-                      href={product.mcomUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-orange-600 text-white py-2 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all flex items-center justify-center gap-1.5 shadow-xs"
-                    >
-                      <span>{product.buttonLabel || "Buy Now"}</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+              <div className="space-y-3">
+                {isLiveSynced && (
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 px-0.5">
+                    <span className="font-semibold text-slate-700">Official Product Showcase</span>
+                    <span className="inline-flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 text-[10px]">
+                      <ShoppingBag className="w-3 h-3" />
+                      Live from MCOM Mall
+                    </span>
                   </div>
-                ))}
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                  {displayProducts.map((product, i) => (
+                    <div
+                      key={product.id || i}
+                      className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="h-36 rounded-xl bg-slate-100 relative mb-3 overflow-hidden">
+                          {product.image.startsWith("http") ? (
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          )}
+                        </div>
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                            {product.name}
+                          </h4>
+                          <span className="text-xs sm:text-sm font-extrabold text-orange-600 shrink-0">
+                            £{product.price}
+                          </span>
+                        </div>
+                        <p className="text-slate-500 text-[11px] leading-relaxed mb-3 line-clamp-2">
+                          {product.description}
+                        </p>
+                      </div>
+
+                      <a
+                        href={product.mcomUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-orange-600 text-white py-2 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                      >
+                        <span>{product.buttonLabel || "Buy Now"}</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

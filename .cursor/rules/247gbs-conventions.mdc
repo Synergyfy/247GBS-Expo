@@ -1,0 +1,23 @@
+---
+description: 247GBS Expo platform conventions, UI rules, and architecture standards
+alwaysApply: true
+---
+
+# 247GBS Expo Platform Conventions
+
+## 1. UI & Design Rules
+- **No Double Containers**: Never wrap cards or inputs in nested tinted backgrounds (e.g. no `bg-orange-50` wrapping a `bg-white` card; no box wrappers around radio inputs).
+- **Concise Buttons**: Avoid verbose button text. Use `Delete` (never `Yes, Delete Template`), `Cancel`, `Next`, `Continue`.
+- **Badge Whitespace**: Badges (`GLOBAL PRESET`, `ACTIVE`, status tags) must include `whitespace-nowrap shrink-0` to prevent ugly 2-line wraps.
+- **Card Proportions**: Use compact padding (`p-3.5 sm:p-4`), small icon boxes (`w-6 h-6`), and single/double-line clamps (`line-clamp-1`).
+- **Confirmation on Deletion**: Destructive actions require a confirmation modal.
+
+## 2. Core Workflows
+- **Ticket Templates**: Located at `/dashboard/admin/events/templates`, created at `/dashboard/admin/events/templates/create`. Synchronized via `src/data/ticketTemplates.ts`.
+- **Event Types**: Unified platform types managed on the templates page and imported into event creation (`Workshop`, `Demonstration`, `Seller Training`, `Keynote Showcase`, `Product Launch`, `Networking Session`). Synchronized via `src/data/categories.ts`.
+- **Admin View Booth**: Admin inspecting businesses navigates to `/dashboard/admin/businesses/[id]/booth` staying within the admin layout with a back banner.
+
+## 3. Git & Deployment
+- Development branch: `feat/mobile-responsive-public-pages`
+- Live deployment branches: `main` and `dev`
+- Always verify build with `npx tsc --noEmit && npm run build` before pushing.
