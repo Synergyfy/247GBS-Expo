@@ -36,9 +36,7 @@ import {
   getStoredTicketTemplates
 } from "@/data/ticketTemplates";
 
-export const ADMIN_TICKET_TEMPLATES = DEFAULT_TICKET_TEMPLATES;
-
-export interface RegisteredBusiness {
+interface RegisteredBusiness {
   id: string;
   name: string;
   category: string;
@@ -47,7 +45,7 @@ export interface RegisteredBusiness {
   location: string;
 }
 
-export const REGISTERED_BUSINESSES: RegisteredBusiness[] = [
+const REGISTERED_BUSINESSES: RegisteredBusiness[] = [
   {
     id: "biz_1",
     name: "TechGlobal Solutions Ltd",
