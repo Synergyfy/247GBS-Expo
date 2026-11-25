@@ -18,14 +18,14 @@ import SandboxCheckoutModal, { SandboxPaymentResult } from "@/app/component/Sand
 import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 import { PASS_PLANS } from "@/data/passes";
-import { getStoredUser, clearStoredUser } from "@/lib/auth";
+import { getStoredUser, setStoredUser, clearStoredUser } from "@/lib/auth";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-// Step 4 (Local Identity / OTP Verification) removed per Central Solution (CHS) directive.
-const STEPS = ["Events", "Add-ons", "Review", "Payment", "Passport"];
+// 4-step flow per Nov 25 review: Events -> Review (CHS Auth Gate) -> Payment -> Passport (Add-ons removed)
+const STEPS = ["Events", "Review", "Payment", "Passport"];
 
 interface CartItem {
   id: string;
@@ -149,6 +149,8 @@ function TicketsContent() {
   const [showPassModal, setShowPassModal] = useState(false);
   const [showPassSandboxCheckout, setShowPassSandboxCheckout] = useState(false);
   const [passPaymentReceipt, setPassPaymentReceipt] = useState<SandboxPaymentResult | null>(null);
+  const [showAuthGateModal, setShowAuthGateModal] = useState(false);
+  const [isCartExpanded, setIsCartExpanded] = useState(true);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -248,7 +250,7 @@ function TicketsContent() {
     const statusParam = searchParams.get("status");
 
     if (sessionId && statusParam === "success") {
-      setStep(4);
+      setStep(3);
       setLoading(true);
       fetch(`/api/checkout/stripe/verify-session?session_id=${sessionId}`)
         .then((res) => res.json())
@@ -271,7 +273,7 @@ function TicketsContent() {
         })
         .finally(() => setLoading(false));
     } else if (paypalToken && statusParam === "success") {
-      setStep(4);
+      setStep(3);
       setLoading(true);
       fetch("/api/checkout/paypal/capture-order", {
         method: "POST",
@@ -387,9 +389,9 @@ function TicketsContent() {
     }, 400);
   };
 
-  // Initialize official Stripe Elements PaymentIntent when on payment step
+  // Initialize official Stripe Elements PaymentIntent when on payment step (step === 2)
   useEffect(() => {
-    if (step === 3 && paymentType === "card" && gatewayProvider === "stripe" && !clientSecret) {
+    if (step === 2 && paymentType === "card" && gatewayProvider === "stripe" && !clientSecret) {
       setStripeInitLoading(true);
       fetch("/api/checkout/stripe/create-payment-intent", {
         method: "POST",
@@ -462,13 +464,13 @@ function TicketsContent() {
               setPaymentVerified(true);
               setVerifiedDetails({ gateway: "PayPal Sandbox (In-App Popup)", orderId: data.orderId, amount: finalPrice });
               setTransactionRef(data.orderId);
-              setStep(4);
+              setStep(3);
             }
           } catch (e) {
             console.error("Capture err:", e);
             setPaymentVerified(true);
             setTransactionRef(data.orderId);
-            setStep(4);
+            setStep(3);
           } finally {
             setLoading(false);
           }
@@ -540,10 +542,9 @@ function TicketsContent() {
             </div>
             <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
               {step === 0 && <>Explore & Book <span className="text-orange-600">Expo Events</span></>}
-              {step === 1 && <>Enhance Your <span className="text-orange-600">Digital Visit</span></>}
-              {step === 2 && <>Order <span className="text-orange-600">Review & Pass</span></>}
-              {step === 3 && <>Secure <span className="text-orange-600">Payment</span></>}
-              {step === 4 && <>Your Digital <span className="text-orange-600">Expo Passport</span></>}
+              {step === 1 && <>Order <span className="text-orange-600">Review & Pass</span></>}
+              {step === 2 && <>Secure <span className="text-orange-600">Payment</span></>}
+              {step === 3 && <>Your Digital <span className="text-orange-600">Expo Passport</span></>}
             </h1>
           </div>
 
@@ -740,195 +741,166 @@ function TicketsContent() {
                 </div>
               )}
 
-              {/* Mobile & Desktop Sticky Checkout Bar when Events Selected */}
+              {/* Floating Collapsible Ticket Cart (Expanded by default, capped at 4 visible items then scrolls) */}
               <AnimatePresence>
-                {totalSelectedTicketsQuantity > 0 && (
+                {cart.filter((i) => i.type === "ticket").length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 30 }}
-                    className="fixed bottom-16 lg:bottom-6 left-3 right-3 lg:left-auto lg:right-8 lg:w-[420px] z-50 bg-slate-950 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-between gap-3"
+                    className="fixed bottom-16 lg:bottom-6 left-3 right-3 lg:left-auto lg:right-8 lg:w-[440px] z-50 bg-slate-950 text-white rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
                   >
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">
-                          {totalSelectedTicketsQuantity} {totalSelectedTicketsQuantity === 1 ? "Event" : "Events"} Selected
-                        </span>
-                      </div>
-                      <p className="text-base sm:text-lg font-black text-white">
-                        £{cart.filter(i => i.type === 'ticket').reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2)}
-                      </p>
-                    </div>
+                    {/* Collapsible Item List (max 4 rows ~ 216px, then scrolls) */}
+                    <AnimatePresence initial={false}>
+                      {isCartExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden border-b border-white/10"
+                        >
+                          <div className="px-3.5 sm:px-4 pt-3 pb-2 flex items-center justify-between gap-2 border-b border-white/10">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shrink-0" />
+                              <span className="text-[11px] font-extrabold uppercase tracking-wider text-orange-400 truncate">
+                                Your Ticket Cart ({totalSelectedTicketsQuantity}{" "}
+                                {totalSelectedTicketsQuantity === 1 ? "Pass" : "Passes"})
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setIsCartExpanded(false)}
+                              aria-label="Collapse ticket cart"
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                            >
+                              <span>Minimize</span>
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
 
-                    <button
-                      onClick={handleNext}
-                      className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 shadow-lg active:scale-95 transition-all shrink-0"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Continue</span> <ArrowRight className="w-4 h-4" /></>}
-                    </button>
+                          <div className="max-h-[216px] overflow-y-auto divide-y divide-white/10 px-3.5 sm:px-4 custom-scrollbar">
+                            {cart
+                              .filter((i) => i.type === "ticket")
+                              .map((item) => (
+                                <div
+                                  key={`${item.id}-${item.eventId}`}
+                                  className="h-[54px] flex items-center justify-between gap-2"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-bold text-white truncate leading-tight">
+                                      {item.name}
+                                    </p>
+                                    <p className="text-[10px] text-slate-400">
+                                      £{item.price.toFixed(2)} each
+                                    </p>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <div className="inline-flex items-center rounded-lg border border-white/15 bg-white/5 overflow-hidden">
+                                      <button
+                                        type="button"
+                                        onClick={() => updateQuantity(item.id, -1, item.eventId)}
+                                        aria-label={`Decrease quantity for ${item.name}`}
+                                        className="w-6 h-6 flex items-center justify-center text-slate-300 hover:bg-orange-600 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <Minus className="w-3 h-3" />
+                                      </button>
+                                      <span className="w-6 text-center text-[11px] font-black text-white">
+                                        {item.quantity}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateQuantity(item.id, 1, item.eventId)}
+                                        aria-label={`Increase quantity for ${item.name}`}
+                                        className="w-6 h-6 flex items-center justify-center text-slate-300 hover:bg-orange-600 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </button>
+                                    </div>
+
+                                    <span className="text-xs font-extrabold text-white w-14 text-right">
+                                      £{(item.price * item.quantity).toFixed(2)}
+                                    </span>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (item.eventId) {
+                                          setSelectedEvents((prev) =>
+                                            prev.filter((id) => id !== item.eventId)
+                                          );
+                                        }
+                                        removeFromCart(item.id, item.eventId);
+                                      }}
+                                      aria-label={`Remove ${item.name}`}
+                                      className="p-1 rounded-md text-slate-400 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Always-Visible Footer Bar */}
+                    <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsCartExpanded((v) => !v)}
+                        className="text-left group cursor-pointer min-w-0"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shrink-0" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1">
+                            <span>
+                              {totalSelectedTicketsQuantity}{" "}
+                              {totalSelectedTicketsQuantity === 1 ? "Pass" : "Passes"}
+                            </span>
+                            {isCartExpanded ? (
+                              <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-white" />
+                            ) : (
+                              <ChevronUp className="w-3 h-3 text-slate-400 group-hover:text-white" />
+                            )}
+                          </span>
+                        </div>
+                        <p className="text-base sm:text-lg font-black text-white">
+                          £
+                          {cart
+                            .filter((i) => i.type === "ticket")
+                            .reduce((acc, i) => acc + i.price * i.quantity, 0)
+                            .toFixed(2)}
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 shadow-lg active:scale-95 transition-all shrink-0 cursor-pointer"
+                      >
+                        {loading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            <span>Review Order</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
           )}
 
-          {/* STEP 1: ADD-ONS (Collapsed by default so presenter can explain) */}
+          {/* STEP 1: REVIEW & ACCESS PASS TOKEN VALIDATION (Add-ons removed per Nov 25 review) */}
           {step === 1 && (
             <motion.div
               key="step1"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="max-w-4xl mx-auto"
-            >
-              {/* Collapsible Header Banner */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs mb-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
-                      <Sparkles className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="font-extrabold text-sm sm:text-base text-slate-900">
-                        Optional Visit Add-ons (3 Available)
-                      </h2>
-                      <p className="text-xs text-slate-500 leading-relaxed">
-                        Digital guidebooks, expo credits, and session recordings are optional extras.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAddOns((prev) => !prev)}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs transition-all cursor-pointer shrink-0"
-                  >
-                    <span>{showAddOns ? "Collapse Add-ons" : "Explore Add-ons"}</span>
-                    {showAddOns ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-
-                {/* Animated Collapsible Shelf */}
-                <AnimatePresence>
-                  {showAddOns && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden pt-4 mt-4 border-t border-slate-100"
-                    >
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                        {products.map((product) => {
-                          const cartItem = cart.find((i) => i.id === product.id && i.type === "product");
-                          const qty = cartItem?.quantity || 0;
-
-                          return (
-                            <div
-                              key={product.id}
-                              className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${
-                                qty > 0
-                                  ? "bg-white border-orange-500 ring-1 ring-orange-500/15 shadow-xs"
-                                  : "bg-slate-50 border-slate-200/70"
-                              }`}
-                            >
-                              <div>
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-orange-600 shadow-2xs border border-slate-100">
-                                    {product.icon}
-                                  </div>
-                                  <span className="text-base sm:text-lg font-black text-slate-900">£{product.price}</span>
-                                </div>
-                                <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-1">{product.name}</h3>
-                                <p className="text-slate-500 text-[11px] leading-relaxed mb-3">{product.description}</p>
-                              </div>
-
-                              {qty > 0 ? (
-                                <div className="w-full flex items-center justify-between bg-orange-600 text-white rounded-lg p-1 shadow-xs">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (qty <= 1) {
-                                        removeFromCart(product.id);
-                                      } else {
-                                        updateQuantity(product.id, -1);
-                                      }
-                                    }}
-                                    className="w-7 h-7 rounded-md bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors cursor-pointer"
-                                    aria-label={`Decrease ${product.name} quantity`}
-                                  >
-                                    <Minus className="w-3.5 h-3.5" />
-                                  </button>
-                                  <span className="text-xs font-extrabold tracking-tight px-2">
-                                    {qty} in Order
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => addToCart(product, "product")}
-                                    className="w-7 h-7 rounded-md bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors cursor-pointer"
-                                    aria-label={`Add another ${product.name}`}
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => addToCart(product, "product")}
-                                  className="w-full py-2 bg-white text-slate-900 border border-slate-200 rounded-lg font-bold text-xs hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all flex items-center justify-center gap-1 cursor-pointer"
-                                >
-                                  <Plus className="w-3.5 h-3.5" /> Add to Order
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {cart.length > 0 && (
-                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold text-slate-700 uppercase tracking-wider text-xs">Selected Items</span>
-                    <span className="font-black text-base text-orange-600">£{subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {cart.map((item, idx) => (
-                      <div key={`${item.id}-${idx}`} className="bg-slate-100 px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                        <span>{item.name} ×{item.quantity}</span>
-                        <button onClick={() => removeFromCart(item.id, item.eventId)} className="text-slate-400 hover:text-red-500">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-between items-center gap-3">
-                <button
-                  onClick={handleBack}
-                  className="px-5 py-2.5 border border-slate-200 bg-white rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 hover:bg-orange-700 transition-all shadow-md cursor-pointer"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Review Order</span> <ArrowRight className="w-3.5 h-3.5" /></>}
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 2: REVIEW & ACCESS PASS TOKEN VALIDATION */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
               initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -15 }}
@@ -939,17 +911,42 @@ function TicketsContent() {
 
                 <div className="divide-y divide-slate-100 mb-5">
                   {cart.map((item, idx) => (
-                    <div key={`${item.id}-${idx}`} className="flex justify-between items-center py-2.5">
-                      <div>
+                    <div key={`${item.id}-${idx}`} className="flex justify-between items-center gap-3 py-2.5">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="font-bold text-slate-900 text-xs sm:text-sm">{item.name}</p>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase bg-orange-100 text-orange-700">
+                          <p className="font-bold text-slate-900 text-xs sm:text-sm truncate">{item.name}</p>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase bg-orange-100 text-orange-700 shrink-0">
                             {item.type}
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-400">{item.quantity} × £{item.price.toFixed(2)}</p>
                       </div>
-                      <span className="font-bold text-slate-900 text-xs sm:text-sm">£{(item.price * item.quantity).toFixed(2)}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {item.type === "ticket" && (
+                          <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.id, -1, item.eventId)}
+                              className="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-orange-100 hover:text-orange-600 cursor-pointer"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="w-6 text-center text-[11px] font-black text-slate-900">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.id, 1, item.eventId)}
+                              className="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-orange-100 hover:text-orange-600 cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                        <span className="font-bold text-slate-900 text-xs sm:text-sm w-16 text-right">
+                          £{(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1031,25 +1028,39 @@ function TicketsContent() {
                 <div className="flex justify-between items-center gap-3">
                   <button
                     onClick={handleBack}
-                    className="px-5 py-2.5 border border-slate-200 rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                    className="px-5 py-2.5 border border-slate-200 rounded-full font-bold text-xs sm:text-sm text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1 cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" /> Back
                   </button>
                   <button
-                    onClick={handleNext}
-                    className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5"
+                    type="button"
+                    onClick={() => {
+                      if (!currentUser) {
+                        setShowAuthGateModal(true);
+                        return;
+                      }
+                      handleNext();
+                    }}
+                    className="px-6 py-2.5 sm:px-8 sm:py-3 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5 cursor-pointer"
                   >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Proceed to Payment</span> <ArrowRight className="w-3.5 h-3.5" /></>}
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <span>{currentUser ? "Proceed to Payment" : "Sign In to Pay"}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 3: PAYMENT (Official Stripe & PayPal Sandbox Hosted Checkout) */}
-          {step === 3 && (
+          {/* STEP 2: PAYMENT (Official Stripe & PayPal Sandbox Hosted Checkout) */}
+          {step === 2 && (
             <motion.div
-              key="step3"
+              key="step2"
               initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -15 }}
@@ -1187,7 +1198,7 @@ function TicketsContent() {
                                 setPaymentVerified(true);
                                 setTransactionRef(intentId);
                                 setVerifiedDetails({ gateway: "Stripe Elements", intentId, amount: finalPrice });
-                                setStep(4);
+                                setStep(3);
                               }}
                               onError={(msg) => setPaymentError(msg)}
                             />
@@ -1261,7 +1272,7 @@ function TicketsContent() {
                           setPaymentVerified(true);
                           setTransactionRef("TXN-CHS-" + Math.floor(10000 + Math.random() * 90000));
                           setVerifiedDetails({ gateway: "CHS Unified Wallet", amount: finalPrice });
-                          setStep(4);
+                          setStep(3);
                           setLoading(false);
                         }, 500);
                       }}
@@ -1318,10 +1329,10 @@ function TicketsContent() {
             </motion.div>
           )}
 
-          {/* STEP 4: DIGITAL PASSPORT & CENTRAL SOLUTION (CHS) REDIRECT */}
-          {step === 4 && (
+          {/* STEP 3: DIGITAL PASSPORT & CONFIRMATION */}
+          {step === 3 && (
             <motion.div
-              key="step4"
+              key="step3"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="max-w-md mx-auto"
@@ -1591,6 +1602,76 @@ function TicketsContent() {
               </button>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* CHS AUTH GATE MODAL AT REVIEW -> PAYMENT (Temu / Jumia Checkout Pattern) */}
+      <Modal
+        isOpen={showAuthGateModal}
+        onClose={() => setShowAuthGateModal(false)}
+        title="Sign In or Register to Pay"
+        maxWidth="sm"
+      >
+        <div className="space-y-4 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto border border-orange-100">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
+              Account Required for Payment
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              We need your Central Hub Solution (CHS) account to issue your digital Expo passport and send your receipt.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 text-left">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <p className="text-[11px] font-bold text-slate-600">Already have an account?</p>
+              <a
+                href={`${CHS_BASE_URL}/login`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+              >
+                <span>Sign in with CHS</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <p className="text-[11px] font-bold text-slate-600">Don&apos;t have an account yet?</p>
+              <a
+                href={`${CHS_BASE_URL}/register/customer`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>Register with CHS</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => {
+                const demoUser = {
+                  name: "Jane Doe",
+                  email: "customer@247gbs.com",
+                  role: "customer" as const
+                };
+                setStoredUser(demoUser);
+                setCurrentUser(demoUser);
+                setShowAuthGateModal(false);
+                handleNext();
+              }}
+              className="text-[11px] font-bold text-orange-600 hover:underline cursor-pointer"
+            >
+              Continue with Demo Customer Sign In →
+            </button>
+          </div>
         </div>
       </Modal>
 

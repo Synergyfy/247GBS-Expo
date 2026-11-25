@@ -145,7 +145,11 @@ function SelectionContent() {
         <div className="mt-5 sm:mt-8 text-center">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
             <a
-              href={process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolution.com"}
+              href={
+                selectedRole === "customer"
+                  ? `${process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolution.com"}/register/customer`
+                  : `${process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolution.com"}/getstarted/business`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className={`w-full sm:w-auto px-7 py-3 sm:px-9 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold text-white shadow-lg transition-all active:scale-95 inline-flex items-center justify-center gap-2 ${
@@ -154,18 +158,18 @@ function SelectionContent() {
                   : "bg-orange-600 hover:bg-orange-700"
               }`}
             >
-              <span>Continue to Central Hub Solution (CHS)</span>
+              <span>Sign up with CHS</span>
               <ArrowRight className="w-4 h-4" />
             </a>
             <Link
-              href={`/login?role=${selectedRole || "business"}`}
+              href="/login"
               className="w-full sm:w-auto px-6 py-3 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold text-slate-700 bg-white border border-slate-200 hover:border-orange-300 hover:text-orange-600 transition-all inline-flex items-center justify-center gap-2"
             >
-              <span>Demo Sign In</span>
+              <span>Sign in with CHS</span>
             </Link>
           </div>
           <p className="mt-2.5 text-[11px] sm:text-xs text-slate-500">
-            Account registration and business verification are handled centrally on CHS.
+            Account registration and business verification are handled centrally on Central Hub Solution (CHS).
           </p>
         </div>
       </div>
