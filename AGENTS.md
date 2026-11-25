@@ -13,6 +13,22 @@ This document captures the platform architecture, project conventions, and criti
   - `dev` (Development / staging deployment)
 - **Deployment Process**: Features are built and tested on `feat/mobile-responsive-public-pages`. Once verified, PRs are created and merged into `main` and `dev` using `gh pr create` and `gh pr merge`.
 
+### 1.1 Monorepo Layout (npm workspaces)
+- Single git repository containing two workspaces:
+  - `apps/web` — Next.js frontend (`247_digital_expo`).
+  - `apps/backend` — NestJS API (`247GBS-ExpoBackend`, Prisma + PostgreSQL).
+- Root `package.json` defines `workspaces: ["apps/*"]` and a single root `package-lock.json`.
+- Run installs once at the repo root: `npm install`.
+- Common root scripts:
+  - `npm run dev` / `npm run dev:web` — start the web app.
+  - `npm run dev:backend` — start the NestJS API in watch mode.
+  - `npm run build` builds both workspaces; `npm run build:web` and `npm run build:backend` build one.
+  - `npm run typecheck`, `npm run lint`, `npm run lint:backend`, `npm run test:backend`.
+  - `npm run prisma:generate` regenerates the Prisma client; `npm install` runs it automatically via `postinstall`.
+- Workspace commands can also be run directly, e.g. `npm run dev -w apps/web`.
+- `apps/web/next.config.ts` pins both `turbopack.root` and `outputFileTracingRoot` to the repository root so hoisted dependencies resolve correctly. Do not remove these settings when moving the app.
+- Legacy note: `apps/web/init` is the process bootstrap (`node init && next dev`); it only creates a `.tmp` directory. Keep it and `apps/web/postcss.config.mjs` free of obfuscated or dynamically-evaluated code.
+
 ---
 
 ## 2. Core Architecture & Feature Specifications
@@ -22,7 +38,7 @@ This document captures the platform architecture, project conventions, and criti
   - Accessible via the **"Ticket Templates"** button in the Events Directory (`/dashboard/admin/events`).
   - Removed from System Configuration (`/dashboard/admin/configuration` — no "Policy & Templates" tab) and Platform Governance (`/dashboard/admin/governance` — no "Ticket Templates" tab).
 - **Template Creation & Editing**: Dedicated full-screen page at `/dashboard/admin/events/templates/create` (also supports `?edit=[id]`).
-- **Template Data Store**: `src/data/ticketTemplates.ts`
+- **Template Data Store**: `apps/web/src/data/ticketTemplates.ts`
   - Synchronizes across tabs and sessions via `localStorage` (`STORAGE_KEY_TEMPLATES = "admin_global_ticket_templates_v2"`) and custom event `"ticket_templates_changed"`.
   - Default presets:
     1. *Standard Season Day Pass Template* (Access: `General`, Cap: `£0 – £50`, Split: `10% Platform Split`)
@@ -35,7 +51,7 @@ This document captures the platform architecture, project conventions, and criti
 ### 2.2 Event Types (Consolidation)
 - **Unified Event Types**: Formerly split into separate "Category" and "Sub-Category" dropdowns. Now consolidated into a single platform-wide **`Event Type`**.
 - **Admin Management**: On `/dashboard/admin/events/templates`, under the **Event Type** section.
-- **Data Store**: `src/data/categories.ts` (`STORAGE_KEY_TYPES = "admin_event_types_v3"`).
+- **Data Store**: `apps/web/src/data/categories.ts` (`STORAGE_KEY_TYPES = "admin_event_types_v3"`).
 - **Default Types**:
   - `Workshop`
   - `Demonstration`
@@ -88,6 +104,6 @@ This document captures the platform architecture, project conventions, and criti
 ## 4. Build, Verification & Tooling
 - Always run TypeScript and build verification prior to committing:
   ```bash
-  npx tsc --noEmit && npm run build
+  npm run typecheck && npm run build
   ```
 - *Note*: Turbopack font optimization connects to Google Fonts during build; commands executing builds or network operations must run unsandboxed (`BypassSandbox: true`).

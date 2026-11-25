@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 247GBS Digital Expo
+
+npm workspaces monorepo for the 247GBS Digital Expo platform.
+
+| Workspace | Description | Stack |
+| --- | --- | --- |
+| `apps/web` | Public site and dashboards | Next.js 16 (App Router), React 19, Tailwind CSS |
+| `apps/backend` | API service | NestJS 11, Prisma, PostgreSQL |
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies once from the repository root. The `postinstall` step generates the Prisma client for `apps/backend`.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `apps/backend/.env` with your `DATABASE_URL` and any other backend secrets, then start both apps:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev:backend
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The web app runs at [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Root Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Description |
+| --- | --- |
+| `npm run dev` / `npm run dev:web` | Start the web app |
+| `npm run dev:backend` | Start the API in watch mode |
+| `npm run build` | Build web and backend |
+| `npm run build:web` / `npm run build:backend` | Build one workspace |
+| `npm run typecheck` | Typecheck both workspaces |
+| `npm run lint` / `npm run lint:backend` | Lint web / backend |
+| `npm run test:backend` | Run backend unit tests |
+| `npm run prisma:generate` | Regenerate the Prisma client |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Workspace scripts can also be run directly, for example `npm run dev -w apps/web` or `npm run prisma:generate -w apps/backend`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Set the deployment root directory to `apps/web` for the frontend. Builds run from the monorepo root so workspace dependencies and `turbopack.root` resolve correctly.

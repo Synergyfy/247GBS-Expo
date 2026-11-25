@@ -32,7 +32,7 @@ This rulebook is permanently recorded in the codebase to govern all work on the 
 - Multi-item lists, seasonal packages, and dark informational banners must be collapsible (`ChevronDown` toggle), showing a 1-line summary when collapsed.
 
 ## 6. Architecture & Meeting Directives
-- **Floating Chat**: Single global instance in `src/app/layout.tsx`. Never mount in dashboard layouts.
+- **Floating Chat**: Single global instance in `apps/web/src/app/layout.tsx`. Never mount in dashboard layouts.
 - **CHS Delegation**: KYB and identity verification handled by CHS. No KYC/KYB upload pages.
 - **Business Dashboard Cleanups**:
   1. Remove Create Campaign / Launch Campaign page.

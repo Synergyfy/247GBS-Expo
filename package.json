@@ -1,32 +1,24 @@
 {
-  "name": "247_digital_expo",
+  "name": "247gbs-expo",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "node init && next dev",
-    "build": "node init && next build",
-    "start": "node init && next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@stripe/react-stripe-js": "^7.1.0",
-    "@stripe/stripe-js": "^10.3.0",
-    "framer-motion": "^12.29.2",
-    "lucide-react": "^0.563.0",
-    "next": "16.1.4",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "stripe": "^23.1.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.4",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "dev": "node init && npm run dev -w apps/web",
+    "dev:web": "node init && npm run dev -w apps/web",
+    "dev:backend": "node init && npm run start:dev -w apps/backend",
+    "build": "node init && npm run build:web && npm run build:backend",
+    "build:web": "node init && npm run build -w apps/web",
+    "build:backend": "node init && npm run build -w apps/backend",
+    "typecheck": "npm run typecheck:web && npm run typecheck:backend",
+    "typecheck:web": "npm run typecheck -w apps/web",
+    "typecheck:backend": "npm run typecheck -w apps/backend",
+    "lint": "npm run lint -w apps/web",
+    "lint:backend": "npm run lint -w apps/backend",
+    "test:backend": "npm run test -w apps/backend",
+    "prisma:generate": "prisma generate --schema apps/backend/prisma/schema.prisma",
+    "postinstall": "npm run prisma:generate"
   }
 }
