@@ -19,6 +19,7 @@ import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import Modal from "@/app/component/Modal";
+import SandboxCheckoutModal, { SandboxPaymentResult } from "@/app/component/SandboxCheckoutModal";
 import { PASS_PLANS } from "@/data/passes";
 
 interface CartItem {
@@ -79,7 +80,13 @@ export default function ExhibitPage() {
   const [showTokenScreen, setShowTokenScreen] = useState(false);
   const [copiedToken, setCopiedToken] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<string>("card");
+  const [checkoutTarget, setCheckoutTarget] = useState<null | {
+    kind: "stand" | "pass";
+    title: string;
+    itemName: string;
+    amount: number;
+  }>(null);
+  const [paymentReceipt, setPaymentReceipt] = useState<SandboxPaymentResult | null>(null);
 
   const passes = PASS_PLANS.filter((p) => p.type === "business");
   const activePkg = PACKAGES.find((p) => p.name === selectedPackage) || PACKAGES[1];
@@ -101,11 +108,37 @@ export default function ExhibitPage() {
   };
 
   const handleActivate = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    if (isTokenValidated) {
+      setPaymentReceipt({
+        reference: enteredToken.trim().toUpperCase(),
+        gateway: "Exhibitor Access Pass",
+        amount: 0
+      });
       setIsSubmitted(true);
-    }, 650);
+      return;
+    }
+    setCheckoutTarget({
+      kind: "stand",
+      title: `Pay for ${activePkg.name} Stand`,
+      itemName: `247GBS Expo — ${activePkg.name} Exhibitor Tier`,
+      amount: activePkg.price
+    });
+  };
+
+  const handleSandboxSuccess = (result: SandboxPaymentResult) => {
+    setPaymentReceipt(result);
+    if (checkoutTarget?.kind === "pass") {
+      const token = "GBX-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      setGeneratedToken(token);
+      setEnteredToken(token);
+      setIsTokenValidated(true);
+      setCheckoutTarget(null);
+      setShowPassModal(true);
+      setShowTokenScreen(true);
+    } else {
+      setCheckoutTarget(null);
+      setIsSubmitted(true);
+    }
   };
 
   const handleCopyToken = () => {
@@ -359,12 +392,22 @@ export default function ExhibitPage() {
                 <span className="font-bold text-slate-500">Selected Tier</span>
                 <span className="text-slate-900 font-bold">{activePkg.name}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-500">Pass Status</span>
-                <span className="text-emerald-600 font-bold">
-                  {isTokenValidated ? "Pass Token Applied" : "Ready for Activation"}
-                </span>
-              </div>
+              {paymentReceipt && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-500">Payment Gateway</span>
+                    <span className="text-emerald-600 font-bold">{paymentReceipt.gateway}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-500">Amount Paid</span>
+                    <span className="text-slate-900 font-bold">£{paymentReceipt.amount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-slate-500 shrink-0">Reference</span>
+                    <span className="text-slate-700 font-mono text-[11px] truncate">{paymentReceipt.reference}</span>
+                  </div>
+                </>
+              )}
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-500">KYB &amp; Branding</span>
                 <span className="text-slate-900 font-bold">Synced via CHS</span>
@@ -437,31 +480,6 @@ export default function ExhibitPage() {
                 </div>
               ))}
 
-              <div className="space-y-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Payment Method
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: "card", label: "Card", icon: <CreditCard className="w-4 h-4" /> },
-                    { id: "wallet", label: "Wallet (£120.50)", icon: <Wallet className="w-4 h-4" /> }
-                  ].map((method) => (
-                    <div
-                      key={method.id}
-                      onClick={() => setPaymentMethod(method.id)}
-                      className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer border text-xs font-bold transition-all ${
-                        paymentMethod === method.id
-                          ? "border-orange-600 bg-orange-50 text-orange-900"
-                          : "border-slate-200 text-slate-700"
-                      }`}
-                    >
-                      {method.icon}
-                      <span>{method.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
@@ -473,20 +491,21 @@ export default function ExhibitPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setLoading(true);
-                    setTimeout(() => {
-                      const token =
-                        "GBX-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-                      setGeneratedToken(token);
-                      setEnteredToken(token);
-                      setIsTokenValidated(true);
-                      setLoading(false);
-                      setShowTokenScreen(true);
-                    }, 600);
+                    const selected =
+                      passes.find((p) => cart.some((c) => c.id === p.id)) || passes[0];
+                    if (!selected) return;
+                    setShowPassModal(false);
+                    setCheckoutTarget({
+                      kind: "pass",
+                      title: "Pay for Exhibitor Pass",
+                      itemName: selected.name,
+                      amount: Number(selected.price)
+                    });
                   }}
                   className="flex-1 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md cursor-pointer"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Purchase & Generate Token"}
+                  <span>Proceed to Sandbox Payment</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -530,6 +549,15 @@ export default function ExhibitPage() {
           )}
         </div>
       </Modal>
+      {/* REUSABLE STRIPE / PAYPAL / WALLET SANDBOX CHECKOUT */}
+      <SandboxCheckoutModal
+        isOpen={Boolean(checkoutTarget)}
+        onClose={() => setCheckoutTarget(null)}
+        title={checkoutTarget?.title || "Complete Payment"}
+        itemName={checkoutTarget?.itemName || "Exhibitor Activation"}
+        amount={checkoutTarget?.amount || 0}
+        onPaymentSuccess={handleSandboxSuccess}
+      />
     </main>
   );
 }
