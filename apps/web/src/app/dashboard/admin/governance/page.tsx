@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings,
@@ -19,10 +19,59 @@ import {
   Share2,
   Gift,
   Layers,
-  Globe
+  Globe,
+  FileText,
+  Edit3
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
 import Tooltip from "@/app/component/Tooltip";
+
+type PolicyCategory = "terms" | "exhibitor" | "gdpr";
+
+interface PolicyDocument {
+  id: string;
+  category: PolicyCategory;
+  title: string;
+  version: string;
+  status: "Published" | "Draft";
+  updatedAt: string;
+  content: string;
+}
+
+const POLICY_STORAGE_KEY = "expo_governance_policies_v1";
+
+const DEFAULT_POLICIES: PolicyDocument[] = [
+  {
+    id: "pol-terms-1",
+    category: "terms",
+    title: "247GBS Digital Expo Platform Terms of Service",
+    version: "v2.4",
+    status: "Published",
+    updatedAt: "Nov 21, 2026",
+    content:
+      "By accessing 247GBS Digital Expo, purchasing event passes, or participating in virtual trade halls, attendees and exhibitors agree to abide by Central Hub Solution (CHS) conduct, ticketing caps, and MCOM Ecosystem transaction policies."
+  },
+  {
+    id: "pol-exhibitor-1",
+    category: "exhibitor",
+    title: "Exhibitor Booth & Marketplace SLA Agreement",
+    version: "v1.9",
+    status: "Published",
+    updatedAt: "Nov 20, 2026",
+    content:
+      "Verified exhibitors must maintain accurate MCOM Mall product listings, honour Super Admin ticket price caps, respond to live visitor inquiries within 24 hours, and fulfil all purchased digital/physical goods per MCOM fulfilment standards."
+  },
+  {
+    id: "pol-gdpr-1",
+    category: "gdpr",
+    title: "UK GDPR & Data Protection Compliance Policy",
+    version: "v3.1",
+    status: "Published",
+    updatedAt: "Nov 19, 2026",
+    content:
+      "247GBS Digital Expo processes attendee and business identity data under UK GDPR and CHS governance protocols. Users retain full rights to access, export, rectify, or request erasure of personal data via their Account Settings."
+  }
+];
 
 export default function GovernancePage() {
   const [activeTab, setActiveTab] = useState("parameters");
@@ -35,6 +84,107 @@ export default function GovernancePage() {
   const [publicApiKey, setPublicApiKey] = useState("pk_live_51Msz...234xS");
   const [showRegenModal, setShowRegenModal] = useState(false);
   const [configPartner, setConfigPartner] = useState<{ name: string; type: string; status: string } | null>(null);
+
+  // SLA & Policies document management state
+  const [policySubTab, setPolicySubTab] = useState<PolicyCategory>("terms");
+  const [policies, setPolicies] = useState<PolicyDocument[]>(DEFAULT_POLICIES);
+  const [editingPolicy, setEditingPolicy] = useState<PolicyDocument | null>(null);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [policyToDelete, setPolicyToDelete] = useState<PolicyDocument | null>(null);
+  const [policyForm, setPolicyForm] = useState<{
+    title: string;
+    version: string;
+    status: "Published" | "Draft";
+    content: string;
+  }>({ title: "", version: "v1.0", status: "Published", content: "" });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(POLICY_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as PolicyDocument[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPolicies(parsed);
+        }
+      }
+    } catch {
+      // keep defaults
+    }
+  }, []);
+
+  const persistPolicies = (next: PolicyDocument[]) => {
+    setPolicies(next);
+    try {
+      localStorage.setItem(POLICY_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage quota errors
+    }
+  };
+
+  const openCreatePolicy = () => {
+    setEditingPolicy(null);
+    setPolicyForm({ title: "", version: "v1.0", status: "Draft", content: "" });
+    setShowPolicyModal(true);
+  };
+
+  const openEditPolicy = (doc: PolicyDocument) => {
+    setEditingPolicy(doc);
+    setPolicyForm({
+      title: doc.title,
+      version: doc.version,
+      status: doc.status,
+      content: doc.content
+    });
+    setShowPolicyModal(true);
+  };
+
+  const handleSavePolicy = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!policyForm.title.trim() || !policyForm.content.trim()) return;
+    const today = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+    if (editingPolicy) {
+      const next = policies.map((p) =>
+        p.id === editingPolicy.id
+          ? {
+              ...p,
+              title: policyForm.title.trim(),
+              version: policyForm.version.trim() || "v1.0",
+              status: policyForm.status,
+              content: policyForm.content.trim(),
+              updatedAt: today
+            }
+          : p
+      );
+      persistPolicies(next);
+      showToast("Policy document updated.");
+    } else {
+      const created: PolicyDocument = {
+        id: `pol-${policySubTab}-${Date.now()}`,
+        category: policySubTab,
+        title: policyForm.title.trim(),
+        version: policyForm.version.trim() || "v1.0",
+        status: policyForm.status,
+        content: policyForm.content.trim(),
+        updatedAt: today
+      };
+      persistPolicies([created, ...policies]);
+      showToast("Policy document created.");
+    }
+    setShowPolicyModal(false);
+    setEditingPolicy(null);
+  };
+
+  const handleDeletePolicy = () => {
+    if (!policyToDelete) return;
+    const next = policies.filter((p) => p.id !== policyToDelete.id);
+    persistPolicies(next);
+    setPolicyToDelete(null);
+    showToast("Policy document deleted.");
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -424,19 +574,274 @@ export default function GovernancePage() {
 
         {/* POLICIES */}
         {activeTab === "policies" && (
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-8 sm:p-12 text-center">
-            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <ShieldAlert className="w-7 h-7 text-orange-600" />
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
+            {/* Header + Sub-Tabs */}
+            <div className="p-4 sm:p-6 border-b border-slate-100 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-tight">
+                    SLA & Legal Policy Documents
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                    Create, update, and publish platform Terms, Exhibitor Agreements, and UK GDPR documents.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openCreatePolicy}
+                  className="inline-flex items-center justify-center gap-1.5 bg-slate-900 text-white px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-orange-600 transition-colors cursor-pointer shrink-0 w-fit"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>New Document</span>
+                </button>
+              </div>
+
+              {/* 3 Dedicated Document Tabs: Terms / Exhibitor / GDPR */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-0.5">
+                {(
+                  [
+                    { id: "terms", label: "Terms Documents" },
+                    { id: "exhibitor", label: "Exhibitor Documents" },
+                    { id: "gdpr", label: "GDPR Documents" }
+                  ] as const
+                ).map((sub) => {
+                  const count = policies.filter((p) => p.category === sub.id).length;
+                  const active = policySubTab === sub.id;
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => setPolicySubTab(sub.id)}
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer border ${
+                        active
+                          ? "bg-orange-600 text-white border-orange-600 shadow-xs"
+                          : "bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5 shrink-0" />
+                      <span>{sub.label}</span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                          active ? "bg-white/20 text-white" : "bg-white text-slate-600 border border-slate-200"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 mb-1 uppercase tracking-tight">
-              Legal & SLA Standards
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto font-medium">
-              Platform terms, exhibitor SLAs, and UK GDPR standards are enforced across all halls.
-            </p>
+
+            {/* Document List for Active Tab */}
+            <div className="p-4 sm:p-6">
+              {policies.filter((p) => p.category === policySubTab).length > 0 ? (
+                <div className="space-y-3">
+                  {policies
+                    .filter((p) => p.category === policySubTab)
+                    .map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-4 rounded-2xl border border-slate-200/80 hover:border-orange-200 transition-all flex flex-col sm:flex-row sm:items-start justify-between gap-3"
+                      >
+                        <div className="space-y-1.5 min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                                doc.status === "Published"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
+                              }`}
+                            >
+                              {doc.status}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
+                              {doc.version}
+                            </span>
+                            <span className="text-[10px] font-medium text-slate-400">
+                              Updated {doc.updatedAt}
+                            </span>
+                          </div>
+                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
+                            {doc.title}
+                          </h4>
+                          <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+                            {doc.content}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => openEditPolicy(doc)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-orange-300 transition-colors cursor-pointer"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPolicyToDelete(doc)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors cursor-pointer"
+                            aria-label={`Delete ${doc.title}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="py-10 text-center space-y-3 border border-dashed border-slate-200 rounded-2xl">
+                  <div className="w-11 h-11 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-900">No documents in this tab yet</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Create a policy document to enforce across all 247GBS Expo halls.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openCreatePolicy}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Document</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Create / Edit Policy Document Modal */}
+      <Modal
+        isOpen={showPolicyModal}
+        onClose={() => setShowPolicyModal(false)}
+        title={
+          editingPolicy
+            ? "Edit Policy Document"
+            : policySubTab === "terms"
+            ? "New Terms Document"
+            : policySubTab === "exhibitor"
+            ? "New Exhibitor Document"
+            : "New GDPR Document"
+        }
+      >
+        <form onSubmit={handleSavePolicy} className="space-y-3.5">
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+              Document Title
+            </label>
+            <input
+              type="text"
+              required
+              value={policyForm.title}
+              onChange={(e) => setPolicyForm({ ...policyForm, title: e.target.value })}
+              placeholder="e.g. Exhibitor Booth SLA 2026"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                Version
+              </label>
+              <input
+                type="text"
+                required
+                value={policyForm.version}
+                onChange={(e) => setPolicyForm({ ...policyForm, version: e.target.value })}
+                placeholder="v1.0"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                Status
+              </label>
+              <select
+                value={policyForm.status}
+                onChange={(e) =>
+                  setPolicyForm({
+                    ...policyForm,
+                    status: e.target.value as "Published" | "Draft"
+                  })
+                }
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white focus:outline-none focus:border-orange-500"
+              >
+                <option value="Published">Published</option>
+                <option value="Draft">Draft</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+              Policy Content
+            </label>
+            <textarea
+              rows={5}
+              required
+              value={policyForm.content}
+              onChange={(e) => setPolicyForm({ ...policyForm, content: e.target.value })}
+              placeholder="Enter legal terms, SLA commitments, or GDPR clauses..."
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-orange-500 resize-y"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowPolicyModal(false)}
+              className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 cursor-pointer"
+            >
+              {editingPolicy ? "Save" : "Create"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Policy Confirmation Modal */}
+      <Modal
+        isOpen={Boolean(policyToDelete)}
+        onClose={() => setPolicyToDelete(null)}
+        title="Delete Policy Document"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Are you sure you want to delete{" "}
+            <span className="font-bold text-slate-900">{policyToDelete?.title}</span>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setPolicyToDelete(null)}
+              className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeletePolicy}
+              className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 cursor-pointer"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Regenerate API Key Confirmation Modal */}
       <Modal
