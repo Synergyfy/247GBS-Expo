@@ -19,6 +19,6 @@
     "lint:backend": "npm run lint -w apps/backend",
     "test:backend": "npm run test -w apps/backend",
     "prisma:generate": "prisma generate --schema apps/backend/prisma/schema.prisma",
-    "postinstall": "npm run prisma:generate"
+    "postinstall": "if [ -x node_modules/.bin/prisma ]; then npm run prisma:generate; fi"
   }
 }
