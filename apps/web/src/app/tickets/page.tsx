@@ -14,6 +14,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import Modal from "@/app/component/Modal";
+import SandboxCheckoutModal, { SandboxPaymentResult } from "@/app/component/SandboxCheckoutModal";
 import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 import { PASS_PLANS } from "@/data/passes";
@@ -146,6 +147,8 @@ function TicketsContent() {
   const [generatedToken, setGeneratedToken] = useState("");
   const [showTokenScreen, setShowTokenScreen] = useState(false);
   const [showPassModal, setShowPassModal] = useState(false);
+  const [showPassSandboxCheckout, setShowPassSandboxCheckout] = useState(false);
+  const [passPaymentReceipt, setPassPaymentReceipt] = useState<SandboxPaymentResult | null>(null);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1532,24 +1535,19 @@ function TicketsContent() {
                   Close
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     const pass = passes[0];
                     if (pass && !cart.some(i => i.id === pass.id)) {
                       addToCart(pass, 'pass');
                     }
-                    setLoading(true);
-                    setTimeout(() => {
-                      const token = "GBX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-                      setGeneratedToken(token);
-                      setEnteredToken(token);
-                      setIsTokenValidated(true);
-                      setLoading(false);
-                      setShowTokenScreen(true);
-                    }, 600);
+                    setShowPassModal(false);
+                    setShowPassSandboxCheckout(true);
                   }}
-                  className="flex-1 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md"
+                  className="flex-1 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md cursor-pointer"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Activate Pass & Get Token"}
+                  <span>Proceed to Sandbox Payment (£{passes[0]?.price || 75})</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -1560,14 +1558,23 @@ function TicketsContent() {
               </div>
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900">Access Token Activated!</h3>
-                <p className="text-slate-500 text-xs">Your token is automatically applied to your cart.</p>
+                <p className="text-slate-500 text-xs">
+                  {passPaymentReceipt
+                    ? `Payment verified via ${passPaymentReceipt.gateway} (£${passPaymentReceipt.amount.toFixed(2)}). Your token is applied to your cart.`
+                    : "Your token is automatically applied to your cart."}
+                </p>
+                {passPaymentReceipt && (
+                  <p className="text-[10px] font-mono text-emerald-700 mt-1">
+                    Ref: {passPaymentReceipt.reference}
+                  </p>
+                )}
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200 flex items-center justify-center gap-3">
                 <span className="text-lg font-mono font-black text-slate-900">{generatedToken}</span>
                 <button
                   onClick={() => navigator.clipboard.writeText(generatedToken)}
-                  className="p-1.5 bg-white rounded-lg border border-slate-200 text-orange-600"
+                  className="p-1.5 bg-white rounded-lg border border-slate-200 text-orange-600 cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
@@ -1578,7 +1585,7 @@ function TicketsContent() {
                   setShowPassModal(false);
                   setShowTokenScreen(false);
                 }}
-                className="w-full py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs shadow-md"
+                className="w-full py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs shadow-md cursor-pointer"
               >
                 Continue Booking
               </button>
@@ -1586,6 +1593,25 @@ function TicketsContent() {
           )}
         </div>
       </Modal>
+
+      {/* REUSABLE STRIPE / PAYPAL / WALLET SANDBOX CHECKOUT FOR SEASON PASS */}
+      <SandboxCheckoutModal
+        isOpen={showPassSandboxCheckout}
+        onClose={() => setShowPassSandboxCheckout(false)}
+        title="Pay for Season Access Pass"
+        itemName={passes[0]?.name || "247GBS Season Access Pass"}
+        amount={Number(passes[0]?.price || 75)}
+        onPaymentSuccess={(result) => {
+          const token = "GBX-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+          setPassPaymentReceipt(result);
+          setGeneratedToken(token);
+          setEnteredToken(token);
+          setIsTokenValidated(true);
+          setShowPassSandboxCheckout(false);
+          setShowPassModal(true);
+          setShowTokenScreen(true);
+        }}
+      />
     </main>
   );
 }
