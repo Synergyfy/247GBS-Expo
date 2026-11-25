@@ -22,6 +22,7 @@ import {
   BarChart3,
   Settings,
   Headphones,
+  Handshake,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
@@ -53,7 +54,8 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   CreditCard,
   BarChart3,
   Settings,
-  Headphones
+  Headphones,
+  Handshake
 };
 
 export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {

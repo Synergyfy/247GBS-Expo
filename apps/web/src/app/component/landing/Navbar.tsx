@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, ChevronDown, User, LogIn } from "lucide-react";
-import { TICKER_EVENTS } from "@/data/ticker";
+import {
+  TICKER_EVENTS,
+  TickerEvent,
+  getStoredTickerEvents,
+  TICKER_EVENT
+} from "@/data/ticker";
 import { getStoredUser } from "@/lib/auth";
 import ProfileDropdown from "@/app/component/ProfileDropdown";
 
@@ -13,10 +18,16 @@ export default function Navbar() {
   const [nextEvent, setNextEvent] = useState({ season: "SPRING 2026", dates: "April 10-19, 2026" });
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  const seasonalEvents = TICKER_EVENTS.filter(e => e.isActive);
+  const [tickerEvents, setTickerEvents] = useState<TickerEvent[]>(TICKER_EVENTS);
+
+  const seasonalEvents = tickerEvents.filter(e => e.isActive);
 
   useEffect(() => {
     setCurrentUser(getStoredUser());
+    setTickerEvents(getStoredTickerEvents());
+    const syncTicker = () => setTickerEvents(getStoredTickerEvents());
+    window.addEventListener(TICKER_EVENT, syncTicker);
+    window.addEventListener("storage", syncTicker);
     const handleScroll = () => setScrolled(window.scrollY > 15);
     window.addEventListener("scroll", handleScroll);
 
@@ -33,6 +44,8 @@ export default function Navbar() {
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener(TICKER_EVENT, syncTicker);
+      window.removeEventListener("storage", syncTicker);
     };
   }, []);
 

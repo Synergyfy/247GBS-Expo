@@ -23,6 +23,7 @@ import {
   BarChart3,
   Settings,
   Headphones,
+  Handshake,
   Menu,
   X,
   ChevronDown,
@@ -49,7 +50,8 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   CreditCard,
   BarChart3,
   Settings,
-  Headphones
+  Headphones,
+  Handshake
 };
 
 function AdminMobileNavContent() {

@@ -1,3 +1,5 @@
+import { getStoredNotifications, saveStoredNotifications } from "@/data/notifications";
+
 export interface Dispute {
   id: string;
   subject: string;
@@ -13,7 +15,12 @@ export interface Dispute {
   evidence: string;
   category?: string;
   sla?: string;
+  ruling?: string;
+  bookingRef?: string;
 }
+
+const DISPUTES_STORAGE_KEY = "expo_disputes_v1";
+export const DISPUTES_EVENT = "expo_disputes_changed";
 
 export const INITIAL_DISPUTES: Dispute[] = [
   {
@@ -96,3 +103,113 @@ export const STAGES: { id: Dispute["status"]; label: string; color: string }[] =
   { id: "MEDIATE", label: "Mediation", color: "border-purple-500" },
   { id: "DECIDE", label: "Final Decision", color: "border-orange-500" }
 ];
+
+function emitDisputesChanged() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(DISPUTES_EVENT));
+}
+
+export function getStoredDisputes(): Dispute[] {
+  if (typeof window === "undefined") return INITIAL_DISPUTES;
+  try {
+    const raw = localStorage.getItem(DISPUTES_STORAGE_KEY);
+    if (!raw) return INITIAL_DISPUTES;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_DISPUTES;
+  } catch {
+    return INITIAL_DISPUTES;
+  }
+}
+
+export function saveStoredDisputes(disputes: Dispute[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DISPUTES_STORAGE_KEY, JSON.stringify(disputes));
+    emitDisputesChanged();
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function createCustomerDispute(payload: {
+  subject: string;
+  category: string;
+  respondent: string;
+  amount: string;
+  bookingRef?: string;
+  details: string;
+  complainant: string;
+  complainantEmail?: string;
+}): Dispute {
+  const newDispute: Dispute = {
+    id: `DSP-${Math.floor(4500 + Math.random() * 5400)}`,
+    subject: payload.subject.trim(),
+    complainant: payload.complainant.trim() || "Alex Thompson",
+    complainantEmail: payload.complainantEmail?.trim() || "alex.thompson@example.com",
+    respondent: payload.respondent.trim() || "Expo Organizer",
+    respondentEmail: "support@247gbs.com",
+    status: "OPEN",
+    priority:
+      payload.category === "Billing Duplicate" || payload.category === "Ticket Refund"
+        ? "HIGH"
+        : "MEDIUM",
+    date: "Just now",
+    amount: payload.amount.trim() || "N/A",
+    category: payload.category,
+    sla: "48h remaining",
+    bookingRef: payload.bookingRef?.trim() || undefined,
+    details: payload.details.trim(),
+    evidence: payload.bookingRef?.trim()
+      ? `Customer supplied reference ${payload.bookingRef.trim()} via Customer Support Portal.`
+      : "Submitted directly through Customer Support & Disputes portal.",
+  };
+
+  const existing = getStoredDisputes();
+  saveStoredDisputes([newDispute, ...existing]);
+
+  // Notify Admin bell
+  const adminNotifs = getStoredNotifications("admin");
+  saveStoredNotifications("admin", [
+    {
+      id: `ntf-dispute-${Date.now()}`,
+      title: `New Customer Dispute (${newDispute.id})`,
+      message: `${newDispute.complainant} opened "${newDispute.subject}" against ${newDispute.respondent}.`,
+      category: "system",
+      read: false,
+      createdAt: "Just now",
+      href: `/dashboard/admin/disputes/${newDispute.id}`,
+    },
+    ...adminNotifs,
+  ]);
+
+  return newDispute;
+}
+
+export function updateDisputeRecord(
+  id: string,
+  patch: Partial<Dispute>,
+  customerNotification?: { title: string; message: string }
+): Dispute[] {
+  const updated = getStoredDisputes().map((d) =>
+    d.id.toLowerCase() === id.toLowerCase() ? { ...d, ...patch } : d
+  );
+  saveStoredDisputes(updated);
+
+  if (customerNotification) {
+    const custNotifs = getStoredNotifications("customer");
+    saveStoredNotifications("customer", [
+      {
+        id: `ntf-cust-dispute-${Date.now()}`,
+        title: customerNotification.title,
+        message: customerNotification.message,
+        category: "system",
+        read: false,
+        createdAt: "Just now",
+        href: "/dashboard/customer/support",
+      },
+      ...custNotifs,
+    ]);
+  }
+
+  return updated;
+}

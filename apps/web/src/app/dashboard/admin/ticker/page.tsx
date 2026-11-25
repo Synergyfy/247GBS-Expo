@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Trash2,
@@ -16,10 +16,19 @@ import {
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TICKER_EVENTS, TickerEvent } from "@/data/ticker";
+import {
+  TICKER_EVENTS,
+  TickerEvent,
+  getStoredTickerEvents,
+  saveStoredTickerEvents
+} from "@/data/ticker";
 
 export default function TickerSetupPage() {
   const [events, setEvents] = useState<TickerEvent[]>(TICKER_EVENTS);
+
+  useEffect(() => {
+    setEvents(getStoredTickerEvents());
+  }, []);
   const [deleteTarget, setDeleteTarget] = useState<TickerEvent | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newTicker, setNewTicker] = useState({
@@ -75,11 +84,12 @@ export default function TickerSetupPage() {
 
   const handleSave = () => {
     setIsSaving(true);
+    saveStoredTickerEvents(events);
     setTimeout(() => {
       setIsSaving(false);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
-    }, 1000);
+    }, 350);
   };
 
   return (
