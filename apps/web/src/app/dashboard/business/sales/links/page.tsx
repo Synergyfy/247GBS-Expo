@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
     Link2,
@@ -11,8 +11,16 @@ import {
     ArrowLeft,
     Plus,
     Send,
+    ExternalLink,
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
+import {
+    DEFAULT_SALES_LINKS,
+    SalesInviteLink,
+    getStoredSalesLinks,
+    createSalesInviteLink,
+    SALES_LINKS_EVENT,
+} from "@/data/salesLinks";
 
 export default function SalesAndTicketAssignmentLinksPage() {
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -20,38 +28,26 @@ export default function SalesAndTicketAssignmentLinksPage() {
     const [recipientEmail, setRecipientEmail] = useState("");
     const [selectedTemplate, setSelectedTemplate] = useState("VIP Executive Pass (Gift)");
     const [ticketQty, setTicketQty] = useState("5");
+    const [links, setLinks] = useState<SalesInviteLink[]>(DEFAULT_SALES_LINKS);
+    const [origin, setOrigin] = useState("");
 
-    const [links, setLinks] = useState([
-        {
-            id: "LNK-01",
-            title: "VIP Client Complimentary Pass Link",
-            url: "https://247gbs-expo.com/invite/techflow-vip-2026",
-            template: "VIP Executive Pass",
-            allocated: "35 / 50 Passes Claimed",
-            revenue: "Gift Allocation",
-            status: "Active",
-        },
-        {
-            id: "LNK-02",
-            title: "Partner Booth Referral Link (20% Off)",
-            url: "https://247gbs-expo.com/invite/techflow-partner20",
-            template: "Standard Season Day Pass (£20)",
-            allocated: "142 / 200 Passes Claimed",
-            revenue: "£2,840",
-            status: "Active",
-        },
-        {
-            id: "LNK-03",
-            title: "MCOM Mall Bundle + Free Event Entry",
-            url: "https://247gbs-expo.com/invite/mcom-bundle-bonus",
-            template: "MCOM Reward Pass",
-            allocated: "65 / 100 Passes Claimed",
-            revenue: "£4,120 Product Upsell",
-            status: "Synced",
-        },
-    ]);
+    useEffect(() => {
+        setOrigin(window.location.origin);
+        setLinks(getStoredSalesLinks());
+        const sync = () => setLinks(getStoredSalesLinks());
+        window.addEventListener(SALES_LINKS_EVENT, sync);
+        window.addEventListener("storage", sync);
+        return () => {
+            window.removeEventListener(SALES_LINKS_EVENT, sync);
+            window.removeEventListener("storage", sync);
+        };
+    }, []);
 
-    const handleCopy = (id: string, url: string) => {
+    const buildInviteUrl = (code: string) =>
+        `${origin || "https://247gbs-expo.com"}/tickets?invite=${encodeURIComponent(code)}`;
+
+    const handleCopy = (id: string, code: string) => {
+        const url = buildInviteUrl(code);
         if (typeof navigator !== "undefined" && navigator.clipboard) {
             navigator.clipboard.writeText(url).catch(() => {});
         }
@@ -62,19 +58,12 @@ export default function SalesAndTicketAssignmentLinksPage() {
     const handleAssignTickets = (e: React.FormEvent) => {
         e.preventDefault();
         if (!recipientEmail.trim()) return;
-        const newId = `LNK-0${links.length + 1}`;
-        setLinks([
-            {
-                id: newId,
-                title: `Assigned Pass Link (${recipientEmail})`,
-                url: `https://247gbs-expo.com/invite/assigned-${Date.now().toString().slice(-4)}`,
-                template: selectedTemplate,
-                allocated: `0 / ${ticketQty} Passes Claimed`,
-                revenue: "Direct Assignment",
-                status: "Active",
-            },
-            ...links,
-        ]);
+        createSalesInviteLink({
+            recipientEmail,
+            template: selectedTemplate,
+            ticketQty,
+        });
+        setLinks(getStoredSalesLinks());
         setRecipientEmail("");
         setIsAssignModalOpen(false);
     };
@@ -167,7 +156,9 @@ export default function SalesAndTicketAssignmentLinksPage() {
 
                             {/* Line 3 */}
                             <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                                <span className="truncate text-slate-400 font-mono text-[10px]">{lnk.url}</span>
+                                <span className="truncate text-slate-400 font-mono text-[10px]">
+                                    /tickets?invite={lnk.code}
+                                </span>
                                 <span className="text-slate-300">•</span>
                                 <span className="font-semibold text-slate-700">{lnk.allocated}</span>
                                 <span className="text-slate-300">•</span>
@@ -176,9 +167,16 @@ export default function SalesAndTicketAssignmentLinksPage() {
                         </div>
 
                         <div className="flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
+                            <Link
+                                href={`/tickets?invite=${encodeURIComponent(lnk.code)}`}
+                                target="_blank"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 bg-white text-slate-700 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors"
+                            >
+                                <ExternalLink className="w-3.5 h-3.5" /> Open
+                            </Link>
                             <button
-                                onClick={() => handleCopy(lnk.id, lnk.url)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-600 transition-colors"
+                                onClick={() => handleCopy(lnk.id, lnk.code)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-600 transition-colors cursor-pointer"
                             >
                                 {copiedId === lnk.id ? (
                                     <>

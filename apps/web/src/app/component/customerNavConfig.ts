@@ -8,7 +8,8 @@ import {
   Compass,
   Wallet,
   User,
-  Settings
+  Settings,
+  LifeBuoy
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -53,6 +54,7 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroup[] = [
     icon: User,
     items: [
       { label: "Profile Settings", href: "/dashboard/customer/profile", icon: User },
+      { label: "Support & Disputes", href: "/dashboard/customer/support", icon: LifeBuoy },
       { label: "Account Settings", href: "/dashboard/customer/settings", icon: Settings }
     ]
   }

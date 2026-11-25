@@ -29,6 +29,7 @@ import {
   ChevronUp
 } from "lucide-react";
 import Tooltip from "@/app/component/Tooltip";
+import EventAgendaBuilder from "@/app/component/EventAgendaBuilder";
 import { DEFAULT_EVENT_TYPES, getStoredEventTypes } from "@/data/categories";
 import {
   GlobalTicketTemplate,
@@ -689,6 +690,9 @@ export default function AdminCreateEventPage() {
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
                 />
               </div>
+
+              {/* Event Agenda / Timed Sessions Builder */}
+              <EventAgendaBuilder />
 
               <div className="flex justify-end pt-2">
                 <button

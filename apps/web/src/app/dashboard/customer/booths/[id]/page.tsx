@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { createConsultationBooking } from "@/data/consultations";
+import { getStoredUser } from "@/lib/auth";
 import {
   ArrowLeft,
   MessageSquare,
@@ -23,6 +26,11 @@ export default function VirtualBoothPage() {
   const [activeTab, setActiveTab] = useState("products");
   const [scheduleExpanded, setScheduleExpanded] = useState(false);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const booth = {
     name: "FutureTech Systems",
@@ -584,69 +592,89 @@ export default function VirtualBoothPage() {
         </div>
       )}
 
-      {/* 1-on-1 Consultation Booking Modal */}
-      {showConsultModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm border border-slate-200 shadow-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
-                Book 1-on-1 Consultation
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowConsultModal(false)}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-4 space-y-3">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600">Select Time Slot</label>
-                <select
-                  value={consultSlot}
-                  onChange={(e) => setConsultSlot(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-orange-500"
-                >
-                  <option>Today • 04:30 PM</option>
-                  <option>Tomorrow • 10:00 AM</option>
-                  <option>Tomorrow • 02:00 PM</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600">Topic / Notes (Optional)</label>
-                <textarea
-                  rows={2}
-                  value={consultNote}
-                  onChange={(e) => setConsultNote(e.target.value)}
-                  placeholder="Enterprise migration, volume pricing, etc."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-orange-500"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
+      {/* 1-on-1 Consultation Booking Modal (Portal + Safe Viewport Insets) */}
+      {mounted &&
+        showConsultModal &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 pt-20 pb-24 lg:pt-24 lg:pb-8 lg:pl-68">
+            <div className="bg-white rounded-2xl w-full max-w-md max-h-full flex flex-col border border-slate-200 shadow-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600">
+                    {booth.name}
+                  </p>
+                  <h3 className="text-sm font-extrabold text-slate-900">
+                    Book 1-on-1 Consultation
+                  </h3>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowConsultModal(false)}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+                  aria-label="Close modal"
+                  className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-5 space-y-3.5 overflow-y-auto flex-1">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Select Time Slot</label>
+                  <select
+                    value={consultSlot}
+                    onChange={(e) => setConsultSlot(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium outline-none focus:border-orange-500 bg-white"
+                  >
+                    <option>Today • 04:30 PM</option>
+                    <option>Tomorrow • 10:00 AM</option>
+                    <option>Tomorrow • 02:00 PM</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Topic / Notes (Optional)</label>
+                  <textarea
+                    rows={3}
+                    value={consultNote}
+                    onChange={(e) => setConsultNote(e.target.value)}
+                    placeholder="Enterprise migration, volume pricing, etc."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-slate-100 shrink-0 bg-white">
+                <button
+                  type="button"
+                  onClick={() => setShowConsultModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={() => {
+                    const user = getStoredUser();
+                    const created = createConsultationBooking({
+                      boothId: String(boothId || "futuretech-systems"),
+                      boothName: booth.name,
+                      customerName: user?.name || "Alex Thompson",
+                      customerEmail: user?.email || "alex.thompson@example.com",
+                      slot: consultSlot,
+                      topic: consultNote,
+                    });
                     setShowConsultModal(false);
                     setConsultNote("");
-                    triggerToast(`1-on-1 Consultation booked for ${consultSlot}!`);
+                    triggerToast(
+                      `Consultation ${created.id} requested for ${consultSlot}! Track status in Live Schedule.`
+                    );
                   }}
-                  className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700"
+                  className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 cursor-pointer"
                 >
                   Confirm Booking
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

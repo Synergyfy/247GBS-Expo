@@ -12,7 +12,8 @@ import {
   MessageSquare,
   LifeBuoy,
   Settings,
-  Truck
+  Radio,
+  CalendarCheck
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -40,8 +41,7 @@ export const BUSINESS_NAV_GROUPS: BusinessNavGroup[] = [
       { label: "Overview", href: "/dashboard/business", icon: LayoutDashboard, exact: true },
       { label: "Discover Events", href: "/dashboard/business/marketplace", icon: Globe },
       { label: "My Booth", href: "/dashboard/business/booth", icon: Store },
-      { label: "MCOM Products", href: "/dashboard/business/products", icon: Package, exact: true },
-      { label: "Bundle Fulfilment", href: "/dashboard/business/products/fulfilment", icon: Truck }
+      { label: "MCOM Products", href: "/dashboard/business/products", icon: Package, exact: true }
     ]
   },
   {
@@ -50,6 +50,8 @@ export const BUSINESS_NAV_GROUPS: BusinessNavGroup[] = [
     icon: Calendar,
     items: [
       { label: "My Events", href: "/dashboard/business/events", icon: Calendar },
+      { label: "Live Studio", href: "/dashboard/business/demos", icon: Radio },
+      { label: "Consultations", href: "/dashboard/business/consultations", icon: CalendarCheck },
       { label: "Ticket Templates", href: "/dashboard/business/events/tickets", icon: Ticket },
       { label: "Ticket Verification", href: "/dashboard/business/verification", icon: ShieldCheck }
     ]
