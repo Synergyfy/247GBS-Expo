@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Play,
   X,
@@ -23,6 +23,12 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import {
+  LiveChatMessage,
+  INITIAL_LIVE_CHAT,
+  getStoredLiveChat,
+  postLiveChatMessage
+} from "@/data/eventLiveChat";
 
 const LOBBY_DATA = {
   spring2026: {
@@ -109,26 +115,64 @@ export default function EventLobbyPage() {
 
   // Per meeting directive: Attendees enter their access pass code before entering the live event
   const [passCode, setPassCode] = useState("GBX-88219-X22");
+  const [passError, setPassError] = useState("");
   const [isPassVerified, setIsPassVerified] = useState(false);
   const [isPlayingStage, setIsPlayingStage] = useState(false);
+  const chatInputRef = useRef<HTMLInputElement>(null);
+
+  const DEFAULT_AGENDA = [
+    { time: "10:00 AM", title: "Opening Ceremony", speaker: "Expo Main Host", type: "Live" },
+    { time: "11:30 AM", title: "Keynote Session", speaker: "Industry Panel", type: "Up Next" },
+    { time: "01:00 PM", title: "Networking Break", speaker: "Open Hall", type: "Scheduled" },
+    { time: "02:30 PM", title: "MCOM Product Showcases", speaker: "Exhibitor Spotlight", type: "Scheduled" }
+  ];
+  const [agendaItems, setAgendaItems] = useState(DEFAULT_AGENDA);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("expo_event_agenda_v1");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAgendaItems(
+            parsed.map((item: { time?: string; title?: string; speaker?: string }, idx: number) => ({
+              time: item.time || "TBA",
+              title: item.title || "Scheduled Session",
+              speaker: item.speaker || "Event Host",
+              type: idx === 0 ? "Live" : idx === 1 ? "Up Next" : "Scheduled"
+            }))
+          );
+        }
+      }
+    } catch {
+      // keep default agenda
+    }
+  }, []);
 
   const [message, setMessage] = useState("");
-  const [chat, setChat] = useState(CHAT_MESSAGES);
+  const [chat, setChat] = useState<LiveChatMessage[]>(INITIAL_LIVE_CHAT);
   const [activeTab, setActiveTab] = useState("chat");
+
+  useEffect(() => {
+    const refreshChat = () => setChat(getStoredLiveChat());
+    refreshChat();
+    window.addEventListener("expo_live_chat_changed", refreshChat);
+    window.addEventListener("storage", refreshChat);
+    return () => {
+      window.removeEventListener("expo_live_chat_changed", refreshChat);
+      window.removeEventListener("storage", refreshChat);
+    };
+  }, []);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
-
-    const newMessage = {
-      id: Date.now(),
+    const next = postLiveChatMessage({
       user: "John Doe (You)",
-      message,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      avatar: "JD"
-    };
-
-    setChat([...chat, newMessage]);
+      role: "customer",
+      message
+    });
+    setChat(next);
     setMessage("");
   };
 
@@ -202,13 +246,13 @@ export default function EventLobbyPage() {
         <div className="flex items-center gap-2">
           {isPassVerified && (
             <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Pass Verified (GBX-88219-X22)
+              <ShieldCheck className="w-3.5 h-3.5" /> Pass Verified ({passCode.trim().toUpperCase()})
             </span>
           )}
           <button
             type="button"
             onClick={handleShareEvent}
-            className="p-2 bg-white border border-slate-200/80 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs text-slate-600"
+            className="p-2 bg-white border border-slate-200/80 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs text-slate-600 cursor-pointer"
             aria-label="Share event"
             title="Copy event link"
           >
@@ -217,47 +261,104 @@ export default function EventLobbyPage() {
         </div>
       </div>
 
-      {/* ACCESS PASS CODE VERIFICATION GATE (Meeting Requirement: Prompt for Pass Code on Event Day) */}
-      {!isPassVerified && (
-        <div className="bg-white rounded-2xl border border-orange-200 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1 max-w-xl">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-orange-600 uppercase tracking-wider">
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>Event Day Access Pass Gate</span>
+      {/* BLOCKING ACCESS PASS GATE — Nothing on the live stage is visible until validated */}
+      {!isPassVerified ? (
+        <div className="min-h-[60vh] flex items-center justify-center py-6">
+          <div className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xl p-5 sm:p-8 space-y-5">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center mx-auto">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 text-[10px] font-extrabold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping" />
+                Live Event Entry Gate
+              </div>
+              <h2 className="text-base sm:text-xl font-extrabold text-slate-900 leading-snug">
+                Validate Your Access Pass to Enter
+              </h2>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Your active pass code is pre-filled below. You can edit or switch it if you prefer to use a Season or Admin Pass.
+              </p>
             </div>
-            <h2 className="text-xs sm:text-sm font-bold text-slate-900">
-              Enter your Access Pass Code to unlock the live stream & exhibitor showcase
-            </h2>
-            <p className="text-[11px] text-slate-500">
-              Your active VIP Season Pass code has been pre-filled below for instant entry.
-            </p>
-          </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (passCode.trim()) setIsPassVerified(true);
-            }}
-            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0"
-          >
-            <input
-              type="text"
-              value={passCode}
-              onChange={(e) => setPassCode(e.target.value)}
-              placeholder="Enter Pass Code (e.g. GBX-88219-X22)"
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-orange-600 text-white rounded-xl font-bold text-xs hover:bg-orange-700 transition-colors shadow-xs whitespace-nowrap"
+            {/* Quick Pass Switcher */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              {[
+                { label: "Event Pass", code: "GBX-88219-X22" },
+                { label: "VIP Season Pass", code: "GBX-VIP-2026" }
+              ].map((preset) => (
+                <button
+                  key={preset.code}
+                  type="button"
+                  onClick={() => {
+                    setPassCode(preset.code);
+                    setPassError("");
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer ${
+                    passCode.trim().toUpperCase() === preset.code
+                      ? "bg-orange-50 border-orange-300 text-orange-700"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
+                  }`}
+                >
+                  {preset.label}: {preset.code}
+                </button>
+              ))}
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (passCode.trim().length < 4) {
+                  setPassError("Please enter a valid access pass code.");
+                  return;
+                }
+                setPassError("");
+                setIsPassVerified(true);
+                setIsPlayingStage(true);
+              }}
+              className="space-y-3"
             >
-              Validate & Enter Live
-            </button>
-          </form>
-        </div>
-      )}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                  Access Pass Code
+                </label>
+                <input
+                  type="text"
+                  value={passCode}
+                  onChange={(e) => {
+                    setPassCode(e.target.value);
+                    if (passError) setPassError("");
+                  }}
+                  placeholder="Enter Pass Code (e.g. GBX-88219-X22)"
+                  className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white uppercase"
+                />
+                {passError && (
+                  <p className="text-[11px] font-semibold text-red-600">{passError}</p>
+                )}
+              </div>
 
-      {/* Horizontal Scroll Quick Desk Cards on Mobile (Peeping Card + Dot Slider) */}
+              <button
+                type="submit"
+                className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-xs sm:text-sm transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Play className="w-4 h-4 fill-white" />
+                <span>Validate &amp; Enter Live</span>
+              </button>
+            </form>
+
+            <div className="text-center pt-1">
+              <Link
+                href="/dashboard/customer/events"
+                className="text-xs font-bold text-slate-500 hover:text-orange-600 transition-colors"
+              >
+                ← Return to Events
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Horizontal Scroll Quick Desk Cards on Mobile (Peeping Card + Dot Slider) */}
       <div>
         <div className="flex lg:grid lg:grid-cols-4 gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
           {quickDesks.map((item, i) => {
@@ -313,7 +414,7 @@ export default function EventLobbyPage() {
               </button>
 
               <iframe
-                src="https://www.youtube-nocookie.com/embed/jfKfPfyJRdk?autoplay=1&rel=0&modestbranding=1"
+                src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?autoplay=1&rel=0&modestbranding=1"
                 title="Main Stage Live Stream"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -460,7 +561,22 @@ export default function EventLobbyPage() {
                 chat.map((msg) => (
                   <div key={msg.id} className="space-y-0.5 border-b border-slate-50 pb-2.5 last:border-0">
                     <div className="flex items-center justify-between text-[10px]">
-                      <span className="font-bold text-slate-900">{msg.user}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMessage((prev) => `@${msg.user} ${prev.replace(/^@[^ ]+\s*/, "")}`);
+                          chatInputRef.current?.focus();
+                        }}
+                        className="font-bold text-slate-900 hover:text-orange-600 transition-colors cursor-pointer inline-flex items-center gap-1"
+                        title={`Mention ${msg.user}`}
+                      >
+                        <span>{msg.user}</span>
+                        {msg.role === "business" && (
+                          <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[9px] font-black uppercase">
+                            Host
+                          </span>
+                        )}
+                      </button>
                       <span className="text-slate-400">{msg.time}</span>
                     </div>
                     <p className="text-[11px] text-slate-600 leading-relaxed">{msg.message}</p>
@@ -469,10 +585,35 @@ export default function EventLobbyPage() {
 
               {activeTab === "participants" && (
                 <div className="divide-y divide-slate-100">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="flex items-center justify-between py-2 text-xs">
-                      <span className="font-bold text-slate-700">Attendee #{1000 + i}</span>
-                      <span className="text-[10px] font-bold text-emerald-600 uppercase">Online</span>
+                  {[
+                    { name: "Alex Thompson", role: "VIP Pass", initials: "AT" },
+                    { name: "Sarah Chen", role: "Season Pass", initials: "SC" },
+                    { name: "Marcus Okafor", role: "Buyer", initials: "MO" },
+                    { name: "Elena Rostova", role: "VIP Pass", initials: "ER" },
+                    { name: "David Mensah", role: "Explorer", initials: "DM" },
+                    { name: "Priya Patel", role: "Season Pass", initials: "PP" }
+                  ].map((person) => (
+                    <div key={person.name} className="flex items-center justify-between gap-2 py-2.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab("chat");
+                          setMessage((prev) => `@${person.name} ${prev.replace(/^@[^ ]+\s*/, "")}`);
+                          setTimeout(() => chatInputRef.current?.focus(), 50);
+                        }}
+                        className="flex items-center gap-2 min-w-0 text-left group cursor-pointer"
+                      >
+                        <span className="w-7 h-7 rounded-full bg-orange-50 text-orange-600 border border-orange-100 font-black text-[10px] flex items-center justify-center shrink-0">
+                          {person.initials}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="font-bold text-slate-800 group-hover:text-orange-600 truncate transition-colors">
+                            {person.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400">{person.role}</p>
+                        </div>
+                      </button>
+                      <span className="text-[10px] font-bold text-emerald-600 uppercase shrink-0">Online</span>
                     </div>
                   ))}
                 </div>
@@ -480,19 +621,17 @@ export default function EventLobbyPage() {
 
               {activeTab === "schedule" && (
                 <div className="divide-y divide-slate-100">
-                  {[
-                    { time: "10:00 AM", title: "Opening Ceremony", type: "Live" },
-                    { time: "11:30 AM", title: "Keynote Session", type: "Up Next" },
-                    { time: "01:00 PM", title: "Networking Break", type: "Scheduled" },
-                    { time: "02:30 PM", title: "MCOM Product Showcases", type: "Scheduled" }
-                  ].map((item, i) => (
+                  {agendaItems.map((item, i) => (
                     <div key={i} className="py-2.5 flex items-center justify-between gap-2">
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-900">{item.title}</h4>
-                        <span className="text-[10px] font-medium text-slate-400">{item.time}</span>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-slate-900 truncate">{item.title}</h4>
+                        <span className="text-[10px] font-medium text-slate-400">
+                          {item.time}
+                          {item.speaker ? ` • ${item.speaker}` : ""}
+                        </span>
                       </div>
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider ${
+                        className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${
                           item.type === "Live"
                             ? "text-orange-600"
                             : item.type === "Up Next"
@@ -513,6 +652,7 @@ export default function EventLobbyPage() {
               <div className="p-3 bg-white border-t border-slate-100">
                 <form onSubmit={handleSendMessage} className="relative">
                   <input
+                    ref={chatInputRef}
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -521,7 +661,7 @@ export default function EventLobbyPage() {
                   />
                   <button
                     type="submit"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-orange-600 text-white rounded-lg flex items-center justify-center hover:bg-orange-700 transition-colors"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-orange-600 text-white rounded-lg flex items-center justify-center hover:bg-orange-700 transition-colors cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
@@ -531,6 +671,8 @@ export default function EventLobbyPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

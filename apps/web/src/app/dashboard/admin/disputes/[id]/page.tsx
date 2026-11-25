@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +21,13 @@ import {
   Lock,
   Calendar
 } from "lucide-react";
-import { INITIAL_DISPUTES, STAGES, Dispute } from "../data";
+import {
+  INITIAL_DISPUTES,
+  STAGES,
+  Dispute,
+  getStoredDisputes,
+  updateDisputeRecord
+} from "../data";
 
 export default function DisputeDetailPage() {
   const params = useParams();
@@ -34,6 +40,12 @@ export default function DisputeDetailPage() {
 
   const [dispute, setDispute] = useState<Dispute>(initialDispute);
   const [internalNote, setInternalNote] = useState("");
+
+  useEffect(() => {
+    const stored = getStoredDisputes();
+    const matched = stored.find((d) => d.id.toLowerCase() === rawId?.toLowerCase());
+    if (matched) setDispute(matched);
+  }, [rawId]);
   const [timeline, setTimeline] = useState([
     {
       actor: dispute.complainant,
@@ -68,6 +80,14 @@ export default function DisputeDetailPage() {
   const handleUpdateStage = (newStage: Dispute["status"]) => {
     setDispute((prev) => ({ ...prev, status: newStage }));
     const stageName = STAGES.find((s) => s.id === newStage)?.label || newStage;
+    updateDisputeRecord(
+      dispute.id,
+      { status: newStage },
+      {
+        title: `Dispute ${dispute.id} Updated`,
+        message: `Your case "${dispute.subject}" moved to ${stageName}.`
+      }
+    );
     setTimeline((prev) => [
       {
         actor: "Admin",
@@ -81,7 +101,16 @@ export default function DisputeDetailPage() {
   };
 
   const handleApproveRefund = () => {
-    setDispute((prev) => ({ ...prev, status: "DECIDE" }));
+    const ruling = `Refund of ${dispute.amount} approved by Platform Admin.`;
+    setDispute((prev) => ({ ...prev, status: "DECIDE", ruling }));
+    updateDisputeRecord(
+      dispute.id,
+      { status: "DECIDE", ruling, sla: "Resolved SLA" },
+      {
+        title: `Ruling Issued: ${dispute.id}`,
+        message: `${ruling} Case "${dispute.subject}" is now resolved.`
+      }
+    );
     setTimeline((prev) => [
       {
         actor: "Admin",
@@ -95,7 +124,16 @@ export default function DisputeDetailPage() {
   };
 
   const handleDismissDispute = () => {
-    setDispute((prev) => ({ ...prev, status: "DECIDE" }));
+    const ruling = `Claim dismissed in favor of ${dispute.respondent}.`;
+    setDispute((prev) => ({ ...prev, status: "DECIDE", ruling }));
+    updateDisputeRecord(
+      dispute.id,
+      { status: "DECIDE", ruling, sla: "Resolved SLA" },
+      {
+        title: `Ruling Issued: ${dispute.id}`,
+        message: `${ruling} Check your Support & Disputes page for details.`
+      }
+    );
     setTimeline((prev) => [
       {
         actor: "Admin",
@@ -110,6 +148,14 @@ export default function DisputeDetailPage() {
 
   const handleEscalateMediation = () => {
     setDispute((prev) => ({ ...prev, status: "MEDIATE" }));
+    updateDisputeRecord(
+      dispute.id,
+      { status: "MEDIATE" },
+      {
+        title: `Dispute Escalated: ${dispute.id}`,
+        message: `Your case "${dispute.subject}" has been escalated to Mediation.`
+      }
+    );
     setTimeline((prev) => [
       {
         actor: "Admin",

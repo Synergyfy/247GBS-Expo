@@ -1,16 +1,93 @@
 "use client";
 
-import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { 
   Rocket, Users, Globe, BarChart3, 
   MessageSquare, Zap, Target, ArrowRight, CheckCircle2,
-  Building2, Award
+  Building2, Award, X, Send, Lock, ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
+import { getStoredUser, ExpoUser } from "@/lib/auth";
+import {
+  DEFAULT_PARTNERSHIP_TIERS,
+  getPartnershipTiers,
+  PARTNERSHIPS_EVENT,
+  PartnershipTier,
+  submitPartnershipInquiry,
+} from "@/data/partnerships";
+
+const CHS_URL = process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolutions.com";
 
 export default function PartnershipPage() {
+  const [packages, setPackages] = useState<PartnershipTier[]>(DEFAULT_PARTNERSHIP_TIERS);
+  const [selectedTier, setSelectedTier] = useState<PartnershipTier | null>(null);
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [submittedRef, setSubmittedRef] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [currentUser, setCurrentUser] = useState<ExpoUser | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    setCurrentUser(getStoredUser());
+    setPackages(getPartnershipTiers());
+    const sync = () => {
+      setPackages(getPartnershipTiers());
+      setCurrentUser(getStoredUser());
+    };
+    window.addEventListener(PARTNERSHIPS_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(PARTNERSHIPS_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const isBusinessUser = currentUser?.role === "business";
+
+  const openApplicationModal = (tier: PartnershipTier) => {
+    const user = getStoredUser();
+    setCurrentUser(user);
+    if (user?.role === "business") {
+      setContactName((prev) => prev || user.name || "");
+      setEmail((prev) => prev || user.email || "");
+    }
+    setSelectedTier(tier);
+    setSubmittedRef(null);
+  };
+
+  const closeApplicationModal = () => {
+    setSelectedTier(null);
+    setSubmittedRef(null);
+  };
+
+  const handleSubmitInquiry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTier || !companyName.trim() || !contactName.trim() || !email.trim()) return;
+
+    const created = submitPartnershipInquiry({
+      companyName: companyName.trim(),
+      contactName: contactName.trim(),
+      email: email.trim(),
+      tierId: selectedTier.id,
+      tierName: selectedTier.name,
+      message:
+        message.trim() ||
+        `Interested in the ${selectedTier.name} (${selectedTier.price} ${selectedTier.period}) package.`,
+    });
+
+    setSubmittedRef(created.id);
+    setCompanyName("");
+    setContactName("");
+    setEmail("");
+    setMessage("");
+  };
+
   const benefits = [
     {
       icon: <Globe className="w-4 h-4 sm:w-5 sm:h-5" />,
@@ -31,58 +108,6 @@ export default function PartnershipPage() {
       icon: <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />,
       title: "Real-Time Analytics",
       description: "Track every visitor interaction, lead, and conversion in your exhibitor dashboard."
-    }
-  ];
-
-  const packages = [
-    {
-      name: "Standard Exhibitor",
-      price: "£299",
-      period: "/season",
-      description: "Ideal for emerging brands establishing a 24/7 digital storefront.",
-      features: [
-        "Digital Exhibition Booth",
-        "Up to 10 Product Listings",
-        "Basic Analytics Dashboard",
-        "Live Chat Integration",
-        "Standard Directory Placement"
-      ],
-      cta: "Start Standard",
-      href: "/exhibit",
-      popular: false
-    },
-    {
-      name: "Professional Partner",
-      price: "£799",
-      period: "/season",
-      description: "Advanced growth tools for scaling brands seeking maximum buyer traffic.",
-      features: [
-        "Premium 3D-Feel Booth Design",
-        "Unlimited Product Listings",
-        "Advanced Lead Intelligence",
-        "Live Demo & Workshop Streaming",
-        "Priority Search Placement",
-        "Dedicated Partner Support"
-      ],
-      cta: "Go Professional",
-      href: "/exhibit",
-      popular: true
-    },
-    {
-      name: "Enterprise Global",
-      price: "Custom",
-      period: "",
-      description: "Tailored multi-hall solutions for large organizations and sponsors.",
-      features: [
-        "Multi-Booth Brand Network",
-        "Custom Feature Integration",
-        "Seasonal Headline Sponsorship",
-        "Full API & CRM Access",
-        "Quarterly Executive Reviews"
-      ],
-      cta: "Contact Sales",
-      href: "/exhibit",
-      popular: false
     }
   ];
 
@@ -200,9 +225,9 @@ export default function PartnershipPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            {packages.map((pkg, i) => (
+            {packages.map((pkg) => (
               <div 
-                key={i} 
+                key={pkg.id} 
                 className={`relative p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between ${
                   pkg.popular 
                     ? "bg-white text-slate-900 border-orange-500 shadow-xl" 
@@ -238,9 +263,10 @@ export default function PartnershipPage() {
                   </ul>
                 </div>
 
-                <Link
-                  href={pkg.href}
-                  className={`inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all w-fit ${
+                <button
+                  type="button"
+                  onClick={() => openApplicationModal(pkg)}
+                  className={`inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all w-fit cursor-pointer ${
                     pkg.popular 
                       ? "bg-orange-600 text-white hover:bg-orange-700 shadow-md" 
                       : "bg-white/10 text-white hover:bg-white hover:text-slate-900 border border-white/15"
@@ -248,9 +274,18 @@ export default function PartnershipPage() {
                 >
                   <span>{pkg.cta}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                </button>
               </div>
             ))}
+          </div>
+
+          <div className="mt-6 sm:mt-8 text-center">
+            <p className="text-xs sm:text-sm text-slate-400">
+              Just want to run a standard exhibitor booth?{" "}
+              <Link href="/exhibit" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
+                Onboard directly with CHS Business Membership →
+              </Link>
+            </p>
           </div>
         </div>
       </section>
@@ -308,6 +343,196 @@ export default function PartnershipPage() {
       </section>
 
       <Footer />
+
+      {/* Partnership Application Modal */}
+      {mounted &&
+        selectedTier &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 pt-24 pb-8">
+            <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-full flex flex-col overflow-hidden shadow-2xl">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0 bg-white">
+                <div className="min-w-0 pr-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600">
+                    Expo Partnership Application
+                  </p>
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 truncate">
+                    {selectedTier.name} — {selectedTier.price} {selectedTier.period}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeApplicationModal}
+                  aria-label="Close application modal"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 shrink-0 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {!isBusinessUser ? (
+                <div className="p-6 text-center space-y-4 overflow-y-auto">
+                  <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mx-auto">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h4 className="text-base sm:text-lg font-extrabold text-slate-900">
+                      Business Account Required
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
+                      {currentUser
+                        ? `You're currently signed in as a ${currentUser.role}. Expo partnership applications and custom proposals require a verified Business account (CHS Business Member).`
+                        : "Sign in with your CHS Business account to apply for a partnership tier or request a custom sponsorship proposal."}
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+                    <Link
+                      href="/login?role=business"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-orange-600 text-white text-xs sm:text-sm font-bold hover:bg-orange-700 shadow-sm"
+                    >
+                      <span>Sign in as Business</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <a
+                      href={`${CHS_URL}/getstarted/business`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full border border-slate-200 text-slate-700 text-xs sm:text-sm font-bold hover:bg-slate-50"
+                    >
+                      <span>Register Business on CHS</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              ) : submittedRef ? (
+                <div className="p-6 text-center space-y-4 overflow-y-auto">
+                  <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-extrabold text-slate-900">
+                      Application Under Review
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                      Reference <span className="font-mono font-bold text-slate-900">{submittedRef}</span> is now <strong>Under Review</strong> by the 247GBS Expo Partnerships team. You&apos;ll be notified in your Business portal once a final decision is made.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={closeApplicationModal}
+                      className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-slate-800 cursor-pointer"
+                    >
+                      Done
+                    </button>
+                    <Link
+                      href="/dashboard/business"
+                      className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-700 text-xs sm:text-sm font-bold hover:bg-slate-50"
+                    >
+                      Go to Business Portal
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmitInquiry} className="flex flex-col flex-1 min-h-0">
+                  <div className="p-5 space-y-4 overflow-y-auto flex-1">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Selected Package
+                      </label>
+                      <select
+                        value={selectedTier.id}
+                        onChange={(e) => {
+                          const next = packages.find((p) => p.id === e.target.value);
+                          if (next) setSelectedTier(next);
+                        }}
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 bg-slate-50 focus:outline-none focus:border-orange-500"
+                      >
+                        {packages.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.price} {p.period})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Organization / Brand Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                          placeholder="e.g. Acme Global Ltd"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Contact Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={contactName}
+                          onChange={(e) => setContactName(e.target.value)}
+                          placeholder="Your full name"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Work Email *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@company.com"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Sponsorship Goals / Custom Requirements
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Tell us about your target expo season, keynote interest, or pavilion needs..."
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-100 shrink-0 bg-white">
+                    <Link
+                      href="/exhibit"
+                      className="text-xs font-semibold text-slate-500 hover:text-orange-600"
+                    >
+                      Standard exhibitor? Use CHS →
+                    </Link>
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-orange-600 text-white text-xs sm:text-sm font-bold hover:bg-orange-700 shadow-sm cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Submit Application</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </main>
   );
 }

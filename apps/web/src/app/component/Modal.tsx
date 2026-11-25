@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
     isOpen: boolean;
@@ -22,10 +23,16 @@ const maxWidthClasses = {
 };
 
 export default function Modal({ isOpen, onClose, title, children, maxWidth = "lg" }: ModalProps) {
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3.5 sm:p-6">
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!isOpen || !mounted) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 pt-20 pb-24 lg:pt-24 lg:pb-8">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
@@ -33,16 +40,16 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "lg
             />
 
             {/* Modal Content */}
-            <div className={`relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full ${maxWidthClasses[maxWidth]} overflow-hidden transform transition-all scale-100 ring-1 ring-black/5`}>
-                {/* Compact Header */}
-                <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex justify-between items-center gap-2 bg-white">
+            <div className={`relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full ${maxWidthClasses[maxWidth]} max-h-full flex flex-col overflow-hidden transform transition-all scale-100 ring-1 ring-black/5`}>
+                {/* Sticky Header */}
+                <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex justify-between items-center gap-2 bg-white shrink-0">
                     <h3 className="font-bold text-xs sm:text-sm text-slate-900 uppercase tracking-wider truncate">
                         {title}
                     </h3>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all shrink-0"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all shrink-0 cursor-pointer"
                         aria-label="Close modal"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,11 +58,12 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "lg
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className="p-4 sm:p-5 overflow-y-auto max-h-[calc(100vh-140px)]">
+                {/* Scrollable Body */}
+                <div className="p-4 sm:p-5 overflow-y-auto flex-1">
                     {children}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

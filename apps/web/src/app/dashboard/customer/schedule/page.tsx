@@ -9,10 +9,17 @@ import {
   Star,
   Video,
   ArrowRight,
-  X
+  X,
+  CalendarCheck,
+  ExternalLink
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  ConsultationBooking,
+  getConsultations,
+  CONSULTATIONS_EVENT
+} from "@/data/consultations";
 
 const scheduleData = [
   {
@@ -78,7 +85,19 @@ const scheduleData = [
 ];
 
 export default function SchedulePage() {
+  const [consultations, setConsultations] = useState<ConsultationBooking[]>([]);
   const [activeTab, setActiveTab] = useState("All");
+
+  useEffect(() => {
+    setConsultations(getConsultations());
+    const sync = () => setConsultations(getConsultations());
+    window.addEventListener(CONSULTATIONS_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(CONSULTATIONS_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [savedSlotIds, setSavedSlotIds] = useState<number[]>([2, 3]);
   const [showRemindersModal, setShowRemindersModal] = useState(false);
@@ -187,6 +206,74 @@ export default function SchedulePage() {
           </button>
         </div>
       </div>
+
+      {/* My 1-on-1 Booth Consultations (Synced live with Business Consultations) */}
+      {consultations.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <CalendarCheck className="w-4 h-4 text-orange-600" />
+              <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-tight">
+                My 1-on-1 Booth Consultations ({consultations.length})
+              </h2>
+            </div>
+            <Link
+              href="/dashboard/customer/booths"
+              className="text-[11px] font-bold text-orange-600 hover:text-orange-700"
+            >
+              Book another booth →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {consultations.slice(0, 4).map((c) => (
+              <div
+                key={c.id}
+                className="rounded-xl border border-slate-200/80 p-3 flex items-start justify-between gap-3 bg-slate-50/50"
+              >
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-mono font-bold text-slate-400">{c.id}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                        c.status === "confirmed"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : c.status === "declined"
+                          ? "bg-slate-100 text-slate-600 border-slate-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      }`}
+                    >
+                      {c.status === "confirmed"
+                        ? "Confirmed"
+                        : c.status === "declined"
+                        ? "Declined"
+                        : "Pending"}
+                    </span>
+                    <span className="text-[11px] font-bold text-orange-600">{c.slot}</span>
+                  </div>
+                  <p className="text-xs font-extrabold text-slate-900 truncate">{c.boothName}</p>
+                  <p className="text-[11px] text-slate-600 line-clamp-1">{c.topic}</p>
+                  {c.responseNote && (
+                    <p className="text-[11px] text-slate-500 italic line-clamp-1">
+                      &ldquo;{c.responseNote}&rdquo;
+                    </p>
+                  )}
+                </div>
+                {c.status === "confirmed" && c.meetingLink && (
+                  <a
+                    href={c.meetingLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900 text-white text-[11px] font-bold hover:bg-slate-800 shrink-0"
+                  >
+                    <span>Join</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Horizontal Scroll KPI Strip on Mobile (Peeping Card + Dot Slider, Inline Small Icons) */}
       <div>

@@ -19,6 +19,7 @@ import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 import { PASS_PLANS } from "@/data/passes";
 import { getStoredUser, setStoredUser, clearStoredUser } from "@/lib/auth";
+import { findSalesLinkByCode, SalesInviteLink } from "@/data/salesLinks";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
@@ -151,6 +152,20 @@ function TicketsContent() {
   const [passPaymentReceipt, setPassPaymentReceipt] = useState<SandboxPaymentResult | null>(null);
   const [showAuthGateModal, setShowAuthGateModal] = useState(false);
   const [isCartExpanded, setIsCartExpanded] = useState(true);
+  const [appliedInvite, setAppliedInvite] = useState<SalesInviteLink | null>(null);
+
+  useEffect(() => {
+    const inviteCode = searchParams.get("invite");
+    if (inviteCode) {
+      const matched = findSalesLinkByCode(inviteCode);
+      if (matched) {
+        setAppliedInvite(matched);
+        if (matched.isComplimentary) {
+          setIsTokenValidated(true);
+        }
+      }
+    }
+  }, [searchParams]);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -378,8 +393,16 @@ function TicketsContent() {
 
   const itemsTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const subtotal = Math.max(0, itemsTotal);
-  const totalBookingFee = cart.length > 0 || needsPassFee ? BOOKING_FEE : 0;
-  const finalPrice = subtotal + totalBookingFee + passFee;
+  const inviteDiscountAmount = appliedInvite
+    ? Math.round(subtotal * (appliedInvite.discountPercent / 100) * 100) / 100
+    : 0;
+  const totalBookingFee =
+    appliedInvite?.isComplimentary
+      ? 0
+      : cart.length > 0 || needsPassFee
+      ? BOOKING_FEE
+      : 0;
+  const finalPrice = Math.max(0, subtotal - inviteDiscountAmount + totalBookingFee + passFee);
 
   const handleNext = () => {
     setLoading(true);
@@ -570,6 +593,36 @@ function TicketsContent() {
             ))}
           </div>
         </div>
+
+        {/* Applied Business Invite / Referral Banner */}
+        {appliedInvite && (
+          <div className="mb-4 rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                <Ticket className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-extrabold text-emerald-950 truncate">
+                  {appliedInvite.title}
+                </p>
+                <p className="text-[11px] text-emerald-700 font-semibold">
+                  {appliedInvite.isComplimentary
+                    ? "Complimentary Partner Pass applied (100% off + Access Pass waived)"
+                    : `${appliedInvite.discountPercent}% partner referral discount applied automatically to your cart`}
+                  {inviteDiscountAmount > 0 ? ` — Saving £${inviteDiscountAmount.toFixed(2)}` : ""}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAppliedInvite(null)}
+              aria-label="Remove invite"
+              className="p-1 rounded-lg text-emerald-700 hover:bg-emerald-100 shrink-0 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
 

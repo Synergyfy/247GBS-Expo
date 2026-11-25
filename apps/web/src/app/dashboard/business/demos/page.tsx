@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
     Video,
@@ -12,8 +12,15 @@ import {
     ChevronDown,
     ArrowUpRight,
     ShoppingBag,
+    MessageSquare,
+    Send
 } from "lucide-react";
 import Modal from "@/app/component/Modal";
+import {
+    LiveChatMessage,
+    getStoredLiveChat,
+    postLiveChatMessage
+} from "@/data/eventLiveChat";
 
 export default function LiveDemosPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -27,6 +34,32 @@ export default function LiveDemosPage() {
     const [sessionDate, setSessionDate] = useState("Tomorrow, 10:00 AM");
     const [hall, setHall] = useState("Virtual Main Hall A");
     const [showStreamGuide, setShowStreamGuide] = useState(false);
+    const [liveChat, setLiveChat] = useState<LiveChatMessage[]>([]);
+    const [hostMessage, setHostMessage] = useState("");
+    const hostInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const refresh = () => setLiveChat(getStoredLiveChat());
+        refresh();
+        window.addEventListener("expo_live_chat_changed", refresh);
+        window.addEventListener("storage", refresh);
+        return () => {
+            window.removeEventListener("expo_live_chat_changed", refresh);
+            window.removeEventListener("storage", refresh);
+        };
+    }, []);
+
+    const handleSendHostReply = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!hostMessage.trim()) return;
+        const next = postLiveChatMessage({
+            user: "FutureTech Host",
+            role: "business",
+            message: hostMessage
+        });
+        setLiveChat(next);
+        setHostMessage("");
+    };
 
     const [sessions, setSessions] = useState([
         {
@@ -171,13 +204,12 @@ export default function LiveDemosPage() {
                         </div>
 
                         <div className="flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
-                            <button
-                                type="button"
-                                onClick={() => setActiveBroadcast(item)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-600 transition-colors"
+                            <Link
+                                href={`/dashboard/business/demos/${item.id}`}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-orange-600 transition-colors cursor-pointer"
                             >
                                 <Play className="w-3.5 h-3.5" /> Start Broadcast
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 ))}
@@ -279,38 +311,100 @@ export default function LiveDemosPage() {
                 </form>
             </Modal>
 
-            {/* Live Broadcast Preview Modal */}
+            {/* Live Broadcast Preview Modal with Synced Live Event Chat */}
             <Modal
                 isOpen={!!activeBroadcast}
                 onClose={() => setActiveBroadcast(null)}
                 title={activeBroadcast ? `Live Studio • ${activeBroadcast.id}` : "Live Studio"}
+                maxWidth="4xl"
             >
                 {activeBroadcast && (
                     <div className="space-y-4">
-                        <div className="aspect-video rounded-xl bg-slate-900 overflow-hidden relative border border-slate-800">
-                            <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
-                                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                                <span>LIVE BROADCAST STUDIO</span>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                            {/* Stream Preview (Col 7) */}
+                            <div className="lg:col-span-7 space-y-2.5">
+                                <div className="aspect-video rounded-xl bg-slate-900 overflow-hidden relative border border-slate-800">
+                                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
+                                        <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                                        <span>LIVE BROADCAST STUDIO</span>
+                                    </div>
+                                    <iframe
+                                        src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?autoplay=1&mute=1&rel=0"
+                                        title={activeBroadcast.title}
+                                        className="w-full h-full border-0"
+                                        allow="autoplay; encrypted-media"
+                                        allowFullScreen
+                                    />
+                                </div>
+                                <div className="space-y-0.5">
+                                    <h4 className="text-xs sm:text-sm font-bold text-slate-900">{activeBroadcast.title}</h4>
+                                    <p className="text-[11px] text-slate-500">
+                                        {activeBroadcast.hall} • Pinned: <strong className="text-orange-600">{activeBroadcast.pinnedProduct}</strong>
+                                    </p>
+                                </div>
                             </div>
-                            <iframe
-                                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1"
-                                title={activeBroadcast.title}
-                                className="w-full h-full"
-                                allow="autoplay; encrypted-media"
-                                allowFullScreen
-                            />
+
+                            {/* Synced Live Event Chat (Col 5) */}
+                            <div className="lg:col-span-5 flex flex-col h-[300px] lg:h-[340px] rounded-xl border border-slate-200/80 bg-slate-50 overflow-hidden">
+                                <div className="px-3 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between">
+                                    <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                                        <MessageSquare className="w-3.5 h-3.5 text-orange-600" />
+                                        <span>Live Event Chat ({liveChat.length})</span>
+                                    </span>
+                                    <span className="text-[10px] font-bold text-emerald-600">Synced</span>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2.5 custom-scrollbar">
+                                    {liveChat.map((msg) => (
+                                        <div key={msg.id} className="bg-white p-2.5 rounded-xl border border-slate-200/60 space-y-1">
+                                            <div className="flex items-center justify-between gap-2 text-[10px]">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setHostMessage((prev) => `@${msg.user} ${prev.replace(/^@[^ ]+\s*/, "")}`);
+                                                        hostInputRef.current?.focus();
+                                                    }}
+                                                    className="font-bold text-slate-900 hover:text-orange-600 inline-flex items-center gap-1 cursor-pointer"
+                                                >
+                                                    <span>{msg.user}</span>
+                                                    {msg.role === "business" && (
+                                                        <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[9px] font-black uppercase">
+                                                            Host
+                                                        </span>
+                                                    )}
+                                                </button>
+                                                <span className="text-slate-400">{msg.time}</span>
+                                            </div>
+                                            <p className="text-[11px] text-slate-600 leading-relaxed">{msg.message}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <form onSubmit={handleSendHostReply} className="p-2.5 bg-white border-t border-slate-100 flex items-center gap-1.5">
+                                    <input
+                                        ref={hostInputRef}
+                                        type="text"
+                                        value={hostMessage}
+                                        onChange={(e) => setHostMessage(e.target.value)}
+                                        placeholder="Reply to attendees as Host..."
+                                        className="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-orange-500"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="p-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors cursor-pointer shrink-0"
+                                        aria-label="Send host reply"
+                                    >
+                                        <Send className="w-3.5 h-3.5" />
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <h4 className="text-xs sm:text-sm font-bold text-slate-900">{activeBroadcast.title}</h4>
-                            <p className="text-[11px] text-slate-500">
-                                {activeBroadcast.hall} • Pinned: <strong className="text-orange-600">{activeBroadcast.pinnedProduct}</strong>
-                            </p>
-                        </div>
+
                         <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                             <button
                                 type="button"
                                 onClick={() => setActiveBroadcast(null)}
-                                className="px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700"
+                                className="px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700 cursor-pointer"
                             >
                                 End Broadcast
                             </button>

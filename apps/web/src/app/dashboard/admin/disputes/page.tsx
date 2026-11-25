@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -11,12 +11,29 @@ import {
   Gavel,
   ArrowRight
 } from "lucide-react";
-import { INITIAL_DISPUTES, STAGES, Dispute } from "./data";
+import {
+  INITIAL_DISPUTES,
+  STAGES,
+  Dispute,
+  getStoredDisputes,
+  DISPUTES_EVENT
+} from "./data";
 
 export default function DisputesPage() {
   const router = useRouter();
-  const [disputes] = useState<Dispute[]>(INITIAL_DISPUTES);
+  const [disputes, setDisputes] = useState<Dispute[]>(INITIAL_DISPUTES);
   const [mobileStage, setMobileStage] = useState<string>("ALL");
+
+  useEffect(() => {
+    setDisputes(getStoredDisputes());
+    const sync = () => setDisputes(getStoredDisputes());
+    window.addEventListener(DISPUTES_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(DISPUTES_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   const mobileFiltered =
     mobileStage === "ALL"
