@@ -14,6 +14,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import Navbar from "@/app/component/landing/Navbar";
 import Footer from "@/app/component/landing/Footer";
 import Modal from "@/app/component/Modal";
+import SandboxCheckoutModal, { SandboxPaymentResult } from "@/app/component/SandboxCheckoutModal";
 import Tooltip from "@/app/component/Tooltip";
 import { events } from "@/data/events";
 import { PASS_PLANS } from "@/data/passes";
@@ -123,21 +124,22 @@ function TicketsContent() {
   const [step, setStep] = useState(stepParam ? parseInt(stepParam, 10) : (hasPreselectedEvents ? 1 : 0));
   const [loading, setLoading] = useState(false);
 
-  // Authentication Enforcement - Redirect to Sign Up / Sign In if not logged in
+  const CHS_BASE_URL =
+    process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolution.com";
+
+  // Check optional existing session without blocking public event browsing or checkout.
+  // Per CHS directive (Nov 16), registration & identity verification happen via Central Hub Solution (CHS) at the final stage.
   useEffect(() => {
     const wantsPass = searchParams.get("pass") === "true";
     const user = getStoredUser();
-    if (!user) {
-      const target = wantsPass ? "/tickets?pass=true" : "/tickets";
-      router.replace(`/signup?role=customer&redirect=${encodeURIComponent(target)}`);
-    } else {
+    if (user) {
       setCurrentUser(user);
-      setAuthChecking(false);
-      if (wantsPass) {
-        setShowPassModal(true);
-      }
     }
-  }, [router, searchParams]);
+    if (wantsPass) {
+      setShowPassModal(true);
+    }
+    setAuthChecking(false);
+  }, [searchParams]);
 
   // Access Pass Token State
   const [enteredToken, setEnteredToken] = useState("");
@@ -145,6 +147,8 @@ function TicketsContent() {
   const [generatedToken, setGeneratedToken] = useState("");
   const [showTokenScreen, setShowTokenScreen] = useState(false);
   const [showPassModal, setShowPassModal] = useState(false);
+  const [showPassSandboxCheckout, setShowPassSandboxCheckout] = useState(false);
+  const [passPaymentReceipt, setPassPaymentReceipt] = useState<SandboxPaymentResult | null>(null);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -523,9 +527,10 @@ function TicketsContent() {
                   <button
                     onClick={() => {
                       clearStoredUser();
-                      router.replace("/signup?role=customer&redirect=/tickets");
+                      setCurrentUser(null);
+                      router.push("/login?role=customer&redirect=/tickets");
                     }}
-                    className="text-[9px] text-orange-600 font-bold hover:underline ml-0.5"
+                    className="text-[9px] text-orange-600 font-bold hover:underline ml-0.5 cursor-pointer"
                     title="Switch Account"
                   >
                     Switch
@@ -1382,25 +1387,53 @@ function TicketsContent() {
               </div>
 
               <div className="text-center bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1">Pass Issued & Confirmed</h2>
-                <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                  Your passes are confirmed! Access your tickets anytime in your customer dashboard or continue exploring upcoming events.
+                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1">
+                  {currentUser ? "Pass Issued & Synced" : "Continue to Central Hub Solution (CHS)"}
+                </h2>
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed max-w-md mx-auto">
+                  {currentUser
+                    ? "Your passes are confirmed and linked to your account. Access your tickets anytime in your customer dashboard."
+                    : "Your pass is generated! Sign in or complete your registration on Central Hub Solution (CHS) to verify your identity, save your passport, and return to Expo."}
                 </p>
 
-                <div className="flex flex-row justify-center gap-2.5">
-                  <Link
-                    href="/dashboard/customer/tickets"
-                    className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5"
-                  >
-                    <span>View My Passes</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                  <Link
-                    href="/"
-                    className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all"
-                  >
-                    Explore Expo
-                  </Link>
+                <div className="flex flex-col sm:flex-row justify-center gap-2.5">
+                  {currentUser ? (
+                    <>
+                      <Link
+                        href="/dashboard/customer/tickets"
+                        className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>View My Passes</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                      <a
+                        href={CHS_BASE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>Open CHS Portal</span>
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      <a
+                        href={CHS_BASE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>Continue to CHS</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                      <Link
+                        href="/dashboard/customer/tickets"
+                        className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>View My Passes</span>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -1502,24 +1535,19 @@ function TicketsContent() {
                   Close
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     const pass = passes[0];
                     if (pass && !cart.some(i => i.id === pass.id)) {
                       addToCart(pass, 'pass');
                     }
-                    setLoading(true);
-                    setTimeout(() => {
-                      const token = "GBX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-                      setGeneratedToken(token);
-                      setEnteredToken(token);
-                      setIsTokenValidated(true);
-                      setLoading(false);
-                      setShowTokenScreen(true);
-                    }, 600);
+                    setShowPassModal(false);
+                    setShowPassSandboxCheckout(true);
                   }}
-                  className="flex-1 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md"
+                  className="flex-1 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-all shadow-md cursor-pointer"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Activate Pass & Get Token"}
+                  <span>Proceed to Sandbox Payment (£{passes[0]?.price || 75})</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -1530,14 +1558,23 @@ function TicketsContent() {
               </div>
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900">Access Token Activated!</h3>
-                <p className="text-slate-500 text-xs">Your token is automatically applied to your cart.</p>
+                <p className="text-slate-500 text-xs">
+                  {passPaymentReceipt
+                    ? `Payment verified via ${passPaymentReceipt.gateway} (£${passPaymentReceipt.amount.toFixed(2)}). Your token is applied to your cart.`
+                    : "Your token is automatically applied to your cart."}
+                </p>
+                {passPaymentReceipt && (
+                  <p className="text-[10px] font-mono text-emerald-700 mt-1">
+                    Ref: {passPaymentReceipt.reference}
+                  </p>
+                )}
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200 flex items-center justify-center gap-3">
                 <span className="text-lg font-mono font-black text-slate-900">{generatedToken}</span>
                 <button
                   onClick={() => navigator.clipboard.writeText(generatedToken)}
-                  className="p-1.5 bg-white rounded-lg border border-slate-200 text-orange-600"
+                  className="p-1.5 bg-white rounded-lg border border-slate-200 text-orange-600 cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
@@ -1548,7 +1585,7 @@ function TicketsContent() {
                   setShowPassModal(false);
                   setShowTokenScreen(false);
                 }}
-                className="w-full py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs shadow-md"
+                className="w-full py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs shadow-md cursor-pointer"
               >
                 Continue Booking
               </button>
@@ -1556,6 +1593,25 @@ function TicketsContent() {
           )}
         </div>
       </Modal>
+
+      {/* REUSABLE STRIPE / PAYPAL / WALLET SANDBOX CHECKOUT FOR SEASON PASS */}
+      <SandboxCheckoutModal
+        isOpen={showPassSandboxCheckout}
+        onClose={() => setShowPassSandboxCheckout(false)}
+        title="Pay for Season Access Pass"
+        itemName={passes[0]?.name || "247GBS Season Access Pass"}
+        amount={Number(passes[0]?.price || 75)}
+        onPaymentSuccess={(result) => {
+          const token = "GBX-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+          setPassPaymentReceipt(result);
+          setGeneratedToken(token);
+          setEnteredToken(token);
+          setIsTokenValidated(true);
+          setShowPassSandboxCheckout(false);
+          setShowPassModal(true);
+          setShowTokenScreen(true);
+        }}
+      />
     </main>
   );
 }

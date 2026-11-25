@@ -262,9 +262,9 @@ export default function BottomNav() {
                   Quick Actions
                 </p>
                 <div className="grid grid-cols-2 gap-2.5 mb-2.5">
-                  {/* Action 1: Get Tickets (Requires Sign-in) */}
+                  {/* Action 1: Get Tickets */}
                   <Link
-                    href={currentUser ? "/tickets" : "/signup?role=customer&redirect=/tickets"}
+                    href="/tickets"
                     onClick={() => setIsEventsOpen(false)}
                     className="flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs shadow-lg shadow-orange-600/25 active:scale-95"
                   >

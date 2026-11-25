@@ -137,7 +137,7 @@ export default function Navbar() {
                 </Link>
               )}
               <Link
-                href={currentUser ? "/tickets" : "/signup?role=customer&redirect=/tickets"}
+                href="/tickets"
                 className="bg-orange-600 text-white px-5 py-2 rounded-full text-xs sm:text-sm font-bold hover:bg-orange-700 transition-all shadow-md shadow-orange-600/20 active:scale-95"
               >
                 Tickets
@@ -203,7 +203,7 @@ export default function Navbar() {
 
             {/* Ticker Action */}
             <Link
-              href={currentUser ? "/tickets" : "/signup?role=customer&redirect=/tickets"}
+              href="/tickets"
               className="shrink-0 bg-orange-600 hover:bg-orange-500 text-white px-2.5 py-1 sm:px-4 sm:py-1 rounded-full transition-all font-bold text-[10px] uppercase tracking-wider"
             >
               Book
