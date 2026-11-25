@@ -113,13 +113,13 @@ export default function ExhibitPage() {
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 sm:mb-8 gap-2">
               <div>
                 <div className="inline-flex items-center gap-1.5 text-orange-600 font-extrabold tracking-wider uppercase text-[10px] sm:text-xs mb-0.5">
-                  <Store className="w-3.5 h-3.5" /> Exhibitor Onboarding
+                  <Store className="w-3.5 h-3.5" /> Exhibitor Stand Setup
                 </div>
                 <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
                   Launch Your <span className="text-orange-600">Digital Booth</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                  Register your business profile and activate your 24/7 exhibition stand.
+                  Business registration &amp; KYB verification happen on Central Hub Solution (CHS). Already verified? Configure your exhibition stand below.
                 </p>
               </div>
 
@@ -144,6 +144,27 @@ export default function ExhibitPage() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* CHS Business Registration & SSO Banner */}
+            <div className="mb-4 sm:mb-6 bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-extrabold text-slate-900">
+                  New to 247GBS? Register your business on Central Hub Solution (CHS)
+                </p>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  All business onboarding, KYB approval, and branding profiles are managed centrally on CHS and synced to Expo automatically.
+                </p>
+              </div>
+              <a
+                href={process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolution.com"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-orange-600 transition-colors shrink-0 w-full sm:w-auto"
+              >
+                <span>Continue to CHS</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </div>
 
             {/* Step Content */}

@@ -123,21 +123,22 @@ function TicketsContent() {
   const [step, setStep] = useState(stepParam ? parseInt(stepParam, 10) : (hasPreselectedEvents ? 1 : 0));
   const [loading, setLoading] = useState(false);
 
-  // Authentication Enforcement - Redirect to Sign Up / Sign In if not logged in
+  const CHS_BASE_URL =
+    process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolution.com";
+
+  // Check optional existing session without blocking public event browsing or checkout.
+  // Per CHS directive (Nov 16), registration & identity verification happen via Central Hub Solution (CHS) at the final stage.
   useEffect(() => {
     const wantsPass = searchParams.get("pass") === "true";
     const user = getStoredUser();
-    if (!user) {
-      const target = wantsPass ? "/tickets?pass=true" : "/tickets";
-      router.replace(`/signup?role=customer&redirect=${encodeURIComponent(target)}`);
-    } else {
+    if (user) {
       setCurrentUser(user);
-      setAuthChecking(false);
-      if (wantsPass) {
-        setShowPassModal(true);
-      }
     }
-  }, [router, searchParams]);
+    if (wantsPass) {
+      setShowPassModal(true);
+    }
+    setAuthChecking(false);
+  }, [searchParams]);
 
   // Access Pass Token State
   const [enteredToken, setEnteredToken] = useState("");
@@ -523,9 +524,10 @@ function TicketsContent() {
                   <button
                     onClick={() => {
                       clearStoredUser();
-                      router.replace("/signup?role=customer&redirect=/tickets");
+                      setCurrentUser(null);
+                      router.push("/login?role=customer&redirect=/tickets");
                     }}
-                    className="text-[9px] text-orange-600 font-bold hover:underline ml-0.5"
+                    className="text-[9px] text-orange-600 font-bold hover:underline ml-0.5 cursor-pointer"
                     title="Switch Account"
                   >
                     Switch
@@ -1382,25 +1384,53 @@ function TicketsContent() {
               </div>
 
               <div className="text-center bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1">Pass Issued & Confirmed</h2>
-                <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                  Your passes are confirmed! Access your tickets anytime in your customer dashboard or continue exploring upcoming events.
+                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1">
+                  {currentUser ? "Pass Issued & Synced" : "Continue to Central Hub Solution (CHS)"}
+                </h2>
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed max-w-md mx-auto">
+                  {currentUser
+                    ? "Your passes are confirmed and linked to your account. Access your tickets anytime in your customer dashboard."
+                    : "Your pass is generated! Sign in or complete your registration on Central Hub Solution (CHS) to verify your identity, save your passport, and return to Expo."}
                 </p>
 
-                <div className="flex flex-row justify-center gap-2.5">
-                  <Link
-                    href="/dashboard/customer/tickets"
-                    className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center gap-1.5"
-                  >
-                    <span>View My Passes</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                  <Link
-                    href="/"
-                    className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all"
-                  >
-                    Explore Expo
-                  </Link>
+                <div className="flex flex-col sm:flex-row justify-center gap-2.5">
+                  {currentUser ? (
+                    <>
+                      <Link
+                        href="/dashboard/customer/tickets"
+                        className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>View My Passes</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                      <a
+                        href={CHS_BASE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>Open CHS Portal</span>
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      <a
+                        href={CHS_BASE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-5 py-2.5 bg-orange-600 text-white rounded-full font-bold text-xs sm:text-sm hover:bg-orange-700 transition-all shadow-md inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>Continue to CHS</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                      <Link
+                        href="/dashboard/customer/tickets"
+                        className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-full font-bold text-xs sm:text-sm hover:bg-slate-200 transition-all inline-flex items-center justify-center gap-1.5"
+                      >
+                        <span>View My Passes</span>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

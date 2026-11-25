@@ -143,25 +143,30 @@ function SelectionContent() {
 
         {/* Continue CTA */}
         <div className="mt-5 sm:mt-8 text-center">
-          <Link
-            href={`/signup?role=${selectedRole || "business"}`}
-            className={`px-7 py-3 sm:px-10 sm:py-3.5 rounded-full text-xs sm:text-base font-bold text-white shadow-lg transition-all active:scale-95 inline-flex items-center gap-2 ${
-              selectedRole === "customer"
-                ? "bg-teal-600 hover:bg-teal-700"
-                : "bg-orange-600 hover:bg-orange-700"
-            }`}
-          >
-            <span>Create My Account</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <div className="mt-2.5">
-            <span className="text-xs text-slate-500">
-              Already have an account?{" "}
-              <Link href={`/login?role=${selectedRole || "business"}`} className="text-orange-600 font-bold hover:underline">
-                Log in
-              </Link>
-            </span>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+            <a
+              href={process.env.NEXT_PUBLIC_CHS_URL || "https://centralhubsolution.com"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`w-full sm:w-auto px-7 py-3 sm:px-9 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold text-white shadow-lg transition-all active:scale-95 inline-flex items-center justify-center gap-2 ${
+                selectedRole === "customer"
+                  ? "bg-teal-600 hover:bg-teal-700"
+                  : "bg-orange-600 hover:bg-orange-700"
+              }`}
+            >
+              <span>Continue to Central Hub Solution (CHS)</span>
+              <ArrowRight className="w-4 h-4" />
+            </a>
+            <Link
+              href={`/login?role=${selectedRole || "business"}`}
+              className="w-full sm:w-auto px-6 py-3 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold text-slate-700 bg-white border border-slate-200 hover:border-orange-300 hover:text-orange-600 transition-all inline-flex items-center justify-center gap-2"
+            >
+              <span>Demo Sign In</span>
+            </Link>
           </div>
+          <p className="mt-2.5 text-[11px] sm:text-xs text-slate-500">
+            Account registration and business verification are handled centrally on CHS.
+          </p>
         </div>
       </div>
     </>
